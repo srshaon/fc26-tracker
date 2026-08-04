@@ -54,7 +54,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, collection, getDocs, query, where, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, getDocs, query, where, doc, updateDoc, setDoc, increment, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDp6Gyu5Se4uusmDR-qUi7HObPUvcLt32E",
@@ -130,6 +130,62 @@
     saveBtn.style.display = "inline-block";
   });
 
+  async function bumpPlayer(playerId, fields) {
+    const ref = doc(db, "players", playerId);
+    const updates = {};
+    Object.keys(fields).forEach(k => { updates[k] = increment(fields[k]); });
+    try {
+      await updateDoc(ref, updates);
+    } catch (error) {
+      // If the field doesn't exist yet, increment() still creates it starting from 0.
+      console.error("Stat update failed for player " + playerId, error);
+    }
+  }
+
+  async function updatePlayerStats(data, s1, s2) {
+    if (data.format === "single") {
+      const p1 = data.participants[0];
+      const p2 = data.participants[1];
+      if (p1.type === "pool") {
+        await bumpPlayer(p1.id, {
+          singleMatchesPlayed: 1,
+          singleGoalsFor: s1,
+          singleGoalsAgainst: s2,
+          singleWins: s1 > s2 ? 1 : 0,
+          singleLosses: s1 < s2 ? 1 : 0,
+          singleTournamentsPlayed: 1,
+          singleChampionships: s1 > s2 ? 1 : 0,
+          singleRunnerUps: s1 < s2 ? 1 : 0
+        });
+      }
+      if (p2.type === "pool") {
+        await bumpPlayer(p2.id, {
+          singleMatchesPlayed: 1,
+          singleGoalsFor: s2,
+          singleGoalsAgainst: s1,
+          singleWins: s2 > s1 ? 1 : 0,
+          singleLosses: s2 < s1 ? 1 : 0,
+          singleTournamentsPlayed: 1,
+          singleChampionships: s2 > s1 ? 1 : 0,
+          singleRunnerUps: s2 < s1 ? 1 : 0
+        });
+      }
+    } else if (data.format === "tagteam") {
+      const winningTeam = s1 > s2 ? data.teams[0] : data.teams[1];
+      const losingTeam = s1 > s2 ? data.teams[1] : data.teams[0];
+      for (const m of winningTeam.members) {
+        if (m.type === "pool") {
+          await bumpPlayer(m.id, { tagTeamTournamentsPlayed: 1, tagTeamFinalWins: 1 });
+        }
+      }
+      for (const m of losingTeam.members) {
+        if (m.type === "pool") {
+          await bumpPlayer(m.id, { tagTeamTournamentsPlayed: 1, tagTeamFinalLosses: 1 });
+        }
+      }
+    }
+  }
+
   saveBtn.addEventListener("click", async () => {
     const tournamentId = tournamentSelect.value;
     const data = tournamentsData[tournamentId];
@@ -166,6 +222,17 @@
         runnerUp: runnerUpName,
         updatedAt: Date.now()
       });
+
+      await setDoc(doc(db, "resultsTable", tournamentId), {
+        format: data.format,
+        subMode: data.subMode || null,
+        tournamentName: data.name,
+        winner: winnerName,
+        runnerUp: runnerUpName,
+        completedAt: Date.now()
+      });
+
+      await updatePlayerStats(data, s1, s2);
 
       winnerBanner.textContent = winnerName + " wins!";
       winnerBanner.style.display = "block";

@@ -148,10 +148,12 @@
         li.appendChild(fallback);
       }
 
-      const nameSpan = document.createElement("span");
-      nameSpan.className = "player-name";
-      nameSpan.textContent = player.name;
-      li.appendChild(nameSpan);
+      const nameLink = document.createElement("a");
+      nameLink.className = "player-name";
+      nameLink.href = "player-profile.html?id=" + doc.id;
+      nameLink.style.color = "#222";
+      nameLink.textContent = player.name;
+      li.appendChild(nameLink);
 
       listEl.appendChild(li);
     });
