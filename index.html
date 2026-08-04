@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FC26 Tracker - Connection Test</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 500px;
+    margin: 60px auto;
+    padding: 0 20px;
+    color: #222;
+  }
+  h1 {
+    font-size: 22px;
+  }
+  button {
+    padding: 10px 16px;
+    font-size: 15px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  #status {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #555;
+  }
+  ul {
+    margin-top: 20px;
+    padding-left: 20px;
+  }
+</style>
+</head>
+<body>
+
+<h1>FC26 Tracker - connection test</h1>
+<p>Click the button below. If it works, your message will be saved to Firebase and show up in the list instantly.</p>
+
+<button id="sendBtn">Send test message</button>
+
+<p id="status">Not connected yet.</p>
+
+<ul id="messageList"></ul>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    onSnapshot,
+    orderBy,
+    query
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDp6Gyu5Se4uusmDR-qUi7HObPUvcLt32E",
+    authDomain: "fcps5-tracker.firebaseapp.com",
+    projectId: "fcps5-tracker",
+    storageBucket: "fcps5-tracker.firebasestorage.app",
+    messagingSenderId: "665004331085",
+    appId: "1:665004331085:web:465607725bfda0068f8c04",
+    measurementId: "G-DF7DCZ717Z"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const statusEl = document.getElementById("status");
+  const listEl = document.getElementById("messageList");
+  const btn = document.getElementById("sendBtn");
+
+  statusEl.textContent = "Connected to Firebase. Listening for messages...";
+
+  const q = query(collection(db, "testMessages"), orderBy("createdAt", "desc"));
+
+  onSnapshot(q, (snapshot) => {
+    listEl.innerHTML = "";
+    snapshot.forEach((doc) => {
+      const li = document.createElement("li");
+      li.textContent = doc.data().text;
+      listEl.appendChild(li);
+    });
+  }, (error) => {
+    statusEl.textContent = "Connection error: " + error.message;
+  });
+
+  btn.addEventListener("click", async () => {
+    try {
+      await addDoc(collection(db, "testMessages"), {
+        text: "Test message sent at " + new Date().toLocaleTimeString(),
+        createdAt: Date.now()
+      });
+      statusEl.textContent = "Message sent successfully.";
+    } catch (error) {
+      statusEl.textContent = "Failed to send: " + error.message;
+    }
+  });
+</script>
+
+</body>
+</html>
