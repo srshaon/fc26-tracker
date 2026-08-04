@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FC26 Tracker - Correct final score</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; padding: 0 20px; color: #222; text-align: center; }
+  h1 { font-size: 22px; }
+  select { padding: 8px; font-size: 15px; width: 100%; margin-top: 10px; text-align: left; }
+  .matchbox { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 30px; }
+  .matchbox span.name { font-size: 16px; font-weight: bold; width: 150px; }
+  .matchbox input { width: 60px; padding: 8px; font-size: 18px; text-align: center; }
+  #saveBtn { margin-top: 24px; padding: 10px 16px; font-size: 15px; cursor: pointer; }
+  #status, #gateStatus { font-size: 13px; color: #555; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<h1>Correct a final score</h1>
+<p id="gateStatus"></p>
+
+<div id="content" style="display:none;">
+  <p style="font-size:13px; color:#a15c00;">Only use this to fix a mistake. This will recalculate all affected player stats.</p>
+  <select id="tournamentSelect"></select>
+
+  <div class="matchbox" id="matchbox" style="display:none;">
+    <span class="name" id="name1"></span>
+    <input type="number" id="score1" min="0" step="1">
+    <span>-</span>
+    <input type="number" id="score2" min="0" step="1">
+    <span class="name" id="name2"></span>
+  </div>
+
+  <button id="saveBtn" style="display:none;">Save corrected score</button>
+  <p id="status"></p>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, getDocs, query, where, doc, updateDoc, setDoc, getDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDp6Gyu5Se4uusmDR-qUi7HObPUvcLt32E",
+    authDomain: "fcps5-tracker.firebaseapp.com",
+    projectId: "fcps5-tracker",
+    storageBucket: "fcps5-tracker.firebasestorage.app",
+    messagingSenderId: "665004331085",
+    appId: "1:665004331085:web:465607725bfda0068f8c04",
+    measurementId: "G-DF7DCZ717Z"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const gateStatus = document.getElementById("gateStatus");
+  const content = document.getElementById("content");
+  const tournamentSelect = document.getElementById("tournamentSelect");
+  const matchbox = document.getElementById("matchbox");
+  const saveBtn = document.getElementById("saveBtn");
+  const statusEl = document.getElementById("status");
+
+  let tournamentsData = {};
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      gateStatus.textContent = "You must be logged in. Go to login.html first.";
+      return;
+    }
+    const usernamePart = user.email.split("@")[0];
+    const selfSnap = await getDoc(doc(db, "admins", usernamePart));
+    if (!selfSnap.exists() || selfSnap.data().isMaster !== true) {
+      gateStatus.textContent = "Only the master admin can correct finalized scores.";
+      return;
+    }
+    gateStatus.textContent = "";
+    content.style.display = "block";
+    await loadTournaments();
+  });
+
+  async function loadTournaments() {
+    const q = query(collection(db, "tournaments"), where("status", "==", "completed"));
+    const snap = await getDocs(q);
+    tournamentSelect.innerHTML = '<option value="">-- choose a tournament --</option>';
+    tournamentsData = {};
+    snap.forEach((d) => {
+      const data = d.data();
+      tournamentsData[d.id] = data;
+      const opt = document.createElement("option");
+      opt.value = d.id;
+      opt.textContent = data.name;
+      tournamentSelect.appendChild(opt);
+    });
+  }
+
+  tournamentSelect.addEventListener("change", () => {
+    const data = tournamentsData[tournamentSelect.value];
+    if (!data) { matchbox.style.display = "none"; saveBtn.style.display = "none"; return; }
+    const side1 = data.teams ? data.teams[0].teamName : data.participants[0].name;
+    const side2 = data.teams ? data.teams[1].teamName : data.participants[1].name;
+    document.getElementById("name1").textContent = side1;
+    document.getElementById("name2").textContent = side2;
+    document.getElementById("score1").value = data.finalScore.side1;
+    document.getElementById("score2").value = data.finalScore.side2;
+    matchbox.style.display = "flex";
+    saveBtn.style.display = "inline-block";
+  });
+
+  async function bump(playerId, fields) {
+    const updates = {};
+    Object.keys(fields).forEach(k => { updates[k] = increment(fields[k]); });
+    await updateDoc(doc(db, "players", playerId), updates);
+  }
+
+  function statDeltas(data, s1, s2, sign) {
+    const deltas = [];
+    if (data.format === "single") {
+      const p1 = data.participants[0], p2 = data.participants[1];
+      if (p1.type === "pool") deltas.push([p1.id, {
+        singleMatchesPlayed: sign, singleGoalsFor: sign * s1, singleGoalsAgainst: sign * s2,
+        singleWins: sign * (s1 > s2 ? 1 : 0), singleLosses: sign * (s1 < s2 ? 1 : 0),
+        singleTournamentsPlayed: sign, singleChampionships: sign * (s1 > s2 ? 1 : 0), singleRunnerUps: sign * (s1 < s2 ? 1 : 0)
+      }]);
+      if (p2.type === "pool") deltas.push([p2.id, {
+        singleMatchesPlayed: sign, singleGoalsFor: sign * s2, singleGoalsAgainst: sign * s1,
+        singleWins: sign * (s2 > s1 ? 1 : 0), singleLosses: sign * (s2 < s1 ? 1 : 0),
+        singleTournamentsPlayed: sign, singleChampionships: sign * (s2 > s1 ? 1 : 0), singleRunnerUps: sign * (s2 < s1 ? 1 : 0)
+      }]);
+    } else if (data.format === "tagteam") {
+      const winningTeam = s1 > s2 ? data.teams[0] : data.teams[1];
+      const losingTeam = s1 > s2 ? data.teams[1] : data.teams[0];
+      winningTeam.members.forEach(m => { if (m.type === "pool") deltas.push([m.id, { tagTeamTournamentsPlayed: sign, tagTeamFinalWins: sign }]); });
+      losingTeam.members.forEach(m => { if (m.type === "pool") deltas.push([m.id, { tagTeamTournamentsPlayed: sign, tagTeamFinalLosses: sign }]); });
+    }
+    return deltas;
+  }
+
+  saveBtn.addEventListener("click", async () => {
+    const tournamentId = tournamentSelect.value;
+    const data = tournamentsData[tournamentId];
+    if (!data) return;
+
+    const newS1 = parseInt(document.getElementById("score1").value, 10);
+    const newS2 = parseInt(document.getElementById("score2").value, 10);
+    if (isNaN(newS1) || isNaN(newS2) || newS1 < 0 || newS2 < 0 || newS1 === newS2) {
+      statusEl.textContent = "Enter valid, non-tied scores.";
+      return;
+    }
+
+    try {
+      const oldS1 = data.finalScore.side1, oldS2 = data.finalScore.side2;
+      const reversals = statDeltas(data, oldS1, oldS2, -1);
+      for (const [id, fields] of reversals) await bump(id, fields);
+
+      const applications = statDeltas(data, newS1, newS2, 1);
+      for (const [id, fields] of applications) await bump(id, fields);
+
+      const side1 = data.teams ? data.teams[0].teamName : data.participants[0].name;
+      const side2 = data.teams ? data.teams[1].teamName : data.participants[1].name;
+      const winnerName = newS1 > newS2 ? side1 : side2;
+      const runnerUpName = newS1 > newS2 ? side2 : side1;
+
+      await updateDoc(doc(db, "tournaments", tournamentId), {
+        finalScore: { side1: newS1, side2: newS2 },
+        winner: winnerName,
+        runnerUp: runnerUpName
+      });
+      await setDoc(doc(db, "resultsTable", tournamentId), {
+        format: data.format, subMode: data.subMode || null, tournamentName: data.name,
+        winner: winnerName, runnerUp: runnerUpName, completedAt: Date.now()
+      });
+      await setDoc(doc(db, "champions", data.format + "_" + (data.subMode || "none")), {
+        tournamentName: data.name, winner: winnerName, runnerUp: runnerUpName, updatedAt: Date.now()
+      });
+
+      statusEl.textContent = "Score corrected and stats recalculated.";
+    } catch (error) {
+      statusEl.textContent = "Failed: " + error.message;
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FC26 Tracker - All admins</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; padding: 0 20px; color: #222; }
+  h1 { font-size: 22px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 14px; }
+  th, td { text-align: left; padding: 8px; border-bottom: 1px solid #eee; }
+  th { color: #777; font-weight: normal; }
+  button { padding: 6px 10px; font-size: 13px; cursor: pointer; }
+  .status-active { color: #1a6b34; }
+  .status-disabled { color: #a33; }
+  #gateStatus { font-size: 13px; color: #a15c00; }
+</style>
+</head>
+<body>
+
+<h1>All admins</h1>
+<p id="gateStatus"></p>
+
+<table id="adminTable" style="display:none;">
+  <thead><tr><th>Username</th><th>Status</th><th></th></tr></thead>
+  <tbody id="adminBody"></tbody>
+</table>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDp6Gyu5Se4uusmDR-qUi7HObPUvcLt32E",
+    authDomain: "fcps5-tracker.firebaseapp.com",
+    projectId: "fcps5-tracker",
+    storageBucket: "fcps5-tracker.firebasestorage.app",
+    messagingSenderId: "665004331085",
+    appId: "1:665004331085:web:465607725bfda0068f8c04",
+    measurementId: "G-DF7DCZ717Z"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const gateStatus = document.getElementById("gateStatus");
+  const adminTable = document.getElementById("adminTable");
+  const adminBody = document.getElementById("adminBody");
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      gateStatus.textContent = "You must be logged in. Go to login.html first.";
+      return;
+    }
+    const usernamePart = user.email.split("@")[0];
+    const selfSnap = await getDoc(doc(db, "admins", usernamePart));
+    if (!selfSnap.exists() || selfSnap.data().isMaster !== true) {
+      gateStatus.textContent = "Only the master admin can view this page.";
+      return;
+    }
+    gateStatus.textContent = "";
+    adminTable.style.display = "table";
+    loadAdmins();
+  });
+
+  async function loadAdmins() {
+    const snap = await getDocs(collection(db, "admins"));
+    adminBody.innerHTML = "";
+    snap.forEach((d) => {
+      const a = d.data();
+      const row = document.createElement("tr");
+      const active = a.active !== false;
+      row.innerHTML =
+        "<td>" + a.username + (a.isMaster ? " (master)" : "") + "</td>" +
+        "<td class='" + (active ? "status-active" : "status-disabled") + "'>" + (active ? "Active" : "Disabled") + "</td>" +
+        "<td></td>";
+      if (!a.isMaster) {
+        const btn = document.createElement("button");
+        btn.textContent = active ? "Disable" : "Enable";
+        btn.addEventListener("click", async () => {
+          await updateDoc(doc(db, "admins", d.id), { active: !active });
+          loadAdmins();
+        });
+        row.children[2].appendChild(btn);
+      }
+      adminBody.appendChild(row);
+    });
+  }
+</script>
+
+</body>
+</html>

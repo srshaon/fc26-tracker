@@ -74,6 +74,7 @@
     signOut,
     onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDp6Gyu5Se4uusmDR-qUi7HObPUvcLt32E",
@@ -87,6 +88,7 @@
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
+  const db = getFirestore(app);
 
   const form = document.getElementById("loginForm");
   const usernameInput = document.getElementById("usernameInput");
@@ -124,11 +126,28 @@
     await signOut(auth);
   });
 
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
     if (user) {
+      const usernamePart = user.email.split("@")[0];
+      const adminRef = doc(db, "admins", usernamePart);
+      const adminSnap = await getDoc(adminRef);
+
+      if (!adminSnap.exists()) {
+        // First-time bootstrap: shaon is always the master admin.
+        await setDoc(adminRef, {
+          username: usernamePart.toUpperCase(),
+          active: true,
+          isMaster: usernamePart === "shaon",
+          createdAt: Date.now()
+        });
+      } else if (adminSnap.data().active === false) {
+        statusEl.textContent = "This admin account has been disabled.";
+        await signOut(auth);
+        return;
+      }
+
       form.style.display = "none";
       loggedInBox.style.display = "block";
-      const usernamePart = user.email.split("@")[0];
       loggedInName.textContent = usernamePart.toUpperCase();
     } else {
       form.style.display = "flex";

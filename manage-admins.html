@@ -81,6 +81,7 @@
     createUserWithEmailAndPassword,
     signOut
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDp6Gyu5Se4uusmDR-qUi7HObPUvcLt32E",
@@ -95,6 +96,7 @@
   // Main app: used to check who is currently logged in.
   const mainApp = initializeApp(firebaseConfig);
   const mainAuth = getAuth(mainApp);
+  const db = getFirestore(mainApp);
 
   const gate = document.getElementById("gate");
   const gateStatus = document.getElementById("gateStatus");
@@ -138,6 +140,12 @@
     try {
       await createUserWithEmailAndPassword(tempAuth, usernameToEmail(newUsername), newPassword);
       await signOut(tempAuth);
+      await setDoc(doc(db, "admins", newUsername.toLowerCase()), {
+        username: newUsername.toUpperCase(),
+        active: true,
+        isMaster: false,
+        createdAt: Date.now()
+      });
       statusEl.textContent = "Admin \"" + newUsername.toUpperCase() + "\" created successfully.";
       form.reset();
     } catch (error) {

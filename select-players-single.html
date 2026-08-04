@@ -45,7 +45,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, collection, getDocs, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, getDocs, query, where, doc, updateDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDp6Gyu5Se4uusmDR-qUi7HObPUvcLt32E",
@@ -139,11 +139,22 @@
     renderChips();
   });
 
-  document.getElementById("addGuestBtn").addEventListener("click", () => {
+  async function nextGuestLabel() {
+    const counterRef = doc(db, "counters", "guestPlayers");
+    const next = await runTransaction(db, async (tx) => {
+      const snap = await tx.get(counterRef);
+      const current = snap.exists() ? snap.data().count : 0;
+      const updated = current + 1;
+      tx.set(counterRef, { count: updated });
+      return updated;
+    });
+    return "GUEST PLAYER " + String(next).padStart(2, "0");
+  }
+
+  document.getElementById("addGuestBtn").addEventListener("click", async () => {
     const input = document.getElementById("guestNameInput");
     const typed = input.value.trim();
-    guestCounter += 1;
-    const label = typed ? typed.toUpperCase() : "GUEST PLAYER " + String(guestCounter).padStart(2, "0");
+    const label = typed ? typed.toUpperCase() : await nextGuestLabel();
     participants.push({ type: "guest", name: label, id: null });
     input.value = "";
     renderChips();
