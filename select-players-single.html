@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FC26 Tracker - Select players</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 550px; margin: 50px auto; padding: 0 20px; color: #222; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 15px; margin-top: 20px; color: #444; }
+  select { padding: 8px; font-size: 15px; width: 100%; margin-top: 6px; }
+  .chip-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .chip { background: #eee; padding: 6px 10px; border-radius: 16px; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+  .chip button { border: none; background: none; cursor: pointer; font-size: 13px; }
+  .guest-row { display: flex; gap: 8px; margin-top: 10px; }
+  .guest-row input { flex: 1; padding: 8px; font-size: 15px; }
+  .guest-row button { padding: 8px 12px; cursor: pointer; }
+  #saveBtn { margin-top: 24px; padding: 10px 16px; font-size: 15px; cursor: pointer; }
+  #status, #gateStatus { font-size: 13px; color: #555; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<h1>Select players</h1>
+<p id="gateStatus"></p>
+
+<div id="content" style="display:none;">
+  <h2>Choose tournament (draft, single player)</h2>
+  <select id="tournamentSelect"></select>
+
+  <h2>Add from player pool</h2>
+  <select id="poolSelect"></select>
+  <div class="chip-list" id="selectedList"></div>
+
+  <h2>Add guest players</h2>
+  <div class="guest-row">
+    <input type="text" id="guestNameInput" placeholder="Guest name">
+    <button id="addGuestBtn">Add guest</button>
+  </div>
+
+  <button id="saveBtn">Save participants</button>
+  <p id="status"></p>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, getDocs, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDp6Gyu5Se4uusmDR-qUi7HObPUvcLt32E",
+    authDomain: "fcps5-tracker.firebaseapp.com",
+    projectId: "fcps5-tracker",
+    storageBucket: "fcps5-tracker.firebasestorage.app",
+    messagingSenderId: "665004331085",
+    appId: "1:665004331085:web:465607725bfda0068f8c04",
+    measurementId: "G-DF7DCZ717Z"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const gateStatus = document.getElementById("gateStatus");
+  const content = document.getElementById("content");
+  const tournamentSelect = document.getElementById("tournamentSelect");
+  const poolSelect = document.getElementById("poolSelect");
+  const selectedList = document.getElementById("selectedList");
+  const statusEl = document.getElementById("status");
+
+  let participants = []; // { type: "pool" | "guest", name: string, id: string|null }
+  let guestCounter = 0;
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      gateStatus.textContent = "You must be logged in as an admin. Go to login.html first.";
+      content.style.display = "none";
+      return;
+    }
+    gateStatus.textContent = "";
+    content.style.display = "block";
+    await loadTournaments();
+    await loadPool();
+  });
+
+  async function loadTournaments() {
+    const q = query(collection(db, "tournaments"), where("format", "==", "single"), where("status", "==", "draft"));
+    const snap = await getDocs(q);
+    tournamentSelect.innerHTML = "";
+    snap.forEach((d) => {
+      const opt = document.createElement("option");
+      opt.value = d.id;
+      opt.textContent = d.data().name;
+      tournamentSelect.appendChild(opt);
+    });
+    if (snap.empty) {
+      tournamentSelect.innerHTML = '<option value="">No draft single-player tournaments found</option>';
+    }
+  }
+
+  async function loadPool() {
+    const snap = await getDocs(collection(db, "players"));
+    poolSelect.innerHTML = '<option value="">-- choose a player to add --</option>';
+    snap.forEach((d) => {
+      const opt = document.createElement("option");
+      opt.value = d.id;
+      opt.textContent = d.data().name;
+      opt.dataset.name = d.data().name;
+      poolSelect.appendChild(opt);
+    });
+  }
+
+  function renderChips() {
+    selectedList.innerHTML = "";
+    participants.forEach((p, idx) => {
+      const chip = document.createElement("div");
+      chip.className = "chip";
+      chip.innerHTML = "<span>" + p.name + (p.type === "guest" ? " (guest)" : "") + "</span>";
+      const removeBtn = document.createElement("button");
+      removeBtn.textContent = "x";
+      removeBtn.addEventListener("click", () => {
+        participants.splice(idx, 1);
+        renderChips();
+      });
+      chip.appendChild(removeBtn);
+      selectedList.appendChild(chip);
+    });
+  }
+
+  poolSelect.addEventListener("change", () => {
+    const opt = poolSelect.options[poolSelect.selectedIndex];
+    if (!opt.value) return;
+    if (participants.find(p => p.id === opt.value)) {
+      poolSelect.value = "";
+      return;
+    }
+    participants.push({ type: "pool", name: opt.dataset.name, id: opt.value });
+    poolSelect.value = "";
+    renderChips();
+  });
+
+  document.getElementById("addGuestBtn").addEventListener("click", () => {
+    const input = document.getElementById("guestNameInput");
+    const typed = input.value.trim();
+    guestCounter += 1;
+    const label = typed ? typed.toUpperCase() : "GUEST PLAYER " + String(guestCounter).padStart(2, "0");
+    participants.push({ type: "guest", name: label, id: null });
+    input.value = "";
+    renderChips();
+  });
+
+  document.getElementById("saveBtn").addEventListener("click", async () => {
+    const tournamentId = tournamentSelect.value;
+    if (!tournamentId) {
+      statusEl.textContent = "Choose a tournament first.";
+      return;
+    }
+    if (participants.length < 2) {
+      statusEl.textContent = "Add at least 2 participants.";
+      return;
+    }
+    try {
+      await updateDoc(doc(db, "tournaments", tournamentId), {
+        participants: participants,
+        status: "ready"
+      });
+      statusEl.textContent = "Saved. This tournament is now ready for matches.";
+    } catch (error) {
+      statusEl.textContent = "Failed to save: " + error.message;
+    }
+  });
+</script>
+
+</body>
+</html>

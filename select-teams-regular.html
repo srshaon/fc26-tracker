@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FC26 Tracker - Assign teams (regular controller)</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 0 20px; color: #222; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 15px; margin-top: 20px; color: #444; }
+  select { padding: 8px; font-size: 15px; width: 100%; margin-top: 6px; }
+  .teams { display: flex; gap: 16px; margin-top: 10px; }
+  .team-box { flex: 1; border: 1px solid #ddd; border-radius: 6px; padding: 10px; }
+  .team-box h3 { font-size: 13px; margin: 0 0 8px; color: #555; }
+  .chip-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip { background: #eee; padding: 5px 8px; border-radius: 14px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+  .chip button { border: none; background: none; cursor: pointer; font-size: 12px; }
+  .guest-row { display: flex; gap: 6px; margin-top: 8px; }
+  .guest-row input { flex: 1; padding: 6px; font-size: 13px; }
+  .guest-row button { padding: 6px 10px; cursor: pointer; font-size: 12px; }
+  #saveBtn { margin-top: 24px; padding: 10px 16px; font-size: 15px; cursor: pointer; }
+  #status, #gateStatus { font-size: 13px; color: #555; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<h1>Assign teams - regular controller</h1>
+<p id="gateStatus"></p>
+
+<div id="content" style="display:none;">
+  <h2>Choose tournament (draft, tag-team regular controller)</h2>
+  <select id="tournamentSelect"></select>
+  <p id="sizeInfo" style="font-size:13px; color:#555;"></p>
+
+  <div class="teams">
+    <div class="team-box">
+      <h3>Team 1</h3>
+      <select class="poolSelect" data-team="0"></select>
+      <div class="chip-list" data-team="0"></div>
+      <div class="guest-row">
+        <input type="text" class="guestInput" data-team="0" placeholder="Guest name">
+        <button class="addGuestBtn" data-team="0">Add</button>
+      </div>
+    </div>
+    <div class="team-box">
+      <h3>Team 2</h3>
+      <select class="poolSelect" data-team="1"></select>
+      <div class="chip-list" data-team="1"></div>
+      <div class="guest-row">
+        <input type="text" class="guestInput" data-team="1" placeholder="Guest name">
+        <button class="addGuestBtn" data-team="1">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <button id="saveBtn">Save teams</button>
+  <p id="status"></p>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, getDocs, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDp6Gyu5Se4uusmDR-qUi7HObPUvcLt32E",
+    authDomain: "fcps5-tracker.firebaseapp.com",
+    projectId: "fcps5-tracker",
+    storageBucket: "fcps5-tracker.firebasestorage.app",
+    messagingSenderId: "665004331085",
+    appId: "1:665004331085:web:465607725bfda0068f8c04",
+    measurementId: "G-DF7DCZ717Z"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const gateStatus = document.getElementById("gateStatus");
+  const content = document.getElementById("content");
+  const tournamentSelect = document.getElementById("tournamentSelect");
+  const sizeInfo = document.getElementById("sizeInfo");
+  const statusEl = document.getElementById("status");
+  const poolSelects = document.querySelectorAll(".poolSelect");
+  const chipLists = document.querySelectorAll(".chip-list");
+
+  let teamSize = null;
+  let teams = [[], []]; // each item: { type, name, id }
+  let guestCounter = 0;
+  let poolPlayers = [];
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      gateStatus.textContent = "You must be logged in as an admin. Go to login.html first.";
+      content.style.display = "none";
+      return;
+    }
+    gateStatus.textContent = "";
+    content.style.display = "block";
+    await loadTournaments();
+    await loadPool();
+  });
+
+  async function loadTournaments() {
+    const q = query(collection(db, "tournaments"),
+      where("format", "==", "tagteam"),
+      where("subMode", "==", "regular"),
+      where("status", "==", "draft"));
+    const snap = await getDocs(q);
+    tournamentSelect.innerHTML = "";
+    snap.forEach((d) => {
+      const opt = document.createElement("option");
+      opt.value = d.id;
+      opt.textContent = d.data().name;
+      opt.dataset.teamSize = d.data().teamSize;
+      tournamentSelect.appendChild(opt);
+    });
+    if (snap.empty) {
+      tournamentSelect.innerHTML = '<option value="">No draft tournaments found</option>';
+    } else {
+      updateSizeInfo();
+    }
+  }
+
+  function updateSizeInfo() {
+    const opt = tournamentSelect.options[tournamentSelect.selectedIndex];
+    teamSize = opt ? parseInt(opt.dataset.teamSize, 10) : null;
+    sizeInfo.textContent = teamSize ? "Each team needs exactly " + teamSize + " member(s)." : "";
+  }
+  tournamentSelect.addEventListener("change", updateSizeInfo);
+
+  async function loadPool() {
+    const snap = await getDocs(collection(db, "players"));
+    poolPlayers = [];
+    snap.forEach((d) => poolPlayers.push({ id: d.id, name: d.data().name }));
+    poolSelects.forEach(sel => {
+      sel.innerHTML = '<option value="">-- add player --</option>';
+      poolPlayers.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = p.name;
+        opt.dataset.name = p.name;
+        sel.appendChild(opt);
+      });
+    });
+  }
+
+  function isPlayerUsed(id) {
+    return teams[0].some(m => m.id === id) || teams[1].some(m => m.id === id);
+  }
+
+  function renderChips(teamIdx) {
+    const list = document.querySelector('.chip-list[data-team="' + teamIdx + '"]');
+    list.innerHTML = "";
+    teams[teamIdx].forEach((m, idx) => {
+      const chip = document.createElement("div");
+      chip.className = "chip";
+      chip.innerHTML = "<span>" + m.name + (m.type === "guest" ? " (guest)" : "") + "</span>";
+      const btn = document.createElement("button");
+      btn.textContent = "x";
+      btn.addEventListener("click", () => {
+        teams[teamIdx].splice(idx, 1);
+        renderChips(teamIdx);
+      });
+      chip.appendChild(btn);
+      list.appendChild(chip);
+    });
+  }
+
+  poolSelects.forEach(sel => {
+    sel.addEventListener("change", () => {
+      const teamIdx = parseInt(sel.dataset.team, 10);
+      const opt = sel.options[sel.selectedIndex];
+      if (!opt.value) return;
+      if (isPlayerUsed(opt.value)) {
+        statusEl.textContent = "That player is already on a team.";
+        sel.value = "";
+        return;
+      }
+      if (teamSize && teams[teamIdx].length >= teamSize) {
+        statusEl.textContent = "Team " + (teamIdx + 1) + " already has " + teamSize + " member(s).";
+        sel.value = "";
+        return;
+      }
+      teams[teamIdx].push({ type: "pool", name: opt.dataset.name, id: opt.value });
+      sel.value = "";
+      statusEl.textContent = "";
+      renderChips(teamIdx);
+    });
+  });
+
+  document.querySelectorAll(".addGuestBtn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const teamIdx = parseInt(btn.dataset.team, 10);
+      const input = document.querySelector('.guestInput[data-team="' + teamIdx + '"]');
+      if (teamSize && teams[teamIdx].length >= teamSize) {
+        statusEl.textContent = "Team " + (teamIdx + 1) + " already has " + teamSize + " member(s).";
+        return;
+      }
+      const typed = input.value.trim();
+      guestCounter += 1;
+      const label = typed ? typed.toUpperCase() : "GUEST PLAYER " + String(guestCounter).padStart(2, "0");
+      teams[teamIdx].push({ type: "guest", name: label, id: null });
+      input.value = "";
+      renderChips(teamIdx);
+    });
+  });
+
+  document.getElementById("saveBtn").addEventListener("click", async () => {
+    const tournamentId = tournamentSelect.value;
+    if (!tournamentId) {
+      statusEl.textContent = "Choose a tournament first.";
+      return;
+    }
+    if (!teamSize || teams[0].length !== teamSize || teams[1].length !== teamSize) {
+      statusEl.textContent = "Both teams must have exactly " + teamSize + " member(s).";
+      return;
+    }
+    const teamData = teams.map(t => ({
+      members: t,
+      teamName: t.map(m => m.name).join(" & ")
+    }));
+    try {
+      await updateDoc(doc(db, "tournaments", tournamentId), {
+        teams: teamData,
+        status: "ready"
+      });
+      statusEl.textContent = "Saved. This tournament is now ready for its match.";
+    } catch (error) {
+      statusEl.textContent = "Failed to save: " + error.message;
+    }
+  });
+</script>
+
+</body>
+</html>
