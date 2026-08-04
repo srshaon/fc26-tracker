@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FC26 Tracker - Player Pool</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 0 20px;
+    color: #222;
+  }
+  h1 {
+    font-size: 22px;
+  }
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 20px 0;
+    padding: 16px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+  }
+  label {
+    font-size: 13px;
+    color: #555;
+  }
+  input {
+    padding: 8px;
+    font-size: 15px;
+  }
+  button {
+    padding: 10px 16px;
+    font-size: 15px;
+    cursor: pointer;
+    width: fit-content;
+  }
+  #status {
+    font-size: 13px;
+    color: #555;
+    min-height: 18px;
+  }
+  .player-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+  }
+  .player-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+  }
+  .player-row img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #eee;
+  }
+  .player-row .avatar-fallback {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: #555;
+  }
+  .player-name {
+    font-size: 15px;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+
+<h1>Player pool</h1>
+<p>Add players here. Name is required, image is optional.</p>
+
+<form id="playerForm">
+  <label for="nameInput">Player name</label>
+  <input type="text" id="nameInput" placeholder="Enter player name" required>
+
+  <label for="imageInput">Image URL (optional)</label>
+  <input type="url" id="imageInput" placeholder="https://example.com/photo.jpg">
+
+  <button type="submit">Add player</button>
+  <p id="status"></p>
+</form>
+
+<ul class="player-list" id="playerList"></ul>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    onSnapshot,
+    orderBy,
+    query
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDp6Gyu5Se4uusmDR-qUi7HObPUvcLt32E",
+    authDomain: "fcps5-tracker.firebaseapp.com",
+    projectId: "fcps5-tracker",
+    storageBucket: "fcps5-tracker.firebasestorage.app",
+    messagingSenderId: "665004331085",
+    appId: "1:665004331085:web:465607725bfda0068f8c04",
+    measurementId: "G-DF7DCZ717Z"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const form = document.getElementById("playerForm");
+  const nameInput = document.getElementById("nameInput");
+  const imageInput = document.getElementById("imageInput");
+  const statusEl = document.getElementById("status");
+  const listEl = document.getElementById("playerList");
+
+  const playersQuery = query(collection(db, "players"), orderBy("name"));
+
+  onSnapshot(playersQuery, (snapshot) => {
+    listEl.innerHTML = "";
+    snapshot.forEach((doc) => {
+      const player = doc.data();
+      const li = document.createElement("li");
+      li.className = "player-row";
+
+      if (player.imageUrl) {
+        const img = document.createElement("img");
+        img.src = player.imageUrl;
+        img.alt = player.name;
+        li.appendChild(img);
+      } else {
+        const fallback = document.createElement("div");
+        fallback.className = "avatar-fallback";
+        fallback.textContent = player.name.charAt(0);
+        li.appendChild(fallback);
+      }
+
+      const nameLink = document.createElement("a");
+      nameLink.className = "player-name";
+      nameLink.href = "player-profile.html?id=" + doc.id;
+      nameLink.style.color = "#222";
+      nameLink.textContent = player.name;
+      li.appendChild(nameLink);
+
+      listEl.appendChild(li);
+    });
+  }, (error) => {
+    statusEl.textContent = "Error loading players: " + error.message;
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const rawName = nameInput.value.trim();
+    const imageUrl = imageInput.value.trim();
+
+    if (!rawName) {
+      statusEl.textContent = "Name is required.";
+      return;
+    }
+
+    const name = rawName.toUpperCase();
+
+    try {
+      await addDoc(collection(db, "players"), {
+        name: name,
+        imageUrl: imageUrl || null,
+        createdAt: Date.now()
+      });
+      statusEl.textContent = "Player added.";
+      nameInput.value = "";
+      imageInput.value = "";
+    } catch (error) {
+      statusEl.textContent = "Failed to add player: " + error.message;
+    }
+  });
+</script>
+
+</body>
+</html>

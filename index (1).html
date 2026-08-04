@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FC26 Tracker</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 550px; margin: 50px auto; padding: 0 20px; color: #222; }
+  h1 { font-size: 24px; }
+  h2 { font-size: 15px; margin-top: 24px; color: #444; }
+  nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  nav a {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #222;
+    font-size: 13px;
+  }
+  nav a:hover { background: #f2f2f2; }
+  .champ-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+  .champ-card { background: #f5f5f5; border-radius: 8px; padding: 12px; text-align: center; }
+  .champ-card .label { font-size: 11px; color: #777; }
+  .champ-card .name { font-size: 14px; font-weight: bold; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<h1>FC26 tracker</h1>
+<p>Match and tournament results for the group.</p>
+
+<h2>Recent champions</h2>
+<div class="champ-grid" id="champGrid">
+  <p>Loading...</p>
+</div>
+
+<h2>Menu</h2>
+<nav>
+  <a href="player-pool.html">Player pool</a>
+  <a href="single-player-stats.html">Single player records</a>
+  <a href="tagteam-results.html">Tag-team results</a>
+  <a href="login.html">Admin login</a>
+  <a href="create-tournament.html">New tournament (admin)</a>
+  <a href="select-players-single.html">Set single players (admin)</a>
+  <a href="select-teams-regular.html">Set teams - regular (admin)</a>
+  <a href="select-teams-multi.html">Set teams - multi (admin)</a>
+  <a href="match-entry.html">Enter match result (admin)</a>
+  <a href="manage-admins.html">Manage admins (admin)</a>
+</nav>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDp6Gyu5Se4uusmDR-qUi7HObPUvcLt32E",
+    authDomain: "fcps5-tracker.firebaseapp.com",
+    projectId: "fcps5-tracker",
+    storageBucket: "fcps5-tracker.firebasestorage.app",
+    messagingSenderId: "665004331085",
+    appId: "1:665004331085:web:465607725bfda0068f8c04",
+    measurementId: "G-DF7DCZ717Z"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const champGrid = document.getElementById("champGrid");
+
+  const types = [
+    { key: "single_none", label: "Single player" },
+    { key: "tagteam_regular", label: "Tag-team regular" },
+    { key: "tagteam_multi", label: "Tag-team multi" }
+  ];
+
+  async function load() {
+    champGrid.innerHTML = "";
+    for (const t of types) {
+      const snap = await getDoc(doc(db, "champions", t.key));
+      const card = document.createElement("div");
+      card.className = "champ-card";
+      if (snap.exists()) {
+        card.innerHTML = '<div class="label">' + t.label + '</div><div class="name">' + snap.data().winner + '</div>';
+      } else {
+        card.innerHTML = '<div class="label">' + t.label + '</div><div class="name">-</div>';
+      }
+      champGrid.appendChild(card);
+    }
+  }
+
+  load();
+</script>
+
+</body>
+</html>

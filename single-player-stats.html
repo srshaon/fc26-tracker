@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FC26 Tracker - Single player records</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 0 20px; color: #222; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 15px; margin-top: 24px; color: #444; }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .stat-card { background: #f5f5f5; border-radius: 6px; padding: 10px 14px; }
+  .stat-card .label { font-size: 12px; color: #777; }
+  .stat-card .value { font-size: 16px; font-weight: bold; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+  th, td { text-align: left; padding: 8px; border-bottom: 1px solid #eee; }
+  th { color: #777; font-weight: normal; }
+</style>
+</head>
+<body>
+
+<h1>Single player records</h1>
+
+<div class="stat-grid" id="statGrid">
+  <p>Loading...</p>
+</div>
+
+<h2>All tournament results</h2>
+<table>
+  <thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th></tr></thead>
+  <tbody id="resultsBody"></tbody>
+</table>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDp6Gyu5Se4uusmDR-qUi7HObPUvcLt32E",
+    authDomain: "fcps5-tracker.firebaseapp.com",
+    projectId: "fcps5-tracker",
+    storageBucket: "fcps5-tracker.firebasestorage.app",
+    messagingSenderId: "665004331085",
+    appId: "1:665004331085:web:465607725bfda0068f8c04",
+    measurementId: "G-DF7DCZ717Z"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const statGrid = document.getElementById("statGrid");
+  const resultsBody = document.getElementById("resultsBody");
+
+  function num(v) { return v || 0; }
+
+  async function load() {
+    const resultsQuery = query(collection(db, "resultsTable"), where("format", "==", "single"), orderBy("completedAt", "desc"));
+    const resultsSnap = await getDocs(resultsQuery);
+
+    resultsBody.innerHTML = "";
+    let totalPlayed = 0;
+    resultsSnap.forEach((d) => {
+      const r = d.data();
+      totalPlayed += 1;
+      const row = document.createElement("tr");
+      row.innerHTML = "<td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td>";
+      resultsBody.appendChild(row);
+    });
+    if (totalPlayed === 0) {
+      resultsBody.innerHTML = '<tr><td colspan="3">No completed single player tournaments yet.</td></tr>';
+    }
+
+    const playersSnap = await getDocs(collection(db, "players"));
+    let topChampion = null, topRunnerUp = null, topScorer = null;
+    playersSnap.forEach((d) => {
+      const p = d.data();
+      if (!topChampion || num(p.singleChampionships) > num(topChampion.singleChampionships)) topChampion = p;
+      if (!topRunnerUp || num(p.singleRunnerUps) > num(topRunnerUp.singleRunnerUps)) topRunnerUp = p;
+      if (!topScorer || num(p.singleGoalsFor) > num(topScorer.singleGoalsFor)) topScorer = p;
+    });
+
+    statGrid.innerHTML = `
+      <div class="stat-card"><div class="label">Total tournaments played</div><div class="value">${totalPlayed}</div></div>
+      <div class="stat-card"><div class="label">Most-time champion</div><div class="value">${topChampion && num(topChampion.singleChampionships) > 0 ? topChampion.name + " (" + topChampion.singleChampionships + ")" : "-"}</div></div>
+      <div class="stat-card"><div class="label">Most-time runner-up</div><div class="value">${topRunnerUp && num(topRunnerUp.singleRunnerUps) > 0 ? topRunnerUp.name + " (" + topRunnerUp.singleRunnerUps + ")" : "-"}</div></div>
+      <div class="stat-card"><div class="label">Most goals scored</div><div class="value">${topScorer && num(topScorer.singleGoalsFor) > 0 ? topScorer.name + " (" + topScorer.singleGoalsFor + ")" : "-"}</div></div>
+    `;
+  }
+
+  load();
+</script>
+
+</body>
+</html>

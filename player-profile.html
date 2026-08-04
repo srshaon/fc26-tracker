@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FC26 Tracker - Player profile</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; padding: 0 20px; color: #222; }
+  h1 { font-size: 22px; display: flex; align-items: center; gap: 12px; }
+  h1 img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; }
+  h2 { font-size: 15px; margin-top: 24px; color: #444; }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .stat-card { background: #f5f5f5; border-radius: 6px; padding: 10px 14px; }
+  .stat-card .label { font-size: 12px; color: #777; }
+  .stat-card .value { font-size: 18px; font-weight: bold; }
+  #status { font-size: 13px; color: #555; }
+</style>
+</head>
+<body>
+
+<div id="content">
+  <p id="status">Loading player...</p>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDp6Gyu5Se4uusmDR-qUi7HObPUvcLt32E",
+    authDomain: "fcps5-tracker.firebaseapp.com",
+    projectId: "fcps5-tracker",
+    storageBucket: "fcps5-tracker.firebasestorage.app",
+    messagingSenderId: "665004331085",
+    appId: "1:665004331085:web:465607725bfda0068f8c04",
+    measurementId: "G-DF7DCZ717Z"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const params = new URLSearchParams(window.location.search);
+  const playerId = params.get("id");
+  const content = document.getElementById("content");
+
+  function num(v) { return v || 0; }
+
+  async function load() {
+    if (!playerId) {
+      content.innerHTML = "<p>No player selected. Go to player-pool.html and click a player.</p>";
+      return;
+    }
+    const snap = await getDoc(doc(db, "players", playerId));
+    if (!snap.exists()) {
+      content.innerHTML = "<p>Player not found.</p>";
+      return;
+    }
+    const p = snap.data();
+    const matches = num(p.singleMatchesPlayed);
+    const wins = num(p.singleWins);
+    const winPct = matches > 0 ? Math.round((wins / matches) * 100) : 0;
+
+    content.innerHTML = `
+      <h1>${p.imageUrl ? '<img src="' + p.imageUrl + '" alt="">' : ''}${p.name}</h1>
+
+      <h2>Tournament participation</h2>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="label">Single player tournaments</div><div class="value">${num(p.singleTournamentsPlayed)}</div></div>
+        <div class="stat-card"><div class="label">Tag-team tournaments</div><div class="value">${num(p.tagTeamTournamentsPlayed)}</div></div>
+        <div class="stat-card"><div class="label">Single player championships</div><div class="value">${num(p.singleChampionships)}</div></div>
+        <div class="stat-card"><div class="label">Single player runner-ups</div><div class="value">${num(p.singleRunnerUps)}</div></div>
+      </div>
+
+      <h2>Single player match stats</h2>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="label">Matches played</div><div class="value">${matches}</div></div>
+        <div class="stat-card"><div class="label">Win %</div><div class="value">${winPct}%</div></div>
+        <div class="stat-card"><div class="label">Wins</div><div class="value">${num(p.singleWins)}</div></div>
+        <div class="stat-card"><div class="label">Losses</div><div class="value">${num(p.singleLosses)}</div></div>
+        <div class="stat-card"><div class="label">Goals scored</div><div class="value">${num(p.singleGoalsFor)}</div></div>
+        <div class="stat-card"><div class="label">Goals against</div><div class="value">${num(p.singleGoalsAgainst)}</div></div>
+      </div>
+
+      <h2>Tag-team final results</h2>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="label">Final wins</div><div class="value">${num(p.tagTeamFinalWins)}</div></div>
+        <div class="stat-card"><div class="label">Final losses</div><div class="value">${num(p.tagTeamFinalLosses)}</div></div>
+      </div>
+    `;
+  }
+
+  load();
+</script>
+
+</body>
+</html>

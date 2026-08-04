@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FC26 Tracker - Match</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; padding: 0 20px; color: #222; text-align: center; }
+  h1 { font-size: 22px; }
+  select { padding: 8px; font-size: 15px; width: 100%; margin-top: 10px; text-align: left; }
+  .matchbox { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 30px; }
+  .matchbox span.name { font-size: 17px; font-weight: bold; width: 160px; }
+  .matchbox input { width: 60px; padding: 8px; font-size: 18px; text-align: center; }
+  #saveBtn { margin-top: 24px; padding: 10px 16px; font-size: 15px; cursor: pointer; }
+  #status, #gateStatus { font-size: 13px; color: #555; margin-top: 10px; }
+  #winnerBanner {
+    display: none;
+    margin-top: 20px;
+    padding: 14px;
+    background: #d4f5dd;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #1a6b34;
+    animation: pop 0.4s ease;
+  }
+  @keyframes pop {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Match</h1>
+<p id="gateStatus"></p>
+
+<div id="content" style="display:none;">
+  <select id="tournamentSelect"></select>
+
+  <div class="matchbox" id="matchbox" style="display:none;">
+    <span class="name" id="name1"></span>
+    <input type="number" id="score1" min="0" step="1" value="0">
+    <span>-</span>
+    <input type="number" id="score2" min="0" step="1" value="0">
+    <span class="name" id="name2"></span>
+  </div>
+
+  <button id="saveBtn" style="display:none;">Save result</button>
+  <div id="winnerBanner"></div>
+  <p id="status"></p>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, getDocs, query, where, doc, updateDoc, setDoc, increment, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDp6Gyu5Se4uusmDR-qUi7HObPUvcLt32E",
+    authDomain: "fcps5-tracker.firebaseapp.com",
+    projectId: "fcps5-tracker",
+    storageBucket: "fcps5-tracker.firebasestorage.app",
+    messagingSenderId: "665004331085",
+    appId: "1:665004331085:web:465607725bfda0068f8c04",
+    measurementId: "G-DF7DCZ717Z"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const gateStatus = document.getElementById("gateStatus");
+  const content = document.getElementById("content");
+  const tournamentSelect = document.getElementById("tournamentSelect");
+  const matchbox = document.getElementById("matchbox");
+  const saveBtn = document.getElementById("saveBtn");
+  const statusEl = document.getElementById("status");
+  const winnerBanner = document.getElementById("winnerBanner");
+
+  let tournamentsData = {};
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      gateStatus.textContent = "You must be logged in as an admin. Go to login.html first.";
+      content.style.display = "none";
+      return;
+    }
+    gateStatus.textContent = "";
+    content.style.display = "block";
+    await loadTournaments();
+  });
+
+  async function loadTournaments() {
+    const q = query(collection(db, "tournaments"), where("status", "==", "ready"));
+    const snap = await getDocs(q);
+    tournamentSelect.innerHTML = '<option value="">-- choose a tournament --</option>';
+    tournamentsData = {};
+    snap.forEach((d) => {
+      const data = d.data();
+      const sideCount = data.teams ? data.teams.length : (data.participants ? data.participants.length : 0);
+      if (sideCount === 2) {
+        tournamentsData[d.id] = data;
+        const opt = document.createElement("option");
+        opt.value = d.id;
+        opt.textContent = data.name;
+        tournamentSelect.appendChild(opt);
+      }
+    });
+    if (Object.keys(tournamentsData).length === 0) {
+      tournamentSelect.innerHTML = '<option value="">No ready 2-side tournaments found</option>';
+    }
+  }
+
+  tournamentSelect.addEventListener("change", () => {
+    const data = tournamentsData[tournamentSelect.value];
+    winnerBanner.style.display = "none";
+    if (!data) {
+      matchbox.style.display = "none";
+      saveBtn.style.display = "none";
+      return;
+    }
+    const side1 = data.teams ? data.teams[0].teamName : data.participants[0].name;
+    const side2 = data.teams ? data.teams[1].teamName : data.participants[1].name;
+    document.getElementById("name1").textContent = side1;
+    document.getElementById("name2").textContent = side2;
+    document.getElementById("score1").value = 0;
+    document.getElementById("score2").value = 0;
+    matchbox.style.display = "flex";
+    saveBtn.style.display = "inline-block";
+  });
+
+  async function bumpPlayer(playerId, fields) {
+    const ref = doc(db, "players", playerId);
+    const updates = {};
+    Object.keys(fields).forEach(k => { updates[k] = increment(fields[k]); });
+    try {
+      await updateDoc(ref, updates);
+    } catch (error) {
+      // If the field doesn't exist yet, increment() still creates it starting from 0.
+      console.error("Stat update failed for player " + playerId, error);
+    }
+  }
+
+  async function updatePlayerStats(data, s1, s2) {
+    if (data.format === "single") {
+      const p1 = data.participants[0];
+      const p2 = data.participants[1];
+      if (p1.type === "pool") {
+        await bumpPlayer(p1.id, {
+          singleMatchesPlayed: 1,
+          singleGoalsFor: s1,
+          singleGoalsAgainst: s2,
+          singleWins: s1 > s2 ? 1 : 0,
+          singleLosses: s1 < s2 ? 1 : 0,
+          singleTournamentsPlayed: 1,
+          singleChampionships: s1 > s2 ? 1 : 0,
+          singleRunnerUps: s1 < s2 ? 1 : 0
+        });
+      }
+      if (p2.type === "pool") {
+        await bumpPlayer(p2.id, {
+          singleMatchesPlayed: 1,
+          singleGoalsFor: s2,
+          singleGoalsAgainst: s1,
+          singleWins: s2 > s1 ? 1 : 0,
+          singleLosses: s2 < s1 ? 1 : 0,
+          singleTournamentsPlayed: 1,
+          singleChampionships: s2 > s1 ? 1 : 0,
+          singleRunnerUps: s2 < s1 ? 1 : 0
+        });
+      }
+    } else if (data.format === "tagteam") {
+      const winningTeam = s1 > s2 ? data.teams[0] : data.teams[1];
+      const losingTeam = s1 > s2 ? data.teams[1] : data.teams[0];
+      for (const m of winningTeam.members) {
+        if (m.type === "pool") {
+          await bumpPlayer(m.id, { tagTeamTournamentsPlayed: 1, tagTeamFinalWins: 1 });
+        }
+      }
+      for (const m of losingTeam.members) {
+        if (m.type === "pool") {
+          await bumpPlayer(m.id, { tagTeamTournamentsPlayed: 1, tagTeamFinalLosses: 1 });
+        }
+      }
+    }
+  }
+
+  saveBtn.addEventListener("click", async () => {
+    const tournamentId = tournamentSelect.value;
+    const data = tournamentsData[tournamentId];
+    if (!data) return;
+
+    const s1 = parseInt(document.getElementById("score1").value, 10);
+    const s2 = parseInt(document.getElementById("score2").value, 10);
+
+    if (isNaN(s1) || isNaN(s2) || s1 < 0 || s2 < 0) {
+      statusEl.textContent = "Enter valid non-negative scores.";
+      return;
+    }
+    if (s1 === s2) {
+      statusEl.textContent = "Scores can't be tied - enter a winning score.";
+      return;
+    }
+
+    const side1 = data.teams ? data.teams[0].teamName : data.participants[0].name;
+    const side2 = data.teams ? data.teams[1].teamName : data.participants[1].name;
+    const winnerName = s1 > s2 ? side1 : side2;
+    const runnerUpName = s1 > s2 ? side2 : side1;
+
+    try {
+      await updateDoc(doc(db, "tournaments", tournamentId), {
+        status: "completed",
+        finalScore: { side1: s1, side2: s2 },
+        winner: winnerName,
+        runnerUp: runnerUpName
+      });
+
+      await setDoc(doc(db, "champions", data.format + "_" + (data.subMode || "none")), {
+        tournamentName: data.name,
+        winner: winnerName,
+        runnerUp: runnerUpName,
+        updatedAt: Date.now()
+      });
+
+      await setDoc(doc(db, "resultsTable", tournamentId), {
+        format: data.format,
+        subMode: data.subMode || null,
+        tournamentName: data.name,
+        winner: winnerName,
+        runnerUp: runnerUpName,
+        completedAt: Date.now()
+      });
+
+      await updatePlayerStats(data, s1, s2);
+
+      winnerBanner.textContent = winnerName + " wins!";
+      winnerBanner.style.display = "block";
+      statusEl.textContent = "Result saved.";
+      saveBtn.style.display = "none";
+    } catch (error) {
+      statusEl.textContent = "Failed to save: " + error.message;
+    }
+  });
+</script>
+
+</body>
+</html>
