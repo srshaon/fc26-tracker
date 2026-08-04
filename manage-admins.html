@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FC26 Tracker - Manage admins</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 450px;
+    margin: 60px auto;
+    padding: 0 20px;
+    color: #222;
+  }
+  h1 {
+    font-size: 22px;
+  }
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 20px 0;
+    padding: 16px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+  }
+  label {
+    font-size: 13px;
+    color: #555;
+  }
+  input {
+    padding: 8px;
+    font-size: 15px;
+  }
+  button {
+    padding: 10px 16px;
+    font-size: 15px;
+    cursor: pointer;
+    width: fit-content;
+  }
+  #status, #gateStatus {
+    font-size: 13px;
+    color: #555;
+    min-height: 18px;
+  }
+  #gate {
+    padding: 12px;
+    background: #fff3cd;
+    border-radius: 6px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Manage admins</h1>
+
+<div id="gate">
+  <p id="gateStatus">Checking login...</p>
+</div>
+
+<div id="content" style="display:none;">
+  <p>Add a new admin below. They will log in the same way you did, using the username and password you set here.</p>
+
+  <form id="addAdminForm">
+    <label for="newUsername">New admin username</label>
+    <input type="text" id="newUsername" placeholder="e.g. Rafi" required>
+
+    <label for="newPassword">New admin password</label>
+    <input type="password" id="newPassword" placeholder="At least 6 characters" required>
+
+    <button type="submit">Create admin</button>
+    <p id="status"></p>
+  </form>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getAuth,
+    onAuthStateChanged,
+    createUserWithEmailAndPassword,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDp6Gyu5Se4uusmDR-qUi7HObPUvcLt32E",
+    authDomain: "fcps5-tracker.firebaseapp.com",
+    projectId: "fcps5-tracker",
+    storageBucket: "fcps5-tracker.firebasestorage.app",
+    messagingSenderId: "665004331085",
+    appId: "1:665004331085:web:465607725bfda0068f8c04",
+    measurementId: "G-DF7DCZ717Z"
+  };
+
+  // Main app: used to check who is currently logged in.
+  const mainApp = initializeApp(firebaseConfig);
+  const mainAuth = getAuth(mainApp);
+
+  const gate = document.getElementById("gate");
+  const gateStatus = document.getElementById("gateStatus");
+  const content = document.getElementById("content");
+  const form = document.getElementById("addAdminForm");
+  const statusEl = document.getElementById("status");
+
+  function usernameToEmail(username) {
+    return username.trim().toLowerCase() + "@fc26tracker.app";
+  }
+
+  onAuthStateChanged(mainAuth, (user) => {
+    if (user) {
+      gate.style.display = "none";
+      content.style.display = "block";
+    } else {
+      gateStatus.textContent = "You must be logged in as an admin to view this page. Go to login.html first.";
+      content.style.display = "none";
+    }
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const newUsername = document.getElementById("newUsername").value.trim();
+    const newPassword = document.getElementById("newPassword").value;
+
+    if (!newUsername || !newPassword) {
+      statusEl.textContent = "Fill in both fields.";
+      return;
+    }
+    if (newPassword.length < 6) {
+      statusEl.textContent = "Password must be at least 6 characters.";
+      return;
+    }
+
+    // A second, temporary Firebase app instance is used here so that creating
+    // the new admin does not log out the admin who is currently signed in.
+    const tempApp = initializeApp(firebaseConfig, "tempAdminCreation_" + Date.now());
+    const tempAuth = getAuth(tempApp);
+
+    try {
+      await createUserWithEmailAndPassword(tempAuth, usernameToEmail(newUsername), newPassword);
+      await signOut(tempAuth);
+      statusEl.textContent = "Admin \"" + newUsername.toUpperCase() + "\" created successfully.";
+      form.reset();
+    } catch (error) {
+      if (error.code === "auth/email-already-in-use") {
+        statusEl.textContent = "That username is already taken.";
+      } else {
+        statusEl.textContent = "Failed to create admin: " + error.message;
+      }
+    }
+  });
+</script>
+
+</body>
+</html>

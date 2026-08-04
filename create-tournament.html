@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FC26 Tracker - New tournament</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 0 20px;
+    color: #222;
+  }
+  h1 { font-size: 22px; }
+  h2 { font-size: 15px; margin-top: 24px; color: #444; }
+  .options {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .option-btn {
+    padding: 10px 14px;
+    font-size: 14px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background: white;
+    border-radius: 6px;
+  }
+  .option-btn.selected {
+    background: #222;
+    color: white;
+    border-color: #222;
+  }
+  .step { display: none; }
+  .step.active { display: block; }
+  label { font-size: 13px; color: #555; display: block; margin-top: 10px; }
+  input { padding: 8px; font-size: 15px; margin-top: 4px; width: 100px; }
+  #summary {
+    margin-top: 24px;
+    padding: 14px;
+    background: #f5f5f5;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  #gateStatus { color: #a15c00; font-size: 13px; }
+  #continueBtn {
+    margin-top: 20px;
+    padding: 10px 16px;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  #status { font-size: 13px; color: #555; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<h1>New tournament</h1>
+<p id="gateStatus"></p>
+
+<div id="wizard" style="display:none;">
+
+  <h2>1. Format</h2>
+  <div class="options" id="formatOptions">
+    <button class="option-btn" data-value="single">Single player</button>
+    <button class="option-btn" data-value="tagteam">Tag-team</button>
+  </div>
+
+  <div class="step" id="subModeStep">
+    <h2>2. Controller mode</h2>
+    <div class="options" id="subModeOptions">
+      <button class="option-btn" data-value="regular">Regular controller</button>
+      <button class="option-btn" data-value="multi">Multiple controller</button>
+    </div>
+  </div>
+
+  <div class="step" id="teamSizeStep">
+    <h2>Team size (members per team)</h2>
+    <div class="options" id="teamSizeOptions">
+      <button class="option-btn" data-value="2">2</button>
+      <button class="option-btn" data-value="3">3</button>
+      <button class="option-btn" data-value="4">4</button>
+      <button class="option-btn" data-value="5">5</button>
+    </div>
+  </div>
+
+  <div class="step" id="timeStep">
+    <h2>3. Match time (minutes)</h2>
+    <input type="number" id="timeInput" min="1" step="1">
+  </div>
+
+  <div id="summary"></div>
+
+  <button id="continueBtn">Continue to player selection</button>
+  <p id="status"></p>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDp6Gyu5Se4uusmDR-qUi7HObPUvcLt32E",
+    authDomain: "fcps5-tracker.firebaseapp.com",
+    projectId: "fcps5-tracker",
+    storageBucket: "fcps5-tracker.firebasestorage.app",
+    messagingSenderId: "665004331085",
+    appId: "1:665004331085:web:465607725bfda0068f8c04",
+    measurementId: "G-DF7DCZ717Z"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const gateStatus = document.getElementById("gateStatus");
+  const wizard = document.getElementById("wizard");
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      gateStatus.textContent = "";
+      wizard.style.display = "block";
+    } else {
+      gateStatus.textContent = "You must be logged in as an admin to create a tournament. Go to login.html first.";
+      wizard.style.display = "none";
+    }
+  });
+
+  let selection = {
+    format: null,
+    subMode: null,
+    teamSize: null,
+    time: null
+  };
+
+  function defaultTime() {
+    if (selection.format === "single") return 10;
+    if (selection.format === "tagteam" && selection.subMode === "multi") return 10;
+    if (selection.format === "tagteam" && selection.subMode === "regular") {
+      const sizeMap = { 2: 20, 3: 30, 4: 40, 5: 40 };
+      return sizeMap[selection.teamSize] || null;
+    }
+    return null;
+  }
+
+  function todayNameFragment() {
+    const now = new Date();
+    const bdOffsetMs = 6 * 60 * 60 * 1000;
+    const bdTime = new Date(now.getTime() + (bdOffsetMs - now.getTimezoneOffset() * 60000));
+    const day = bdTime.getDate();
+    const month = bdTime.toLocaleString("en-US", { month: "short" });
+    const suffix = (day % 10 === 1 && day !== 11) ? "st"
+                 : (day % 10 === 2 && day !== 12) ? "nd"
+                 : (day % 10 === 3 && day !== 13) ? "rd" : "th";
+    return day + suffix + " " + month;
+  }
+
+  function typeLabel() {
+    if (selection.format === "single") return "Single Player Tournament";
+    if (selection.format === "tagteam" && selection.subMode === "regular") return "Tag Team Regular Controller Tournament";
+    if (selection.format === "tagteam" && selection.subMode === "multi") return "Tag Team Multiple Controller Tournament";
+    return "";
+  }
+
+  function updateUI() {
+    document.getElementById("subModeStep").classList.toggle("active", selection.format === "tagteam");
+    document.getElementById("teamSizeStep").classList.toggle("active", selection.format === "tagteam" && selection.subMode === "regular");
+
+    const showTime = selection.format === "single" ||
+      (selection.format === "tagteam" && selection.subMode === "multi") ||
+      (selection.format === "tagteam" && selection.subMode === "regular" && selection.teamSize);
+
+    document.getElementById("timeStep").classList.toggle("active", !!showTime);
+
+    if (showTime && selection.time === null) {
+      selection.time = defaultTime();
+      document.getElementById("timeInput").value = selection.time;
+    }
+
+    const summaryEl = document.getElementById("summary");
+    if (selection.format) {
+      summaryEl.textContent = todayNameFragment() + " " + typeLabel() + (selection.time ? " — " + selection.time + " min match" : "");
+    } else {
+      summaryEl.textContent = "";
+    }
+  }
+
+  document.getElementById("formatOptions").addEventListener("click", (e) => {
+    if (!e.target.classList.contains("option-btn")) return;
+    selection.format = e.target.dataset.value;
+    selection.subMode = null;
+    selection.teamSize = null;
+    selection.time = null;
+    [...document.getElementById("formatOptions").children].forEach(b => b.classList.remove("selected"));
+    e.target.classList.add("selected");
+    updateUI();
+  });
+
+  document.getElementById("subModeOptions").addEventListener("click", (e) => {
+    if (!e.target.classList.contains("option-btn")) return;
+    selection.subMode = e.target.dataset.value;
+    selection.teamSize = null;
+    selection.time = null;
+    [...document.getElementById("subModeOptions").children].forEach(b => b.classList.remove("selected"));
+    e.target.classList.add("selected");
+    updateUI();
+  });
+
+  document.getElementById("teamSizeOptions").addEventListener("click", (e) => {
+    if (!e.target.classList.contains("option-btn")) return;
+    selection.teamSize = parseInt(e.target.dataset.value, 10);
+    selection.time = null;
+    [...document.getElementById("teamSizeOptions").children].forEach(b => b.classList.remove("selected"));
+    e.target.classList.add("selected");
+    updateUI();
+  });
+
+  document.getElementById("timeInput").addEventListener("input", (e) => {
+    selection.time = parseInt(e.target.value, 10) || null;
+    updateUI();
+  });
+
+  document.getElementById("continueBtn").addEventListener("click", async () => {
+    const statusEl = document.getElementById("status");
+
+    if (!selection.format) {
+      statusEl.textContent = "Select a format first.";
+      return;
+    }
+    if (selection.format === "tagteam" && !selection.subMode) {
+      statusEl.textContent = "Select a controller mode.";
+      return;
+    }
+    if (selection.format === "tagteam" && selection.subMode === "regular" && !selection.teamSize) {
+      statusEl.textContent = "Select a team size.";
+      return;
+    }
+    if (!selection.time) {
+      statusEl.textContent = "Set a match time.";
+      return;
+    }
+
+    try {
+      const docRef = await addDoc(collection(db, "tournaments"), {
+        format: selection.format,
+        subMode: selection.subMode,
+        teamSize: selection.teamSize,
+        matchTimeMinutes: selection.time,
+        name: todayNameFragment() + " " + typeLabel(),
+        status: "draft",
+        createdAt: Date.now()
+      });
+      statusEl.textContent = "Saved. Tournament ID: " + docRef.id + " (next step will add player selection).";
+    } catch (error) {
+      statusEl.textContent = "Failed to save: " + error.message;
+    }
+  });
+</script>
+
+</body>
+</html>
