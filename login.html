@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FC26 Tracker - Admin login</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 400px;
+    margin: 80px auto;
+    padding: 0 20px;
+    color: #222;
+  }
+  h1 {
+    font-size: 22px;
+  }
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  label {
+    font-size: 13px;
+    color: #555;
+  }
+  input {
+    padding: 8px;
+    font-size: 15px;
+  }
+  button {
+    padding: 10px 16px;
+    font-size: 15px;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  #status {
+    font-size: 13px;
+    color: #555;
+    min-height: 18px;
+  }
+  #loggedInBox {
+    display: none;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Admin login</h1>
+
+<form id="loginForm">
+  <label for="usernameInput">Username</label>
+  <input type="text" id="usernameInput" placeholder="Enter admin username" required>
+
+  <label for="passwordInput">Password</label>
+  <input type="password" id="passwordInput" placeholder="Enter password" required>
+
+  <button type="submit">Log in</button>
+  <p id="status"></p>
+</form>
+
+<div id="loggedInBox">
+  <p>Logged in as <strong id="loggedInName"></strong></p>
+  <button id="logoutBtn">Log out</button>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getAuth,
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDp6Gyu5Se4uusmDR-qUi7HObPUvcLt32E",
+    authDomain: "fcps5-tracker.firebaseapp.com",
+    projectId: "fcps5-tracker",
+    storageBucket: "fcps5-tracker.firebasestorage.app",
+    messagingSenderId: "665004331085",
+    appId: "1:665004331085:web:465607725bfda0068f8c04",
+    measurementId: "G-DF7DCZ717Z"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  const form = document.getElementById("loginForm");
+  const usernameInput = document.getElementById("usernameInput");
+  const passwordInput = document.getElementById("passwordInput");
+  const statusEl = document.getElementById("status");
+  const loggedInBox = document.getElementById("loggedInBox");
+  const loggedInName = document.getElementById("loggedInName");
+  const logoutBtn = document.getElementById("logoutBtn");
+
+  // Usernames are converted to a fixed placeholder email behind the scenes,
+  // since Firebase login requires an email format, but admins only type a username.
+  function usernameToEmail(username) {
+    return username.trim().toLowerCase() + "@fc26tracker.app";
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!username || !password) {
+      statusEl.textContent = "Enter both username and password.";
+      return;
+    }
+
+    try {
+      await signInWithEmailAndPassword(auth, usernameToEmail(username), password);
+      statusEl.textContent = "";
+    } catch (error) {
+      statusEl.textContent = "Login failed. Check your username and password.";
+    }
+  });
+
+  logoutBtn.addEventListener("click", async () => {
+    await signOut(auth);
+  });
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      form.style.display = "none";
+      loggedInBox.style.display = "block";
+      const usernamePart = user.email.split("@")[0];
+      loggedInName.textContent = usernamePart.toUpperCase();
+    } else {
+      form.style.display = "flex";
+      loggedInBox.style.display = "none";
+    }
+  });
+</script>
+
+</body>
+</html>
