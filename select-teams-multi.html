@@ -241,9 +241,11 @@
       await updateDoc(doc(db, "tournaments", tournamentId), {
         teamCount: teamCount,
         teams: teamData,
-        status: "ready"
+        status: teamCount === 2 ? "ready" : "needs-bracket"
       });
-      statusEl.textContent = "Saved. This tournament is now ready for match setup.";
+      statusEl.textContent = teamCount === 2
+        ? "Saved. This tournament is now ready for match setup."
+        : "Saved. Since there are more than 2 teams, go to bracket-setup.html next to set up groups or round-robin.";
     } catch (error) {
       statusEl.textContent = "Failed to save: " + error.message;
     }

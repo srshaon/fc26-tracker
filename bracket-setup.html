@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FC26 Tracker - Bracket setup</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 0 20px; color: #222; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 15px; margin-top: 20px; color: #444; }
+  select, input { padding: 8px; font-size: 15px; width: 100%; margin-top: 6px; }
+  .options { display: flex; gap: 10px; margin-top: 8px; }
+  .option-btn { padding: 10px 14px; font-size: 14px; cursor: pointer; border: 1px solid #ccc; background: white; border-radius: 6px; }
+  .option-btn.selected { background: #222; color: white; border-color: #222; }
+  .group-box { border: 1px solid #ddd; border-radius: 6px; padding: 10px; margin-top: 10px; }
+  .group-box h3 { font-size: 13px; margin: 0 0 6px; color: #555; }
+  .side-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 13px; }
+  #generateBtn { margin-top: 20px; padding: 10px 16px; font-size: 15px; cursor: pointer; }
+  #status, #gateStatus { font-size: 13px; color: #555; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<h1>Bracket setup</h1>
+<p id="gateStatus"></p>
+
+<div id="content" style="display:none;">
+  <h2>Choose tournament (needs bracket)</h2>
+  <select id="tournamentSelect"></select>
+  <p id="sideInfo" style="font-size:13px; color:#555;"></p>
+
+  <h2>Style</h2>
+  <div class="options" id="styleOptions">
+    <button class="option-btn" data-value="group">Group based</button>
+    <button class="option-btn" data-value="roundrobin">Round-robin</button>
+  </div>
+
+  <div id="groupCountSection" style="display:none;">
+    <h2>Number of groups</h2>
+    <input type="number" id="groupCountInput" min="2" step="1" placeholder="e.g. 2">
+    <div class="options" style="margin-top:10px;">
+      <button class="option-btn" id="manualBtn" data-value="manual">I'll assign groups myself</button>
+      <button class="option-btn" id="randomBtn" data-value="random">Assign randomly</button>
+    </div>
+  </div>
+
+  <div id="groupsPreview"></div>
+
+  <button id="generateBtn" style="display:none;">Generate matches</button>
+  <p id="status"></p>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, getDocs, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDp6Gyu5Se4uusmDR-qUi7HObPUvcLt32E",
+    authDomain: "fcps5-tracker.firebaseapp.com",
+    projectId: "fcps5-tracker",
+    storageBucket: "fcps5-tracker.firebasestorage.app",
+    messagingSenderId: "665004331085",
+    appId: "1:665004331085:web:465607725bfda0068f8c04",
+    measurementId: "G-DF7DCZ717Z"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const gateStatus = document.getElementById("gateStatus");
+  const content = document.getElementById("content");
+  const tournamentSelect = document.getElementById("tournamentSelect");
+  const sideInfo = document.getElementById("sideInfo");
+  const statusEl = document.getElementById("status");
+  const groupCountSection = document.getElementById("groupCountSection");
+  const groupCountInput = document.getElementById("groupCountInput");
+  const groupsPreview = document.getElementById("groupsPreview");
+  const generateBtn = document.getElementById("generateBtn");
+
+  let tournamentsData = {};
+  let sides = []; // array of names
+  let style = null;
+  let groupAssignMode = null;
+  let groups = []; // array of arrays of names
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      gateStatus.textContent = "You must be logged in as an admin. Go to login.html first.";
+      return;
+    }
+    gateStatus.textContent = "";
+    content.style.display = "block";
+    await loadTournaments();
+  });
+
+  async function loadTournaments() {
+    const q = query(collection(db, "tournaments"), where("status", "==", "needs-bracket"));
+    const snap = await getDocs(q);
+    tournamentSelect.innerHTML = '<option value="">-- choose --</option>';
+    tournamentsData = {};
+    snap.forEach((d) => {
+      tournamentsData[d.id] = d.data();
+      const opt = document.createElement("option");
+      opt.value = d.id;
+      opt.textContent = d.data().name;
+      tournamentSelect.appendChild(opt);
+    });
+    if (snap.empty) tournamentSelect.innerHTML = '<option value="">No tournaments need a bracket right now</option>';
+  }
+
+  function getSideNames(data) {
+    if (data.teams) return data.teams.map(t => t.teamName);
+    return data.participants.map(p => p.name);
+  }
+
+  tournamentSelect.addEventListener("change", () => {
+    const data = tournamentsData[tournamentSelect.value];
+    if (!data) { sideInfo.textContent = ""; sides = []; return; }
+    sides = getSideNames(data);
+    sideInfo.textContent = sides.length + " participants: " + sides.join(", ");
+    groupsPreview.innerHTML = "";
+    generateBtn.style.display = "none";
+  });
+
+  document.getElementById("styleOptions").addEventListener("click", (e) => {
+    if (!e.target.classList.contains("option-btn")) return;
+    style = e.target.dataset.value;
+    [...document.getElementById("styleOptions").children].forEach(b => b.classList.remove("selected"));
+    e.target.classList.add("selected");
+    groupCountSection.style.display = style === "group" ? "block" : "none";
+    groupsPreview.innerHTML = "";
+    generateBtn.style.display = style === "roundrobin" ? "inline-block" : "none";
+  });
+
+  document.getElementById("manualBtn").addEventListener("click", () => setGroupMode("manual"));
+  document.getElementById("randomBtn").addEventListener("click", () => setGroupMode("random"));
+
+  function setGroupMode(mode) {
+    const groupCount = parseInt(groupCountInput.value, 10);
+    if (!groupCount || groupCount < 2) {
+      statusEl.textContent = "Enter a valid number of groups first.";
+      return;
+    }
+    if (sides.length % groupCount !== 0) {
+      statusEl.textContent = "Participant count (" + sides.length + ") must divide evenly into " + groupCount + " groups.";
+      return;
+    }
+    statusEl.textContent = "";
+    groupAssignMode = mode;
+    const perGroup = sides.length / groupCount;
+
+    if (mode === "random") {
+      const shuffled = [...sides].sort(() => Math.random() - 0.5);
+      groups = [];
+      for (let i = 0; i < groupCount; i++) {
+        groups.push(shuffled.slice(i * perGroup, (i + 1) * perGroup));
+      }
+      renderGroupsPreview(true);
+      generateBtn.style.display = "inline-block";
+    } else {
+      groups = Array.from({ length: groupCount }, () => []);
+      renderGroupsPreview(false, perGroup);
+    }
+  }
+
+  function renderGroupsPreview(readOnly, perGroup) {
+    groupsPreview.innerHTML = "";
+    groups.forEach((g, gi) => {
+      const box = document.createElement("div");
+      box.className = "group-box";
+      if (readOnly) {
+        box.innerHTML = "<h3>Group " + (gi + 1) + "</h3>" + g.map(n => "<div class='side-row'>" + n + "</div>").join("");
+      } else {
+        box.innerHTML = "<h3>Group " + (gi + 1) + " (pick " + perGroup + ")</h3>";
+        const select = document.createElement("select");
+        select.innerHTML = '<option value="">-- add participant --</option>' +
+          sides.filter(s => !groups.some(gr => gr.includes(s))).map(s => "<option value='" + s + "'>" + s + "</option>").join("");
+        select.addEventListener("change", () => {
+          if (!select.value) return;
+          if (groups[gi].length >= perGroup) { statusEl.textContent = "Group " + (gi + 1) + " is full."; return; }
+          groups[gi].push(select.value);
+          renderGroupsPreview(false, perGroup);
+        });
+        box.appendChild(select);
+        g.forEach((n, idx) => {
+          const row = document.createElement("div");
+          row.className = "side-row";
+          row.innerHTML = "<span>" + n + "</span>";
+          const rm = document.createElement("button");
+          rm.textContent = "x";
+          rm.addEventListener("click", () => { groups[gi].splice(idx, 1); renderGroupsPreview(false, perGroup); });
+          row.appendChild(rm);
+          box.appendChild(row);
+        });
+      }
+      groupsPreview.appendChild(box);
+    });
+    const allFull = groups.every(g => g.length === perGroup);
+    generateBtn.style.display = (readOnly || allFull) ? "inline-block" : "none";
+  }
+
+  function roundRobinMatches(names) {
+    const matches = [];
+    for (let i = 0; i < names.length; i++) {
+      for (let j = i + 1; j < names.length; j++) {
+        matches.push({ sideA: names[i], sideB: names[j], scoreA: null, scoreB: null });
+      }
+    }
+    return matches;
+  }
+
+  generateBtn.addEventListener("click", async () => {
+    const tournamentId = tournamentSelect.value;
+    if (!tournamentId) { statusEl.textContent = "Choose a tournament first."; return; }
+
+    let matches = [];
+    let groupsData = null;
+
+    if (style === "roundrobin") {
+      matches = roundRobinMatches(sides).map((m, idx) => ({ ...m, id: "m" + idx, groupIndex: null }));
+    } else if (style === "group") {
+      groupsData = groups;
+      let idx = 0;
+      groups.forEach((g, gi) => {
+        roundRobinMatches(g).forEach(m => {
+          matches.push({ ...m, id: "m" + idx, groupIndex: gi });
+          idx++;
+        });
+      });
+    } else {
+      statusEl.textContent = "Choose a style first.";
+      return;
+    }
+
+    try {
+      await updateDoc(doc(db, "tournaments", tournamentId), {
+        bracketStyle: style,
+        groups: groupsData,
+        matches: matches,
+        status: "in-progress"
+      });
+      statusEl.textContent = "Bracket generated (" + matches.length + " matches). Go to group-matches.html to enter scores.";
+    } catch (error) {
+      statusEl.textContent = "Failed: " + error.message;
+    }
+  });
+</script>
+
+</body>
+</html>

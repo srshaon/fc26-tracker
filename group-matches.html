@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FC26 Tracker - Group stage matches</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 650px; margin: 50px auto; padding: 0 20px; color: #222; }
+  h1 { font-size: 22px; }
+  h2 { font-size: 15px; margin-top: 22px; color: #444; }
+  select { padding: 8px; font-size: 15px; width: 100%; margin-top: 6px; }
+  .match-row { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px; border-bottom: 1px solid #eee; }
+  .match-row span.name { font-size: 14px; font-weight: bold; width: 140px; text-align: center; }
+  .match-row input { width: 50px; padding: 6px; font-size: 15px; text-align: center; }
+  .match-row button { padding: 6px 10px; font-size: 12px; cursor: pointer; }
+  .match-row.done { opacity: 0.6; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+  th, td { text-align: left; padding: 6px; border-bottom: 1px solid #eee; }
+  th { color: #777; font-weight: normal; }
+  #status, #gateStatus { font-size: 13px; color: #555; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<h1>Group stage / round-robin matches</h1>
+<p id="gateStatus"></p>
+
+<div id="content" style="display:none;">
+  <select id="tournamentSelect"></select>
+  <div id="matchesSection"></div>
+  <div id="standingsSection"></div>
+  <p id="status"></p>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, getDocs, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDp6Gyu5Se4uusmDR-qUi7HObPUvcLt32E",
+    authDomain: "fcps5-tracker.firebaseapp.com",
+    projectId: "fcps5-tracker",
+    storageBucket: "fcps5-tracker.firebasestorage.app",
+    messagingSenderId: "665004331085",
+    appId: "1:665004331085:web:465607725bfda0068f8c04",
+    measurementId: "G-DF7DCZ717Z"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const gateStatus = document.getElementById("gateStatus");
+  const content = document.getElementById("content");
+  const tournamentSelect = document.getElementById("tournamentSelect");
+  const matchesSection = document.getElementById("matchesSection");
+  const standingsSection = document.getElementById("standingsSection");
+  const statusEl = document.getElementById("status");
+
+  let tournamentsData = {};
+  let currentId = null;
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      gateStatus.textContent = "You must be logged in as an admin. Go to login.html first.";
+      return;
+    }
+    gateStatus.textContent = "";
+    content.style.display = "block";
+    await loadTournaments();
+  });
+
+  async function loadTournaments() {
+    const q = query(collection(db, "tournaments"), where("status", "==", "in-progress"));
+    const snap = await getDocs(q);
+    tournamentSelect.innerHTML = '<option value="">-- choose --</option>';
+    tournamentsData = {};
+    snap.forEach((d) => {
+      tournamentsData[d.id] = d.data();
+      const opt = document.createElement("option");
+      opt.value = d.id;
+      opt.textContent = d.data().name;
+      tournamentSelect.appendChild(opt);
+    });
+    if (snap.empty) tournamentSelect.innerHTML = '<option value="">No in-progress tournaments</option>';
+  }
+
+  tournamentSelect.addEventListener("change", () => {
+    currentId = tournamentSelect.value;
+    render();
+  });
+
+  function render() {
+    const data = tournamentsData[currentId];
+    matchesSection.innerHTML = "";
+    standingsSection.innerHTML = "";
+    if (!data) return;
+
+    matchesSection.innerHTML = "<h2>Matches</h2>";
+    data.matches.forEach((m, idx) => {
+      const row = document.createElement("div");
+      row.className = "match-row" + (m.scoreA !== null ? " done" : "");
+      row.innerHTML =
+        "<span class='name'>" + m.sideA + "</span>" +
+        "<input type='number' min='0' step='1' value='" + (m.scoreA ?? "") + "' data-idx='" + idx + "' data-side='A'>" +
+        "<span>-</span>" +
+        "<input type='number' min='0' step='1' value='" + (m.scoreB ?? "") + "' data-idx='" + idx + "' data-side='B'>" +
+        "<span class='name'>" + m.sideB + "</span>";
+      const btn = document.createElement("button");
+      btn.textContent = m.scoreA !== null ? "Update" : "Save";
+      btn.addEventListener("click", () => saveMatch(idx));
+      row.appendChild(btn);
+      matchesSection.appendChild(row);
+    });
+
+    if (data.groups) {
+      data.groups.forEach((g, gi) => renderStandingsTable("Group " + (gi + 1), g, data.matches.filter(m => m.groupIndex === gi)));
+    } else {
+      const allSides = [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
+      renderStandingsTable("Standings", allSides, data.matches);
+    }
+  }
+
+  function renderStandingsTable(title, sideNames, matches) {
+    const stats = {};
+    sideNames.forEach(n => { stats[n] = { name: n, played: 0, wins: 0, losses: 0, gf: 0, ga: 0 }; });
+
+    matches.forEach(m => {
+      if (m.scoreA === null || m.scoreB === null) return;
+      if (!stats[m.sideA] || !stats[m.sideB]) return;
+      stats[m.sideA].played++; stats[m.sideB].played++;
+      stats[m.sideA].gf += m.scoreA; stats[m.sideA].ga += m.scoreB;
+      stats[m.sideB].gf += m.scoreB; stats[m.sideB].ga += m.scoreA;
+      if (m.scoreA > m.scoreB) { stats[m.sideA].wins++; stats[m.sideB].losses++; }
+      else if (m.scoreB > m.scoreA) { stats[m.sideB].wins++; stats[m.sideA].losses++; }
+    });
+
+    const rows = Object.values(stats).sort((a, b) => {
+      if (b.wins !== a.wins) return b.wins - a.wins;
+      const gdA = a.gf - a.ga, gdB = b.gf - b.ga;
+      if (gdB !== gdA) return gdB - gdA;
+      return b.gf - a.gf;
+    });
+
+    const wrap = document.createElement("div");
+    wrap.innerHTML = "<h2>" + title + "</h2><table><thead><tr><th>#</th><th>Name</th><th>P</th><th>W</th><th>L</th><th>GF</th><th>GA</th><th>GD</th></tr></thead><tbody></tbody></table>";
+    const tbody = wrap.querySelector("tbody");
+    rows.forEach((r, i) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = "<td>" + (i + 1) + "</td><td>" + r.name + "</td><td>" + r.played + "</td><td>" + r.wins + "</td><td>" + r.losses + "</td><td>" + r.gf + "</td><td>" + r.ga + "</td><td>" + (r.gf - r.ga) + "</td>";
+      tbody.appendChild(tr);
+    });
+    standingsSection.appendChild(wrap);
+  }
+
+  async function saveMatch(idx) {
+    const data = tournamentsData[currentId];
+    const inputA = document.querySelector('input[data-idx="' + idx + '"][data-side="A"]');
+    const inputB = document.querySelector('input[data-idx="' + idx + '"][data-side="B"]');
+    const sA = parseInt(inputA.value, 10);
+    const sB = parseInt(inputB.value, 10);
+    if (isNaN(sA) || isNaN(sB) || sA < 0 || sB < 0) {
+      statusEl.textContent = "Enter valid scores for that match.";
+      return;
+    }
+    data.matches[idx].scoreA = sA;
+    data.matches[idx].scoreB = sB;
+    try {
+      await updateDoc(doc(db, "tournaments", currentId), { matches: data.matches });
+      statusEl.textContent = "Match saved.";
+      render();
+    } catch (error) {
+      statusEl.textContent = "Failed: " + error.message;
+    }
+  }
+</script>
+
+</body>
+</html>
