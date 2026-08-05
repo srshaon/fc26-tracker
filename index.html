@@ -4,78 +4,140 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FC26 Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; }
-  body { font-family: Arial, sans-serif; max-width: 700px; margin: 30px auto; padding: 0 20px; color: #222; }
-  h1 { font-size: 22px; }
-  h2 { font-size: 16px; margin-top: 20px; color: #333; }
-  h3 { font-size: 14px; margin: 10px 0 4px; color: #555; }
-  nav { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; padding-bottom: 12px; border-bottom: 1px solid #ddd; }
-  nav button { padding: 8px 12px; border: 1px solid #ccc; background: white; border-radius: 6px; cursor: pointer; font-size: 13px; }
-  nav button.active { background: #222; color: white; border-color: #222; }
-  .card { background: #f7f7f7; border-radius: 8px; padding: 14px; margin-top: 12px; }
-  .option-btn { padding: 9px 13px; font-size: 14px; cursor: pointer; border: 1px solid #ccc; background: white; border-radius: 6px; }
-  .option-btn.selected { background: #222; color: white; border-color: #222; }
+
+  :root, [data-theme="matchday"] {
+    --bg-page: #0b1f3a;
+    --bg-surface: #122a4d;
+    --bg-surface-alt: #16305a;
+    --text-primary: #f4f7fb;
+    --text-secondary: #a9c0dd;
+    --text-muted: #7d93b3;
+    --accent: #f2c94c;
+    --accent-contrast: #0b1f3a;
+    --border: #24406e;
+    --border-strong: #3a5d94;
+    --danger-bg: #6e2020;
+    --danger-text: #ffb3b3;
+    --success-bg: #d4f5dd;
+    --success-text: #1a6b34;
+    --font-heading: 'Oswald', Arial Narrow, sans-serif;
+    --font-body: Arial, sans-serif;
+    --radius-card: 10px;
+    --heading-transform: uppercase;
+    --heading-letter-spacing: 0.5px;
+  }
+
+  [data-theme="pitch"] {
+    --bg-page: #f4ecd8;
+    --bg-surface: #fbf6ea;
+    --bg-surface-alt: #efe3c6;
+    --text-primary: #3a2f1c;
+    --text-secondary: #7a6a45;
+    --text-muted: #9c8c66;
+    --accent: #4a6b3a;
+    --accent-contrast: #fbf6ea;
+    --border: #d8c9a3;
+    --border-strong: #b9a578;
+    --danger-bg: #f3d9d0;
+    --danger-text: #8a3a22;
+    --success-bg: #e2ecd6;
+    --success-text: #3c5a2c;
+    --font-heading: Georgia, 'Times New Roman', serif;
+    --font-body: Georgia, 'Times New Roman', serif;
+    --radius-card: 4px;
+    --heading-transform: none;
+    --heading-letter-spacing: normal;
+  }
+
+  [data-theme="hud"] {
+    --bg-page: #14161a;
+    --bg-surface: #1c1f26;
+    --bg-surface-alt: #23272f;
+    --text-primary: #eaf6ff;
+    --text-secondary: #7fe6ff;
+    --text-muted: #5b6472;
+    --accent: #6fffb0;
+    --accent-contrast: #14161a;
+    --border: #2c313b;
+    --border-strong: #3f4652;
+    --danger-bg: #4a1f24;
+    --danger-text: #ff8a8a;
+    --success-bg: #163b2c;
+    --success-text: #6fffb0;
+    --font-heading: 'Consolas', 'Courier New', monospace;
+    --font-body: 'Consolas', 'Courier New', monospace;
+    --radius-card: 2px;
+    --heading-transform: uppercase;
+    --heading-letter-spacing: 1px;
+  }
+
+  body {
+    font-family: var(--font-body);
+    max-width: 700px;
+    margin: 30px auto;
+    padding: 0 20px;
+    background: var(--bg-page);
+    color: var(--text-primary);
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  h1 { font-size: 22px; font-family: var(--font-heading); text-transform: var(--heading-transform); letter-spacing: var(--heading-letter-spacing); }
+  h2 { font-size: 16px; margin-top: 20px; font-family: var(--font-heading); color: var(--text-primary); text-transform: var(--heading-transform); letter-spacing: var(--heading-letter-spacing); }
+  h3 { font-size: 14px; margin: 10px 0 4px; color: var(--text-secondary); font-family: var(--font-heading); }
+  nav { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  nav button { padding: 8px 12px; border: 1px solid var(--border-strong); background: var(--bg-surface); color: var(--text-primary); border-radius: var(--radius-card); cursor: pointer; font-size: 13px; font-family: var(--font-body); }
+  nav button.active { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); font-weight: bold; }
+  .card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 14px; margin-top: 12px; }
+  .option-btn { padding: 9px 13px; font-size: 14px; cursor: pointer; border: 1px solid var(--border-strong); background: var(--bg-surface); color: var(--text-primary); border-radius: var(--radius-card); }
+  .option-btn.selected { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
   .options { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
-  select, input[type=text], input[type=password], input[type=url], input[type=number] { padding: 7px; font-size: 14px; }
+  select, input[type=text], input[type=password], input[type=url], input[type=number] { padding: 7px; font-size: 14px; background: var(--bg-surface-alt); color: var(--text-primary); border: 1px solid var(--border-strong); border-radius: var(--radius-card); font-family: var(--font-body); }
   input[type=number] { width: 90px; }
   select { width: 100%; }
-  label { font-size: 12px; color: #666; display: block; margin-top: 8px; }
-  button.primary { padding: 9px 14px; font-size: 14px; cursor: pointer; margin-top: 10px; }
+  label { font-size: 12px; color: var(--text-secondary); display: block; margin-top: 8px; }
+  button.primary { padding: 9px 14px; font-size: 14px; cursor: pointer; margin-top: 10px; background: var(--accent); color: var(--accent-contrast); border: none; border-radius: var(--radius-card); font-weight: bold; font-family: var(--font-body); }
   .chip-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-  .chip { background: #eee; padding: 5px 9px; border-radius: 14px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
-  .chip button { border: none; background: none; cursor: pointer; font-size: 12px; }
+  .chip { background: var(--bg-surface-alt); border: 1px solid var(--border); padding: 5px 9px; border-radius: 14px; font-size: 12px; display: flex; align-items: center; gap: 6px; color: var(--text-primary); }
+  .chip button { border: none; background: none; cursor: pointer; font-size: 12px; color: var(--text-secondary); }
   .guest-row { display: flex; gap: 6px; margin-top: 6px; }
   .guest-row input { flex: 1; }
   .teams-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
   table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
-  th, td { text-align: left; padding: 6px; border-bottom: 1px solid #e5e5e5; }
-  th { color: #777; font-weight: normal; }
+  th, td { text-align: left; padding: 6px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
+  th { color: var(--text-secondary); font-weight: normal; }
   .match-row { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 8px 0; }
-  .match-row .name { font-size: 13px; font-weight: bold; width: 130px; text-align: center; }
+  .match-row .name { font-size: 13px; font-weight: bold; width: 130px; text-align: center; font-family: var(--font-heading); color: var(--text-primary); }
   .match-row input { width: 46px; text-align: center; }
-  .status-msg { font-size: 13px; color: #555; margin-top: 8px; }
-  .warn { color: #a15c00; }
+  .status-msg { font-size: 13px; color: var(--text-secondary); margin-top: 8px; }
+  .warn { color: var(--danger-text); }
   .champ-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 6px; }
-  .champ-card { background: #f0f0f0; border-radius: 6px; padding: 10px; text-align: center; }
-  .champ-card .label { font-size: 10px; color: #888; }
-  .champ-card .name { font-size: 13px; font-weight: bold; margin-top: 3px; }
+  .champ-card { background: var(--bg-surface-alt); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 10px; text-align: center; }
+  .champ-card .label { font-size: 10px; color: var(--text-muted); text-transform: var(--heading-transform); }
+  .champ-card .name { font-size: 13px; font-weight: bold; margin-top: 3px; color: var(--accent); font-family: var(--font-heading); }
   .tab-row { display: flex; gap: 6px; margin-top: 10px; }
-  .tab-row button { padding: 6px 10px; font-size: 12px; border: 1px solid #ccc; background: white; border-radius: 6px; cursor: pointer; }
-  .tab-row button.active { background: #444; color: white; }
+  .tab-row button { padding: 6px 10px; font-size: 12px; border: 1px solid var(--border-strong); background: var(--bg-surface); color: var(--text-primary); border-radius: var(--radius-card); cursor: pointer; }
+  .tab-row button.active { background: var(--accent); color: var(--accent-contrast); }
   .tourn-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
   .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
-  .stat-card { background: #eee; border-radius: 6px; padding: 8px 12px; }
-  .stat-card .label { font-size: 11px; color: #777; }
-  .stat-card .value { font-size: 15px; font-weight: bold; }
-  #winnerBanner { display: none; margin-top: 12px; padding: 12px; background: #d4f5dd; border-radius: 8px; font-weight: bold; color: #1a6b34; text-align: center; }
-  .player-name-link { color: #222; text-decoration: underline; cursor: pointer; background: none; border: none; font-size: 14px; padding: 0; }
-
-  @media (max-width: 520px) {
-    body { margin: 12px auto; padding: 0 12px; }
-    h1 { font-size: 19px; }
-    nav { gap: 5px; }
-    nav button { padding: 7px 9px; font-size: 12px; }
-    .teams-grid { grid-template-columns: 1fr; }
-    .champ-grid { grid-template-columns: 1fr; }
-    .stat-grid { grid-template-columns: 1fr; }
-    .match-row { flex-wrap: wrap; gap: 6px; }
-    .match-row .name { width: auto; flex-basis: 40%; }
-    table { font-size: 12px; }
-    th, td { padding: 5px 4px; }
-    select, input[type=text], input[type=password], input[type=url], input[type=number] { width: 100%; }
-    input[type=number] { width: 70px; }
-  }
+  .stat-card { background: var(--bg-surface-alt); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 8px 12px; }
+  .stat-card .label { font-size: 11px; color: var(--text-muted); }
+  .stat-card .value { font-size: 15px; font-weight: bold; color: var(--text-primary); }
+  #winnerBanner { display: none; margin-top: 12px; padding: 12px; background: var(--success-bg); border-radius: 8px; font-weight: bold; color: var(--success-text); text-align: center; }
+  .player-name-link { color: var(--accent); text-decoration: underline; cursor: pointer; background: none; border: none; font-size: 14px; padding: 0; font-family: var(--font-body); }
 
   .win-banner {
     position: relative;
     margin-top: 16px;
     padding: 22px 16px;
-    border-radius: 14px;
+    border-radius: var(--radius-card);
     text-align: center;
     overflow: hidden;
-    background: linear-gradient(135deg, #ffd76a, #ff9f43 45%, #ff6b6b);
-    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+    background: linear-gradient(135deg, var(--accent), var(--bg-surface-alt) 80%);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
     animation: winPop 0.55s cubic-bezier(.26,1.6,.4,1) both;
   }
   .win-banner .trophy {
@@ -86,13 +148,15 @@
   .win-banner .winName {
     font-size: 19px;
     font-weight: 800;
-    color: #fff;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    color: var(--accent-contrast);
+    font-family: var(--font-heading);
+    text-transform: var(--heading-transform);
     margin-top: 4px;
   }
   .win-banner .winSub {
     font-size: 12px;
-    color: rgba(255,255,255,0.9);
+    color: var(--accent-contrast);
+    opacity: 0.8;
     margin-top: 2px;
     letter-spacing: 0.5px;
     text-transform: uppercase;
@@ -118,12 +182,28 @@
     0% { transform: translateY(0) rotate(0deg); opacity: 1; }
     100% { transform: translateY(160px) rotate(540deg); opacity: 0; }
   }
+
+  @media (max-width: 520px) {
+    body { margin: 12px auto; padding: 0 12px; }
+    h1 { font-size: 19px; }
+    nav { gap: 5px; }
+    nav button { padding: 7px 9px; font-size: 12px; }
+    .teams-grid { grid-template-columns: 1fr; }
+    .champ-grid { grid-template-columns: 1fr; }
+    .stat-grid { grid-template-columns: 1fr; }
+    .match-row { flex-wrap: wrap; gap: 6px; }
+    .match-row .name { width: auto; flex-basis: 40%; }
+    table { font-size: 12px; }
+    th, td { padding: 5px 4px; }
+    select, input[type=text], input[type=password], input[type=url], input[type=number] { width: 100%; }
+    input[type=number] { width: 70px; }
+  }
 </style>
 </head>
 <body>
 
 <h1>FC26 tracker</h1>
-<div id="authBar" style="font-size:13px; color:#555;"></div>
+<div id="authBar" style="font-size:13px; color:var(--text-secondary);"></div>
 
 <nav id="mainNav"></nav>
 
@@ -165,6 +245,23 @@
 
   function usernameToEmail(u) { return u.trim().toLowerCase() + "@fc26tracker.app"; }
   function num(v) { return v || 0; }
+
+  const THEMES = [
+    { key: "matchday", label: "Matchday broadcast" },
+    { key: "pitch", label: "Pitch programme" },
+    { key: "hud", label: "Console HUD" }
+  ];
+
+  async function loadTheme() {
+    try {
+      const snap = await getDoc(doc(db, "settings", "theme"));
+      const themeKey = snap.exists() ? snap.data().current : "matchday";
+      document.documentElement.setAttribute("data-theme", themeKey);
+    } catch (e) {
+      document.documentElement.setAttribute("data-theme", "matchday");
+    }
+  }
+  loadTheme();
 
   // ---------- Auth ----------
   onAuthStateChanged(auth, async (user) => {
@@ -373,17 +470,23 @@
   async function renderAdminList() {
     viewArea.innerHTML = `
       <h2>All admins</h2>
-      <p style='font-size:12px;color:#888;'>"Delete" disables the account — it can no longer log in or take admin actions.</p>
+      <p style='font-size:12px;color:var(--text-muted);'>"Delete" disables the account — it can no longer log in or take admin actions.</p>
       <table><thead><tr><th>Username</th><th>Status</th><th></th></tr></thead><tbody id='adminBody'></tbody></table>
       <div class="card">
+        <h3>Site theme</h3>
+        <p style="font-size:12px;color:var(--text-muted);">Changes how the site looks for everyone, not just you.</p>
+        <div class="options" id="themeOptions"></div>
+        <p class="status-msg" id="themeStatus"></p>
+      </div>
+      <div class="card">
         <h3>Export records (backup)</h3>
-        <p style="font-size:12px;color:#888;">Downloads a copy of all players, tournaments, champions, and results as a file you can keep. Recommended before resetting.</p>
+        <p style="font-size:12px;color:var(--text-muted);">Downloads a copy of all players, tournaments, champions, and results as a file you can keep. Recommended before resetting.</p>
         <button class="primary" id="exportBtn">Export records</button>
         <p class="status-msg" id="exportStatus"></p>
       </div>
       <div class="card" style="border:1px solid #e0a0a0;">
         <h3 class="warn">Reset all records</h3>
-        <p style="font-size:12px;color:#888;">Deletes every tournament, champion, and results table entry, and resets every player's stats back to zero. Players themselves stay in the pool. Admins are never affected. This cannot be undone.</p>
+        <p style="font-size:12px;color:var(--text-muted);">Deletes every tournament, champion, and results table entry, and resets every player's stats back to zero. Players themselves stay in the pool. Admins are never affected. This cannot be undone.</p>
         <label>Type RESET to confirm</label>
         <input type="text" id="resetConfirmInput" placeholder="RESET">
         <br><button class="primary" id="resetAllBtn" style="background:#a33; color:white; border-color:#a33;">Reset all records</button>
@@ -391,6 +494,7 @@
       </div>
     `;
     await refreshAdminList();
+    await renderThemePicker();
     document.getElementById("exportBtn").addEventListener("click", exportRecords);
     document.getElementById("resetAllBtn").addEventListener("click", async () => {
       const statusEl = document.getElementById("resetStatus");
@@ -405,6 +509,30 @@
       } catch (e) {
         statusEl.textContent = "Failed: " + e.message;
       }
+    });
+  }
+
+  async function renderThemePicker() {
+    const area = document.getElementById("themeOptions");
+    const current = document.documentElement.getAttribute("data-theme") || "matchday";
+    area.innerHTML = "";
+    THEMES.forEach(t => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn" + (t.key === current ? " selected" : "");
+      btn.textContent = t.label;
+      btn.addEventListener("click", async () => {
+        const statusEl = document.getElementById("themeStatus");
+        try {
+          await setDoc(doc(db, "settings", "theme"), { current: t.key, updatedAt: Date.now() });
+          document.documentElement.setAttribute("data-theme", t.key);
+          [...area.children].forEach(b => b.classList.remove("selected"));
+          btn.classList.add("selected");
+          statusEl.textContent = t.label + " is now live for everyone.";
+        } catch (e) {
+          statusEl.textContent = "Failed: " + e.message;
+        }
+      });
+      area.appendChild(btn);
     });
   }
 
