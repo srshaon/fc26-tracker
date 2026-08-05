@@ -51,6 +51,22 @@
   #winnerBanner { display: none; margin-top: 12px; padding: 12px; background: #d4f5dd; border-radius: 8px; font-weight: bold; color: #1a6b34; text-align: center; }
   .player-name-link { color: #222; text-decoration: underline; cursor: pointer; background: none; border: none; font-size: 14px; padding: 0; }
 
+  @media (max-width: 520px) {
+    body { margin: 12px auto; padding: 0 12px; }
+    h1 { font-size: 19px; }
+    nav { gap: 5px; }
+    nav button { padding: 7px 9px; font-size: 12px; }
+    .teams-grid { grid-template-columns: 1fr; }
+    .champ-grid { grid-template-columns: 1fr; }
+    .stat-grid { grid-template-columns: 1fr; }
+    .match-row { flex-wrap: wrap; gap: 6px; }
+    .match-row .name { width: auto; flex-basis: 40%; }
+    table { font-size: 12px; }
+    th, td { padding: 5px 4px; }
+    select, input[type=text], input[type=password], input[type=url], input[type=number] { width: 100%; }
+    input[type=number] { width: 70px; }
+  }
+
   .win-banner {
     position: relative;
     margin-top: 16px;
@@ -229,13 +245,13 @@
     const items = [
       { key: "home", label: "Home" },
       { key: "records", label: "Records" },
-      { key: "playerPool", label: "Player pool" }
+      { key: "playerPool", label: "Player pool" },
+      { key: "liveTournaments", label: "Live tournaments" }
     ];
     if (currentAdmin) {
       items.push({ key: "createAdmin", label: "Create admin" });
       if (currentAdmin.isMaster) items.push({ key: "adminList", label: "Admin list" });
       items.push({ key: "createTournament", label: "Create tournament" });
-      items.push({ key: "liveTournaments", label: "Live tournaments" });
     } else {
       items.push({ key: "login", label: "Admin login" });
     }
@@ -265,7 +281,7 @@
     if (currentView === "createAdmin") return requireAdmin() && renderCreateAdmin();
     if (currentView === "adminList") return requireMaster() && renderAdminList();
     if (currentView === "createTournament") return requireAdmin() && renderCreateTournament();
-    if (currentView === "liveTournaments") return requireAdmin() && renderLiveTournaments();
+    if (currentView === "liveTournaments") return renderLiveTournaments();
     if (currentView === "playerPool") return renderPlayerPool();
   }
 
@@ -296,11 +312,18 @@
         <label>Username</label>
         <input type="text" id="loginUsername">
         <label>Password</label>
-        <input type="password" id="loginPassword">
+        <div style="display:flex; align-items:center; gap:6px;">
+          <input type="password" id="loginPassword" style="flex:1;">
+          <button type="button" id="togglePasswordBtn" style="padding:6px 10px; cursor:pointer;">&#128065;</button>
+        </div>
         <br><button class="primary" id="loginBtn">Log in</button>
         <p class="status-msg" id="loginStatus"></p>
       </div>
     `;
+    document.getElementById("togglePasswordBtn").addEventListener("click", () => {
+      const input = document.getElementById("loginPassword");
+      input.type = input.type === "password" ? "text" : "password";
+    });
     document.getElementById("loginBtn").addEventListener("click", async () => {
       const u = document.getElementById("loginUsername").value.trim();
       const p = document.getElementById("loginPassword").value;
@@ -1064,6 +1087,19 @@
   function renderSimpleMatch(container, tid, data) {
     const nameA = data.teams ? data.teams[0].teamName : data.participants[0].name;
     const nameB = data.teams ? data.teams[1].teamName : data.participants[1].name;
+
+    if (!currentAdmin) {
+      container.innerHTML = `
+        <div class="match-row">
+          <span class="name">${nameA}</span>
+          <span>vs</span>
+          <span class="name">${nameB}</span>
+        </div>
+        <p class="status-msg">Match not played yet.</p>
+      `;
+      return;
+    }
+
     container.innerHTML = `
       <div class="match-row">
         <span class="name">${nameA}</span>
@@ -1138,11 +1174,16 @@
     data.matches.forEach((m, idx) => {
       const row = document.createElement("div");
       row.className = "match-row";
-      row.innerHTML = `<span class="name">${m.sideA}</span><input type="number" min="0" value="${m.scoreA ?? ""}" data-idx="${idx}" data-side="A"><span>-</span><input type="number" min="0" value="${m.scoreB ?? ""}" data-idx="${idx}" data-side="B"><span class="name">${m.sideB}</span>`;
-      const btn = document.createElement("button");
-      btn.textContent = m.scoreA !== null ? "Update" : "Save";
-      btn.addEventListener("click", () => saveGroupMatch(tid, data, idx, container));
-      row.appendChild(btn);
+      if (!currentAdmin) {
+        const scoreText = (m.scoreA !== null && m.scoreB !== null) ? (m.scoreA + " - " + m.scoreB) : "vs";
+        row.innerHTML = `<span class="name">${m.sideA}</span><span>${scoreText}</span><span class="name">${m.sideB}</span>`;
+      } else {
+        row.innerHTML = `<span class="name">${m.sideA}</span><input type="number" min="0" value="${m.scoreA ?? ""}" data-idx="${idx}" data-side="A"><span>-</span><input type="number" min="0" value="${m.scoreB ?? ""}" data-idx="${idx}" data-side="B"><span class="name">${m.sideB}</span>`;
+        const btn = document.createElement("button");
+        btn.textContent = m.scoreA !== null ? "Update" : "Save";
+        btn.addEventListener("click", () => saveGroupMatch(tid, data, idx, container));
+        row.appendChild(btn);
+      }
       matchesDiv.appendChild(row);
     });
     container.appendChild(matchesDiv);
@@ -1159,15 +1200,22 @@
     const allGroupMatchesDone = data.matches.every(m => m.scoreA !== null && m.scoreB !== null);
     if (allGroupMatchesDone) {
       if (!data.knockout) {
-        const setup = document.createElement("div");
-        setup.className = "card";
-        setup.innerHTML = "<h3>Set up knockout stage</h3><div class='options' id='koOptions_" + tid + "'><button class='option-btn' data-v='1'>Option 1: top teams straight to semis</button><button class='option-btn' data-v='2'>Option 2: with pre-semifinal knockouts</button></div><p class='status-msg' id='koStatus_" + tid + "'></p>";
-        container.appendChild(setup);
-        document.getElementById("koOptions_" + tid).addEventListener("click", async (e) => {
-          if (!e.target.classList.contains("option-btn")) return;
-          await generateKnockout(tid, data, parseInt(e.target.dataset.v, 10));
-          refreshTournamentCard(tid, container);
-        });
+        if (currentAdmin) {
+          const setup = document.createElement("div");
+          setup.className = "card";
+          setup.innerHTML = "<h3>Set up knockout stage</h3><div class='options' id='koOptions_" + tid + "'><button class='option-btn' data-v='1'>Option 1: top teams straight to semis</button><button class='option-btn' data-v='2'>Option 2: with pre-semifinal knockouts</button></div><p class='status-msg' id='koStatus_" + tid + "'></p>";
+          container.appendChild(setup);
+          document.getElementById("koOptions_" + tid).addEventListener("click", async (e) => {
+            if (!e.target.classList.contains("option-btn")) return;
+            await generateKnockout(tid, data, parseInt(e.target.dataset.v, 10));
+            refreshTournamentCard(tid, container);
+          });
+        } else {
+          const waiting = document.createElement("p");
+          waiting.className = "status-msg";
+          waiting.textContent = "Group stage complete. Waiting for an admin to set up the knockout stage.";
+          container.appendChild(waiting);
+        }
       } else {
         renderKnockout(container, tid, data);
       }
@@ -1265,13 +1313,19 @@
       stage.matches.forEach((m, mi) => {
         const row = document.createElement("div");
         row.className = "match-row";
-        const editable = !m.sideA.toString().startsWith("TBD") && !m.sideB.toString().startsWith("TBD");
-        row.innerHTML = `<span class="name">${m.sideA}</span><input type="number" min="0" value="${m.scoreA ?? ""}" ${editable ? "" : "disabled"} data-stage="${si}" data-match="${mi}" data-side="A"><span>-</span><input type="number" min="0" value="${m.scoreB ?? ""}" ${editable ? "" : "disabled"} data-stage="${si}" data-match="${mi}" data-side="B"><span class="name">${m.sideB}</span>`;
-        if (editable) {
-          const btn = document.createElement("button");
-          btn.textContent = m.scoreA !== null ? "Update" : "Save";
-          btn.addEventListener("click", () => saveKnockoutMatch(tid, data, si, mi, container));
-          row.appendChild(btn);
+        const bothKnown = !m.sideA.toString().startsWith("TBD") && !m.sideB.toString().startsWith("TBD");
+        if (!currentAdmin) {
+          const scoreText = (m.scoreA !== null && m.scoreB !== null) ? (m.scoreA + " - " + m.scoreB) : (bothKnown ? "vs" : "-");
+          row.innerHTML = `<span class="name">${m.sideA}</span><span>${scoreText}</span><span class="name">${m.sideB}</span>`;
+        } else {
+          const editable = bothKnown;
+          row.innerHTML = `<span class="name">${m.sideA}</span><input type="number" min="0" value="${m.scoreA ?? ""}" ${editable ? "" : "disabled"} data-stage="${si}" data-match="${mi}" data-side="A"><span>-</span><input type="number" min="0" value="${m.scoreB ?? ""}" ${editable ? "" : "disabled"} data-stage="${si}" data-match="${mi}" data-side="B"><span class="name">${m.sideB}</span>`;
+          if (editable) {
+            const btn = document.createElement("button");
+            btn.textContent = m.scoreA !== null ? "Update" : "Save";
+            btn.addEventListener("click", () => saveKnockoutMatch(tid, data, si, mi, container));
+            row.appendChild(btn);
+          }
         }
         stageDiv.appendChild(row);
       });
