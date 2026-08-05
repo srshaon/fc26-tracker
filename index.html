@@ -50,6 +50,58 @@
   .stat-card .value { font-size: 15px; font-weight: bold; }
   #winnerBanner { display: none; margin-top: 12px; padding: 12px; background: #d4f5dd; border-radius: 8px; font-weight: bold; color: #1a6b34; text-align: center; }
   .player-name-link { color: #222; text-decoration: underline; cursor: pointer; background: none; border: none; font-size: 14px; padding: 0; }
+
+  .win-banner {
+    position: relative;
+    margin-top: 16px;
+    padding: 22px 16px;
+    border-radius: 14px;
+    text-align: center;
+    overflow: hidden;
+    background: linear-gradient(135deg, #ffd76a, #ff9f43 45%, #ff6b6b);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+    animation: winPop 0.55s cubic-bezier(.26,1.6,.4,1) both;
+  }
+  .win-banner .trophy {
+    font-size: 34px;
+    display: inline-block;
+    animation: winBounce 1.1s ease-in-out infinite;
+  }
+  .win-banner .winName {
+    font-size: 19px;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    margin-top: 4px;
+  }
+  .win-banner .winSub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.9);
+    margin-top: 2px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .confetti-piece {
+    position: absolute;
+    top: -10px;
+    width: 7px;
+    height: 12px;
+    opacity: 0.9;
+    animation: confettiFall 1.6s ease-in forwards;
+  }
+  @keyframes winPop {
+    0% { transform: scale(0.4) translateY(10px); opacity: 0; }
+    60% { transform: scale(1.06) translateY(-2px); opacity: 1; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  @keyframes winBounce {
+    0%, 100% { transform: translateY(0) rotate(-4deg); }
+    50% { transform: translateY(-8px) rotate(4deg); }
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(160px) rotate(540deg); opacity: 0; }
+  }
 </style>
 </head>
 <body>
@@ -133,6 +185,7 @@
     const snap = await getDocs(collection(db, "players"));
     poolPlayers = [];
     snap.forEach(d => poolPlayers.push({ id: d.id, ...d.data() }));
+    poolPlayers.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   }
 
   async function nextGuestLabel() {
@@ -153,18 +206,36 @@
     await updateDoc(doc(db, "players", playerId), updates);
   }
 
+  function showWinnerBanner(container, winnerName) {
+    const banner = document.createElement("div");
+    banner.className = "win-banner";
+    const colors = ["#fff", "#ffe066", "#ff6b6b", "#4dd0e1", "#a3ff7a"];
+    let confetti = "";
+    for (let i = 0; i < 18; i++) {
+      const left = Math.random() * 100;
+      const delay = (Math.random() * 0.4).toFixed(2);
+      const color = colors[i % colors.length];
+      confetti += `<span class="confetti-piece" style="left:${left}%; background:${color}; animation-delay:${delay}s;"></span>`;
+    }
+    banner.innerHTML = confetti +
+      "<div class='trophy'>\u{1F3C6}</div>" +
+      "<div class='winSub'>Champion</div>" +
+      "<div class='winName'>" + winnerName + "</div>";
+    container.appendChild(banner);
+  }
+
   // ---------- Nav ----------
   function renderNav() {
     const items = [
       { key: "home", label: "Home" },
-      { key: "records", label: "Records" }
+      { key: "records", label: "Records" },
+      { key: "playerPool", label: "Player pool" }
     ];
     if (currentAdmin) {
       items.push({ key: "createAdmin", label: "Create admin" });
       if (currentAdmin.isMaster) items.push({ key: "adminList", label: "Admin list" });
       items.push({ key: "createTournament", label: "Create tournament" });
       items.push({ key: "liveTournaments", label: "Live tournaments" });
-      items.push({ key: "playerPool", label: "Player pool" });
     } else {
       items.push({ key: "login", label: "Admin login" });
     }
@@ -195,7 +266,7 @@
     if (currentView === "adminList") return requireMaster() && renderAdminList();
     if (currentView === "createTournament") return requireAdmin() && renderCreateTournament();
     if (currentView === "liveTournaments") return requireAdmin() && renderLiveTournaments();
-    if (currentView === "playerPool") return requireAdmin() && renderPlayerPool();
+    if (currentView === "playerPool") return renderPlayerPool();
   }
 
   // ================= HOME =================
@@ -277,8 +348,96 @@
 
   // ================= ADMIN LIST =================
   async function renderAdminList() {
-    viewArea.innerHTML = "<h2>All admins</h2><p style='font-size:12px;color:#888;'>\"Delete\" disables the account — it can no longer log in or take admin actions.</p><table><thead><tr><th>Username</th><th>Status</th><th></th></tr></thead><tbody id='adminBody'></tbody></table>";
+    viewArea.innerHTML = `
+      <h2>All admins</h2>
+      <p style='font-size:12px;color:#888;'>"Delete" disables the account — it can no longer log in or take admin actions.</p>
+      <table><thead><tr><th>Username</th><th>Status</th><th></th></tr></thead><tbody id='adminBody'></tbody></table>
+      <div class="card">
+        <h3>Export records (backup)</h3>
+        <p style="font-size:12px;color:#888;">Downloads a copy of all players, tournaments, champions, and results as a file you can keep. Recommended before resetting.</p>
+        <button class="primary" id="exportBtn">Export records</button>
+        <p class="status-msg" id="exportStatus"></p>
+      </div>
+      <div class="card" style="border:1px solid #e0a0a0;">
+        <h3 class="warn">Reset all records</h3>
+        <p style="font-size:12px;color:#888;">Deletes every tournament, champion, and results table entry, and resets every player's stats back to zero. Players themselves stay in the pool. Admins are never affected. This cannot be undone.</p>
+        <label>Type RESET to confirm</label>
+        <input type="text" id="resetConfirmInput" placeholder="RESET">
+        <br><button class="primary" id="resetAllBtn" style="background:#a33; color:white; border-color:#a33;">Reset all records</button>
+        <p class="status-msg" id="resetStatus"></p>
+      </div>
+    `;
     await refreshAdminList();
+    document.getElementById("exportBtn").addEventListener("click", exportRecords);
+    document.getElementById("resetAllBtn").addEventListener("click", async () => {
+      const statusEl = document.getElementById("resetStatus");
+      const confirmInput = document.getElementById("resetConfirmInput");
+      if (confirmInput.value.trim() !== "RESET") { statusEl.textContent = "Type RESET exactly to confirm."; return; }
+      if (!confirm("This will permanently erase all tournament history and player stats. Continue?")) return;
+      statusEl.textContent = "Resetting...";
+      try {
+        await resetAllRecords();
+        statusEl.textContent = "All records have been reset.";
+        confirmInput.value = "";
+      } catch (e) {
+        statusEl.textContent = "Failed: " + e.message;
+      }
+    });
+  }
+
+  async function exportRecords() {
+    const statusEl = document.getElementById("exportStatus");
+    statusEl.textContent = "Preparing export...";
+    try {
+      const collect = async (name) => {
+        const snap = await getDocs(collection(db, name));
+        const out = {};
+        snap.forEach(d => { out[d.id] = d.data(); });
+        return out;
+      };
+      const backup = {
+        exportedAt: new Date().toISOString(),
+        players: await collect("players"),
+        tournaments: await collect("tournaments"),
+        champions: await collect("champions"),
+        resultsTable: await collect("resultsTable")
+      };
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const dateStr = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = "fc26-records-backup-" + dateStr + ".json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      statusEl.textContent = "Backup downloaded.";
+    } catch (e) {
+      statusEl.textContent = "Export failed: " + e.message;
+    }
+  }
+
+  async function resetAllRecords() {
+    const tournamentsSnap = await getDocs(collection(db, "tournaments"));
+    for (const d of tournamentsSnap.docs) await deleteDoc(doc(db, "tournaments", d.id));
+
+    const championsSnap = await getDocs(collection(db, "champions"));
+    for (const d of championsSnap.docs) await deleteDoc(doc(db, "champions", d.id));
+
+    const resultsSnap = await getDocs(collection(db, "resultsTable"));
+    for (const d of resultsSnap.docs) await deleteDoc(doc(db, "resultsTable", d.id));
+
+    const statFields = ["singleMatchesPlayed", "singleGoalsFor", "singleGoalsAgainst", "singleWins", "singleLosses",
+      "singleTournamentsPlayed", "singleChampionships", "singleRunnerUps",
+      "tagTeamTournamentsPlayed", "tagTeamFinalWins", "tagTeamFinalLosses"];
+    const resetFields = {};
+    statFields.forEach(f => { resetFields[f] = 0; });
+    const playersSnap = await getDocs(collection(db, "players"));
+    for (const d of playersSnap.docs) await updateDoc(doc(db, "players", d.id), resetFields);
+
+    await setDoc(doc(db, "counters", "guestPlayers"), { count: 0 });
+    await loadPool();
   }
   async function refreshAdminList() {
     const snap = await getDocs(collection(db, "admins"));
@@ -303,6 +462,7 @@
   function renderPlayerPool() {
     viewArea.innerHTML = `
       <h2>Player pool</h2>
+      ${currentAdmin ? `
       <div class="card">
         <label>Player name</label>
         <input type="text" id="newPlayerName">
@@ -310,23 +470,25 @@
         <input type="url" id="newPlayerImage">
         <br><button class="primary" id="addPlayerBtn">Add player</button>
         <p class="status-msg" id="playerStatus"></p>
-      </div>
+      </div>` : `<p class="status-msg">Log in as an admin to add or edit players.</p>`}
       <table><thead><tr><th></th><th>Name</th><th></th></tr></thead><tbody id="playerBody"></tbody></table>
     `;
-    document.getElementById("addPlayerBtn").addEventListener("click", async () => {
-      const statusEl = document.getElementById("playerStatus");
-      const name = document.getElementById("newPlayerName").value.trim();
-      const img = document.getElementById("newPlayerImage").value.trim();
-      if (!name) { statusEl.textContent = "Name is required."; return; }
-      try {
-        await addDoc(collection(db, "players"), { name: name.toUpperCase(), imageUrl: img || null, createdAt: Date.now() });
-        statusEl.textContent = "Player added.";
-        document.getElementById("newPlayerName").value = "";
-        document.getElementById("newPlayerImage").value = "";
-        await loadPool();
-        refreshPlayerTable();
-      } catch (e) { statusEl.textContent = "Failed: " + e.message; }
-    });
+    if (currentAdmin) {
+      document.getElementById("addPlayerBtn").addEventListener("click", async () => {
+        const statusEl = document.getElementById("playerStatus");
+        const name = document.getElementById("newPlayerName").value.trim();
+        const img = document.getElementById("newPlayerImage").value.trim();
+        if (!name) { statusEl.textContent = "Name is required."; return; }
+        try {
+          await addDoc(collection(db, "players"), { name: name.toUpperCase(), imageUrl: img || null, createdAt: Date.now() });
+          statusEl.textContent = "Player added.";
+          document.getElementById("newPlayerName").value = "";
+          document.getElementById("newPlayerImage").value = "";
+          await loadPool();
+          refreshPlayerTable();
+        } catch (e) { statusEl.textContent = "Failed: " + e.message; }
+      });
+    }
     refreshPlayerTable();
   }
   function refreshPlayerTable() {
@@ -334,21 +496,69 @@
     body.innerHTML = "";
     poolPlayers.forEach(p => {
       const row = document.createElement("tr");
-      const imgHtml = p.imageUrl ? "<img src='" + p.imageUrl + "' style='width:28px;height:28px;border-radius:50%;object-fit:cover;'>" : "";
-      row.innerHTML = "<td>" + imgHtml + "</td><td>" + p.name + "</td><td></td>";
-      if (currentAdmin && currentAdmin.isMaster) {
-        const btn = document.createElement("button");
-        btn.textContent = "Delete";
-        btn.addEventListener("click", async () => {
-          if (!confirm("Delete " + p.name + " from the player pool? This cannot be undone.")) return;
-          await deleteDoc(doc(db, "players", p.id));
-          await loadPool();
-          refreshPlayerTable();
-        });
-        row.children[2].appendChild(btn);
-      }
+      row.dataset.playerId = p.id;
+      renderPlayerRow(row, p);
       body.appendChild(row);
     });
+  }
+
+  function renderPlayerRow(row, p) {
+    const imgHtml = p.imageUrl ? "<img src='" + p.imageUrl + "' style='width:28px;height:28px;border-radius:50%;object-fit:cover;'>" : "";
+    row.innerHTML = "<td>" + imgHtml + "</td><td>" + p.name + "</td><td></td>";
+    const actionsCell = row.children[2];
+
+    if (currentAdmin) {
+      const editBtn = document.createElement("button");
+      editBtn.textContent = "Edit";
+      editBtn.addEventListener("click", () => renderPlayerEditRow(row, p));
+      actionsCell.appendChild(editBtn);
+    }
+
+    if (currentAdmin && currentAdmin.isMaster) {
+      const delBtn = document.createElement("button");
+      delBtn.textContent = "Delete";
+      delBtn.style.marginLeft = "6px";
+      delBtn.addEventListener("click", async () => {
+        if (!confirm("Delete " + p.name + " from the player pool? This cannot be undone.")) return;
+        await deleteDoc(doc(db, "players", p.id));
+        await loadPool();
+        refreshPlayerTable();
+      });
+      actionsCell.appendChild(delBtn);
+    }
+  }
+
+  function renderPlayerEditRow(row, p) {
+    row.innerHTML = "<td></td><td></td><td></td>";
+    const nameCell = row.children[1];
+    const imgCell = row.children[0];
+    const actionsCell = row.children[2];
+
+    const nameInput = document.createElement("input");
+    nameInput.type = "text"; nameInput.value = p.name;
+    nameCell.appendChild(nameInput);
+
+    const imgInput = document.createElement("input");
+    imgInput.type = "url"; imgInput.value = p.imageUrl || ""; imgInput.placeholder = "Image URL";
+    imgInput.style.width = "160px";
+    imgCell.appendChild(imgInput);
+
+    const saveBtn = document.createElement("button");
+    saveBtn.textContent = "Save";
+    saveBtn.addEventListener("click", async () => {
+      const newName = nameInput.value.trim();
+      if (!newName) { alert("Name is required."); return; }
+      await updateDoc(doc(db, "players", p.id), { name: newName.toUpperCase(), imageUrl: imgInput.value.trim() || null });
+      await loadPool();
+      refreshPlayerTable();
+    });
+    const cancelBtn = document.createElement("button");
+    cancelBtn.textContent = "Cancel";
+    cancelBtn.style.marginLeft = "6px";
+    cancelBtn.addEventListener("click", () => renderPlayerRow(row, p));
+
+    actionsCell.appendChild(saveBtn);
+    actionsCell.appendChild(cancelBtn);
   }
 
   // ================= CREATE TOURNAMENT =================
@@ -800,7 +1010,28 @@
       card.className = "card";
       const header = document.createElement("div");
       header.className = "tourn-header";
-      header.innerHTML = "<strong>" + data.name + "</strong><span>\u25be</span>";
+      const titleSpan = document.createElement("span");
+      titleSpan.innerHTML = "<strong>" + data.name + "</strong>";
+      const rightSide = document.createElement("span");
+      rightSide.style.display = "flex";
+      rightSide.style.alignItems = "center";
+      rightSide.style.gap = "8px";
+      if (currentAdmin && currentAdmin.isMaster) {
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "Delete";
+        delBtn.addEventListener("click", async (ev) => {
+          ev.stopPropagation();
+          if (!confirm("Delete \"" + data.name + "\"? This cannot be undone and any stats already recorded for it will stay as-is.")) return;
+          await deleteDoc(doc(db, "tournaments", d.id));
+          renderLiveTournaments();
+        });
+        rightSide.appendChild(delBtn);
+      }
+      const arrow = document.createElement("span");
+      arrow.textContent = "\u25be";
+      rightSide.appendChild(arrow);
+      header.appendChild(titleSpan);
+      header.appendChild(rightSide);
       const body = document.createElement("div");
       body.style.display = "none";
       header.addEventListener("click", async () => {
@@ -851,8 +1082,9 @@
       if (isNaN(s1) || isNaN(s2) || s1 === s2 || s1 < 0 || s2 < 0) { statusEl.textContent = "Enter valid, non-tied scores."; return; }
       try {
         await finalizeTournament(tid, data, nameA, nameB, s1, s2);
-        statusEl.textContent = (s1 > s2 ? nameA : nameB) + " wins! Result saved.";
-        renderLiveTournaments();
+        statusEl.textContent = "Result saved.";
+        showWinnerBanner(container, s1 > s2 ? nameA : nameB);
+        setTimeout(() => renderLiveTournaments(), 2200);
       } catch (e) { statusEl.textContent = "Failed: " + e.message; }
     });
   }
@@ -1092,6 +1324,9 @@
       await setDoc(doc(db, "champions", data.format + "_" + (data.subMode || "none")), { tournamentName: data.name, winner: winnerName, runnerUp: runnerUpName, updatedAt: Date.now() });
       await setDoc(doc(db, "resultsTable", tid), { format: data.format, subMode: data.subMode || null, tournamentName: data.name, winner: winnerName, runnerUp: runnerUpName, completedAt: Date.now() });
       await loadPool();
+      showWinnerBanner(container, winnerName);
+      setTimeout(() => refreshTournamentCard(tid, container), 2200);
+      return;
     }
 
     refreshTournamentCard(tid, container);
@@ -1182,38 +1417,48 @@
 
   async function renderTournamentRecords(body) {
     body.innerHTML = "<p>Loading...</p>";
-    const resultsSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "single"), orderBy("completedAt", "desc")));
-    let topChampion = null, topRunnerUp = null, topScorer = null;
-    poolPlayers.forEach(p => {
-      if (!topChampion || num(p.singleChampionships) > num(topChampion.singleChampionships)) topChampion = p;
-      if (!topRunnerUp || num(p.singleRunnerUps) > num(topRunnerUp.singleRunnerUps)) topRunnerUp = p;
-      if (!topScorer || num(p.singleGoalsFor) > num(topScorer.singleGoalsFor)) topScorer = p;
-    });
-    let singleRows = "";
-    resultsSnap.forEach(d => { const r = d.data(); singleRows += "<tr><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td></tr>"; });
+    try {
+      const resultsSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "single")));
+      let topChampion = null, topRunnerUp = null, topScorer = null;
+      poolPlayers.forEach(p => {
+        if (!topChampion || num(p.singleChampionships) > num(topChampion.singleChampionships)) topChampion = p;
+        if (!topRunnerUp || num(p.singleRunnerUps) > num(topRunnerUp.singleRunnerUps)) topRunnerUp = p;
+        if (!topScorer || num(p.singleGoalsFor) > num(topScorer.singleGoalsFor)) topScorer = p;
+      });
+      const singleList = [];
+      resultsSnap.forEach(d => singleList.push(d.data()));
+      singleList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
+      let singleRows = singleList.map(r => "<tr><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td></tr>").join("");
 
-    const regularSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "tagteam"), where("subMode", "==", "regular"), orderBy("completedAt", "desc")));
-    let regularRows = ""; regularSnap.forEach(d => { const r = d.data(); regularRows += "<tr><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td></tr>"; });
+      const regularSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "tagteam"), where("subMode", "==", "regular")));
+      const regularList = []; regularSnap.forEach(d => regularList.push(d.data()));
+      regularList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
+      let regularRows = regularList.map(r => "<tr><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td></tr>").join("");
 
-    const multiSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "tagteam"), where("subMode", "==", "multi"), orderBy("completedAt", "desc")));
-    let multiRows = ""; multiSnap.forEach(d => { const r = d.data(); multiRows += "<tr><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td></tr>"; });
+      const multiSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "tagteam"), where("subMode", "==", "multi")));
+      const multiList = []; multiSnap.forEach(d => multiList.push(d.data()));
+      multiList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
+      let multiRows = multiList.map(r => "<tr><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td></tr>").join("");
 
-    body.innerHTML = `
-      <h3>Single player</h3>
-      <div class="stat-grid">
-        <div class="stat-card"><div class="label">Total tournaments played</div><div class="value">${resultsSnap.size}</div></div>
-        <div class="stat-card"><div class="label">Most-time champion</div><div class="value">${topChampion && num(topChampion.singleChampionships) > 0 ? topChampion.name + " (" + topChampion.singleChampionships + ")" : "-"}</div></div>
-        <div class="stat-card"><div class="label">Most-time runner-up</div><div class="value">${topRunnerUp && num(topRunnerUp.singleRunnerUps) > 0 ? topRunnerUp.name + " (" + topRunnerUp.singleRunnerUps + ")" : "-"}</div></div>
-        <div class="stat-card"><div class="label">Most goals scored</div><div class="value">${topScorer && num(topScorer.singleGoalsFor) > 0 ? topScorer.name + " (" + topScorer.singleGoalsFor + ")" : "-"}</div></div>
-      </div>
-      <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th></tr></thead><tbody>${singleRows || "<tr><td colspan=3>None yet.</td></tr>"}</tbody></table>
+      body.innerHTML = `
+        <h3>Single player</h3>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="label">Total tournaments played</div><div class="value">${resultsSnap.size}</div></div>
+          <div class="stat-card"><div class="label">Most-time champion</div><div class="value">${topChampion && num(topChampion.singleChampionships) > 0 ? topChampion.name + " (" + topChampion.singleChampionships + ")" : "-"}</div></div>
+          <div class="stat-card"><div class="label">Most-time runner-up</div><div class="value">${topRunnerUp && num(topRunnerUp.singleRunnerUps) > 0 ? topRunnerUp.name + " (" + topRunnerUp.singleRunnerUps + ")" : "-"}</div></div>
+          <div class="stat-card"><div class="label">Most goals scored</div><div class="value">${topScorer && num(topScorer.singleGoalsFor) > 0 ? topScorer.name + " (" + topScorer.singleGoalsFor + ")" : "-"}</div></div>
+        </div>
+        <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th></tr></thead><tbody>${singleRows || "<tr><td colspan=3>None yet.</td></tr>"}</tbody></table>
 
-      <h3>Tag-team regular controller</h3>
-      <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th></tr></thead><tbody>${regularRows || "<tr><td colspan=3>None yet.</td></tr>"}</tbody></table>
+        <h3>Tag-team regular controller</h3>
+        <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th></tr></thead><tbody>${regularRows || "<tr><td colspan=3>None yet.</td></tr>"}</tbody></table>
 
-      <h3>Tag-team multiple controller</h3>
-      <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th></tr></thead><tbody>${multiRows || "<tr><td colspan=3>None yet.</td></tr>"}</tbody></table>
-    `;
+        <h3>Tag-team multiple controller</h3>
+        <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th></tr></thead><tbody>${multiRows || "<tr><td colspan=3>None yet.</td></tr>"}</tbody></table>
+      `;
+    } catch (e) {
+      body.innerHTML = "<p class='warn'>Failed to load tournament records: " + e.message + "</p>";
+    }
   }
 </script>
 
