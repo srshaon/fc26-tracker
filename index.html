@@ -196,7 +196,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.35), var(--bg-page) 105%);
+    background: linear-gradient(to bottom, color-mix(in srgb, var(--bg-page) 45%, transparent), var(--bg-page) 100%);
   }
   .site-footer {
     height: 70px;
@@ -212,7 +212,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, var(--bg-page), rgba(0,0,0,0.1) 100%);
+    background: linear-gradient(to top, var(--bg-page), color-mix(in srgb, var(--bg-page) 35%, transparent) 100%);
   }
   .site-footer .footer-label {
     position: relative;
@@ -247,7 +247,7 @@
 </head>
 <body>
 
-<div class="site-banner" style="background-image:url('https://images.pexels.com/photos/1657324/pexels-photo-1657324.jpeg?auto=compress&cs=tinysrgb&w=1200');"></div>
+<div class="site-banner" style="background-image:url('https://images.pexels.com/photos/9735500/pexels-photo-9735500.jpeg?auto=compress&cs=tinysrgb&w=1200'); background-position: center center;"></div>
 
 <h1>FC26 tracker</h1>
 <div id="authBar" style="font-size:13px; color:var(--text-secondary);"></div>
@@ -256,9 +256,7 @@
 
 <div id="viewArea"></div>
 
-<div class="site-footer" style="background-image:url('https://images.pexels.com/photos/17160683/pexels-photo-17160683.jpeg?auto=compress&cs=tinysrgb&w=1200');">
-  <div class="footer-label">FC26 Tracker</div>
-</div>
+<div class="site-footer" style="background-image:url('https://images.pexels.com/photos/9735500/pexels-photo-9735500.jpeg?auto=compress&cs=tinysrgb&w=1200'); background-position: center center;"></div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
