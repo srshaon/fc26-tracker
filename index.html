@@ -11,16 +11,16 @@
   * { box-sizing: border-box; }
 
   :root, [data-theme="matchday"] {
-    --bg-page: #17416f;
-    --bg-surface: #1e4d81;
-    --bg-surface-alt: #245a94;
-    --text-primary: #f4f7fb;
-    --text-secondary: #bcd2ea;
-    --text-muted: #93b0d1;
+    --bg-page: linear-gradient(90deg, #e3ffe7 0%, #d9e7ff 100%);
+    --bg-surface: #ffffff;
+    --bg-surface-alt: #eef5f0;
+    --text-primary: #16324f;
+    --text-secondary: #46617d;
+    --text-muted: #7891a8;
     --accent: #f2c94c;
-    --accent-contrast: #17416f;
-    --border: #33628f;
-    --border-strong: #4d7cab;
+    --accent-contrast: #16324f;
+    --border: #cddfe0;
+    --border-strong: #9fc2c5;
     --danger-bg: #6e2020;
     --danger-text: #ffb3b3;
     --success-bg: #d4f5dd;
@@ -183,51 +183,6 @@
     100% { transform: translateY(160px) rotate(540deg); opacity: 0; }
   }
 
-  .site-banner {
-    height: 100px;
-    border-radius: var(--radius-card);
-    overflow: hidden;
-    position: relative;
-    margin-top: 16px;
-    background-size: cover;
-    background-position: center 65%;
-  }
-  .site-banner::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to bottom, color-mix(in srgb, var(--bg-page) 45%, transparent), var(--bg-page) 100%);
-  }
-  .site-footer {
-    height: 70px;
-    border-radius: var(--radius-card);
-    overflow: hidden;
-    position: relative;
-    margin: 26px 0 16px;
-    background-size: cover;
-    background-position: center 40%;
-    opacity: 0.85;
-  }
-  .site-footer::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, var(--bg-page), color-mix(in srgb, var(--bg-page) 35%, transparent) 100%);
-  }
-  .site-footer .footer-label {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: var(--text-secondary);
-    font-family: var(--font-heading);
-    font-size: 11px;
-    letter-spacing: 1px;
-    text-transform: var(--heading-transform);
-  }
-
   @media (max-width: 520px) {
     body { margin: 12px auto; padding: 0 12px; }
     h1 { font-size: 19px; }
@@ -247,16 +202,12 @@
 </head>
 <body>
 
-<div class="site-banner" style="background-image:url('https://images.pexels.com/photos/9735500/pexels-photo-9735500.jpeg?auto=compress&cs=tinysrgb&w=1200'); background-position: center center;"></div>
-
 <h1>FC26 tracker</h1>
 <div id="authBar" style="font-size:13px; color:var(--text-secondary);"></div>
 
 <nav id="mainNav"></nav>
 
 <div id="viewArea"></div>
-
-<div class="site-footer" style="background-image:url('https://images.pexels.com/photos/9735500/pexels-photo-9735500.jpeg?auto=compress&cs=tinysrgb&w=1200'); background-position: center center;"></div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
