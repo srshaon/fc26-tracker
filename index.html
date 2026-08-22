@@ -11,16 +11,16 @@
   * { box-sizing: border-box; }
 
   :root, [data-theme="matchday"] {
-    --bg-page: #0b1f3a;
-    --bg-surface: #122a4d;
-    --bg-surface-alt: #16305a;
+    --bg-page: #17416f;
+    --bg-surface: #1e4d81;
+    --bg-surface-alt: #245a94;
     --text-primary: #f4f7fb;
-    --text-secondary: #a9c0dd;
-    --text-muted: #7d93b3;
+    --text-secondary: #bcd2ea;
+    --text-muted: #93b0d1;
     --accent: #f2c94c;
-    --accent-contrast: #0b1f3a;
-    --border: #24406e;
-    --border-strong: #3a5d94;
+    --accent-contrast: #17416f;
+    --border: #33628f;
+    --border-strong: #4d7cab;
     --danger-bg: #6e2020;
     --danger-text: #ffb3b3;
     --success-bg: #d4f5dd;
@@ -183,6 +183,51 @@
     100% { transform: translateY(160px) rotate(540deg); opacity: 0; }
   }
 
+  .site-banner {
+    height: 100px;
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    position: relative;
+    margin-top: 16px;
+    background-size: cover;
+    background-position: center 65%;
+  }
+  .site-banner::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.35), var(--bg-page) 105%);
+  }
+  .site-footer {
+    height: 70px;
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    position: relative;
+    margin: 26px 0 16px;
+    background-size: cover;
+    background-position: center 40%;
+    opacity: 0.85;
+  }
+  .site-footer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, var(--bg-page), rgba(0,0,0,0.1) 100%);
+  }
+  .site-footer .footer-label {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-secondary);
+    font-family: var(--font-heading);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: var(--heading-transform);
+  }
+
   @media (max-width: 520px) {
     body { margin: 12px auto; padding: 0 12px; }
     h1 { font-size: 19px; }
@@ -202,12 +247,18 @@
 </head>
 <body>
 
+<div class="site-banner" style="background-image:url('https://images.pexels.com/photos/1657324/pexels-photo-1657324.jpeg?auto=compress&cs=tinysrgb&w=1200');"></div>
+
 <h1>FC26 tracker</h1>
 <div id="authBar" style="font-size:13px; color:var(--text-secondary);"></div>
 
 <nav id="mainNav"></nav>
 
 <div id="viewArea"></div>
+
+<div class="site-footer" style="background-image:url('https://images.pexels.com/photos/17160683/pexels-photo-17160683.jpeg?auto=compress&cs=tinysrgb&w=1200');">
+  <div class="footer-label">FC26 Tracker</div>
+</div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -280,6 +331,7 @@
         authBar.textContent = "This admin account has been disabled.";
       } else {
         currentAdmin = { id: usernamePart, ...snap.data() };
+        if (currentView === "login") currentView = "home";
         authBar.innerHTML = "Logged in as <strong>" + currentAdmin.username + "</strong> " +
           (currentAdmin.isMaster ? "(master admin) " : "") +
           "<button id='logoutBtn'>Log out</button>";
