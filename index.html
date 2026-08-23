@@ -1615,16 +1615,7 @@
     if (allGroupMatchesDone) {
       if (!data.knockout) {
         if (currentAdmin) {
-          const setup = document.createElement("div");
-          setup.className = "card";
-          const qfOption = totalSideCount(data) >= 8 ? "<button class='option-btn' data-v='3'>Option 3: Quarterfinals, then semis, then final</button>" : "";
-          setup.innerHTML = "<h3>Set up knockout stage</h3><div class='options' id='koOptions_" + tid + "'><button class='option-btn' data-v='1'>Option 1: top teams straight to semis</button><button class='option-btn' data-v='2'>Option 2: with pre-semifinal knockouts</button>" + qfOption + "</div><p class='status-msg' id='koStatus_" + tid + "'></p>";
-          container.appendChild(setup);
-          document.getElementById("koOptions_" + tid).addEventListener("click", async (e) => {
-            if (!e.target.classList.contains("option-btn")) return;
-            await generateKnockout(tid, data, parseInt(e.target.dataset.v, 10));
-            refreshTournamentCard(tid, container);
-          });
+          renderKnockoutSetupButtons(container, tid, data, false);
         } else {
           const waiting = document.createElement("p");
           waiting.className = "status-msg";
@@ -1633,8 +1624,36 @@
         }
       } else {
         renderKnockout(container, tid, data);
+        if (currentAdmin && currentAdmin.isMaster) {
+          const changeBtn = document.createElement("button");
+          changeBtn.textContent = "Change knockout format";
+          changeBtn.style.marginTop = "10px";
+          changeBtn.addEventListener("click", () => {
+            const wrap = document.createElement("div");
+            wrap.className = "card";
+            wrap.innerHTML = "<p class='status-msg warn'>Picking a new format wipes any scores already entered in the current knockout stage.</p>";
+            container.appendChild(wrap);
+            renderKnockoutSetupButtons(wrap, tid, data, true, container);
+            changeBtn.remove();
+          });
+          container.appendChild(changeBtn);
+        }
       }
     }
+  }
+
+  function renderKnockoutSetupButtons(appendTo, tid, data, isChange, outerContainer) {
+    const setup = document.createElement("div");
+    if (!isChange) setup.className = "card";
+    const qfOption = totalSideCount(data) >= 8 ? "<button class='option-btn' data-v='3'>Option 3: Quarterfinals, then semis, then final</button>" : "";
+    setup.innerHTML = (isChange ? "" : "<h3>Set up knockout stage</h3>") + "<div class='options'><button class='option-btn' data-v='1'>Option 1: top teams straight to semis</button><button class='option-btn' data-v='2'>Option 2: with pre-semifinal knockouts</button>" + qfOption + "</div><p class='status-msg'></p>";
+    appendTo.appendChild(setup);
+    setup.querySelector(".options").addEventListener("click", async (e) => {
+      if (!e.target.classList.contains("option-btn")) return;
+      if (isChange && !confirm("Replace the current knockout stage with a new format? Any scores already entered there will be lost.")) return;
+      await generateKnockout(tid, data, parseInt(e.target.dataset.v, 10));
+      refreshTournamentCard(tid, outerContainer || appendTo);
+    });
   }
 
   function standingsTable(title, rows) {
@@ -1721,9 +1740,9 @@
 
       // Most common shape for a QF field: exactly 2 groups of 4 each. Everyone
       // from both groups advances, cross-seeded 1st vs 4th, 2nd vs 3rd across groups.
-      if (data.groups && data.groups.length === 2 && data.groups[0].members.length === 4 && data.groups[1].members.length === 4) {
-        const A = computeStandings(data.groups[0].members, data.matches.filter(m => m.groupIndex === 0)).map(r => r.name);
-        const B = computeStandings(data.groups[1].members, data.matches.filter(m => m.groupIndex === 1)).map(r => r.name);
+      if (data.groups && data.groups.length === 2 && data.groups[0].members.length >= 4 && data.groups[1].members.length >= 4) {
+        const A = computeStandings(data.groups[0].members, data.matches.filter(m => m.groupIndex === 0)).map(r => r.name).slice(0, 4);
+        const B = computeStandings(data.groups[1].members, data.matches.filter(m => m.groupIndex === 1)).map(r => r.name).slice(0, 4);
         qfMatches = [
           { id: "q0", sideA: A[0], sideB: B[3], scoreA: null, scoreB: null },
           { id: "q1", sideA: A[1], sideB: B[2], scoreA: null, scoreB: null },
@@ -2190,6 +2209,28 @@
     document.getElementById("backToPlayers").addEventListener("click", () => { viewingPlayerId = null; renderRecordsBody(); });
   }
 
+  async function computeFunRecords() {
+    const tournamentsSnap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "single"), where("status", "==", "completed")));
+    let biggestScoring = null, biggestMargin = null;
+
+    tournamentsSnap.forEach(d => {
+      const data = d.data();
+      let matchList = [];
+      if (data.finalScore) matchList.push({ sideA: data.participants[0].name, sideB: data.participants[1].name, scoreA: data.finalScore.side1, scoreB: data.finalScore.side2 });
+      if (data.matches) matchList = matchList.concat(data.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
+      if (data.knockout) data.knockout.stages.forEach(stage => { matchList = matchList.concat(stage.matches.filter(m => m.scoreA !== null && m.scoreB !== null)); });
+
+      matchList.forEach(m => {
+        const total = m.scoreA + m.scoreB;
+        const margin = Math.abs(m.scoreA - m.scoreB);
+        const entry = { sideA: m.sideA, sideB: m.sideB, scoreA: m.scoreA, scoreB: m.scoreB, tournamentName: data.name };
+        if (!biggestScoring || total > biggestScoring.total) biggestScoring = { ...entry, total };
+        if (margin > 0 && (!biggestMargin || margin > biggestMargin.margin)) biggestMargin = { ...entry, margin };
+      });
+    });
+    return { biggestScoring, biggestMargin };
+  }
+
   async function renderTournamentRecords(body) {
     body.innerHTML = "<p>Loading...</p>";
     try {
@@ -2200,6 +2241,7 @@
         if (!topRunnerUp || num(p.singleRunnerUps) > num(topRunnerUp.singleRunnerUps)) topRunnerUp = p;
         if (!topScorer || num(p.singleGoalsFor) > num(topScorer.singleGoalsFor)) topScorer = p;
       });
+      const { biggestScoring, biggestMargin } = await computeFunRecords();
       const singleList = [];
       resultsSnap.forEach(d => singleList.push({ id: d.id, ...d.data() }));
       singleList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
@@ -2222,6 +2264,8 @@
           <div class="stat-card"><div class="label">Most-time champion</div><div class="value">${topChampion && num(topChampion.singleChampionships) > 0 ? topChampion.name + " (" + topChampion.singleChampionships + ")" : "-"}</div></div>
           <div class="stat-card"><div class="label">Most-time runner-up</div><div class="value">${topRunnerUp && num(topRunnerUp.singleRunnerUps) > 0 ? topRunnerUp.name + " (" + topRunnerUp.singleRunnerUps + ")" : "-"}</div></div>
           <div class="stat-card"><div class="label">Most goals scored</div><div class="value">${topScorer && num(topScorer.singleGoalsFor) > 0 ? topScorer.name + " (" + topScorer.singleGoalsFor + ")" : "-"}</div></div>
+          <div class="stat-card"><div class="label">Biggest scoring match</div><div class="value">${biggestScoring ? biggestScoring.sideA + " " + biggestScoring.scoreA + "-" + biggestScoring.scoreB + " " + biggestScoring.sideB + " (" + biggestScoring.total + " goals)" : "-"}</div></div>
+          <div class="stat-card"><div class="label">Biggest win margin</div><div class="value">${biggestMargin ? biggestMargin.sideA + " " + biggestMargin.scoreA + "-" + biggestMargin.scoreB + " " + biggestMargin.sideB + " (" + biggestMargin.margin + ")" : "-"}</div></div>
         </div>
         <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th><th></th></tr></thead><tbody>${singleRows || "<tr><td colspan=4>None yet.</td></tr>"}</tbody></table>
 
