@@ -183,6 +183,68 @@
     100% { transform: translateY(160px) rotate(540deg); opacity: 0; }
   }
 
+  .bracket-columns {
+    display: flex;
+    gap: 18px;
+    overflow-x: auto;
+    padding: 8px 2px 14px;
+    margin-top: 6px;
+  }
+  .bracket-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    gap: 14px;
+    min-width: 150px;
+    flex-shrink: 0;
+  }
+  .bracket-col h4 {
+    font-size: 11px;
+    text-transform: var(--heading-transform);
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    font-family: var(--font-heading);
+    margin: 0 0 6px;
+    text-align: center;
+  }
+  .bracket-match {
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--bg-surface-alt);
+    padding: 8px;
+    font-size: 12px;
+  }
+  .bracket-match .side {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 0;
+  }
+  .bracket-match .side.winner-side {
+    font-weight: bold;
+    color: var(--accent);
+  }
+  .bracket-match .side-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90px;
+  }
+  .bracket-match input[type=number] {
+    width: 40px;
+    padding: 3px;
+    font-size: 12px;
+  }
+  .bracket-match button {
+    margin-top: 4px;
+    width: 100%;
+    font-size: 11px;
+    padding: 4px;
+    cursor: pointer;
+  }
+  .bracket-final .bracket-match { border-color: var(--accent); }
+
   @media (max-width: 520px) {
     body { margin: 12px auto; padding: 0 12px; }
     h1 { font-size: 19px; }
@@ -480,6 +542,12 @@
         <p class="status-msg" id="themeStatus"></p>
       </div>
       <div class="card">
+        <h3>Recalculate player stats</h3>
+        <p style="font-size:12px;color:var(--text-muted);">Rebuilds every player's stats from scratch using the actual saved tournament history. Use this if numbers ever look off (like a double-counted win). Does not delete any tournaments.</p>
+        <button class="primary" id="recalcBtn">Recalculate all player stats</button>
+        <p class="status-msg" id="recalcStatus"></p>
+      </div>
+      <div class="card">
         <h3>Export records (backup)</h3>
         <p style="font-size:12px;color:var(--text-muted);">Downloads a copy of all players, tournaments, champions, and results as a file you can keep. Recommended before resetting.</p>
         <button class="primary" id="exportBtn">Export records</button>
@@ -497,6 +565,17 @@
     await refreshAdminList();
     await renderThemePicker();
     document.getElementById("exportBtn").addEventListener("click", exportRecords);
+    document.getElementById("recalcBtn").addEventListener("click", async () => {
+      const statusEl = document.getElementById("recalcStatus");
+      if (!confirm("Rebuild every player's stats from tournament history? This corrects drift but does not delete anything.")) return;
+      statusEl.textContent = "Recalculating...";
+      try {
+        await recalculateAllStats();
+        statusEl.textContent = "Player stats recalculated from tournament history.";
+      } catch (e) {
+        statusEl.textContent = "Failed: " + e.message;
+      }
+    });
     document.getElementById("resetAllBtn").addEventListener("click", async () => {
       const statusEl = document.getElementById("resetStatus");
       const confirmInput = document.getElementById("resetConfirmInput");
@@ -535,6 +614,67 @@
       });
       area.appendChild(btn);
     });
+  }
+
+  async function recalculateAllStats() {
+    const statFields = ["singleMatchesPlayed", "singleGoalsFor", "singleGoalsAgainst", "singleWins", "singleLosses",
+      "singleTournamentsPlayed", "singleChampionships", "singleRunnerUps",
+      "tagTeamTournamentsPlayed", "tagTeamFinalWins", "tagTeamFinalLosses"];
+    const deltas = {}; // playerId -> { field: total }
+    function add(playerId, field, amount) {
+      if (!playerId) return;
+      if (!deltas[playerId]) deltas[playerId] = {};
+      deltas[playerId][field] = (deltas[playerId][field] || 0) + amount;
+    }
+
+    const tournamentsSnap = await getDocs(collection(db, "tournaments"));
+    tournamentsSnap.forEach(d => {
+      const data = d.data();
+      if (data.status !== "completed") return;
+
+      const allMembers = data.format === "single" ? (data.participants || []) : (data.teams || []).flatMap(t => t.members);
+      const participationField = data.format === "single" ? "singleTournamentsPlayed" : "tagTeamTournamentsPlayed";
+      allMembers.forEach(m => { if (m.type === "pool") add(m.id, participationField, 1); });
+
+      // gather every scored match played across this tournament's life (simple final, group stage, knockout stages)
+      let matchList = [];
+      if (data.finalScore) {
+        const nameA = data.teams ? data.teams[0].teamName : data.participants[0].name;
+        const nameB = data.teams ? data.teams[1].teamName : data.participants[1].name;
+        matchList.push({ sideA: nameA, sideB: nameB, scoreA: data.finalScore.side1, scoreB: data.finalScore.side2 });
+      }
+      if (data.matches) matchList = matchList.concat(data.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
+      if (data.knockout) data.knockout.stages.forEach(stage => { matchList = matchList.concat(stage.matches.filter(m => m.scoreA !== null && m.scoreB !== null)); });
+
+      if (data.format === "single") {
+        matchList.forEach(m => {
+          const refA = sideRef(data, m.sideA)[0], refB = sideRef(data, m.sideB)[0];
+          if (refA && refA.type === "pool") {
+            add(refA.id, "singleMatchesPlayed", 1); add(refA.id, "singleGoalsFor", m.scoreA); add(refA.id, "singleGoalsAgainst", m.scoreB);
+            add(refA.id, "singleWins", m.scoreA > m.scoreB ? 1 : 0); add(refA.id, "singleLosses", m.scoreA < m.scoreB ? 1 : 0);
+          }
+          if (refB && refB.type === "pool") {
+            add(refB.id, "singleMatchesPlayed", 1); add(refB.id, "singleGoalsFor", m.scoreB); add(refB.id, "singleGoalsAgainst", m.scoreA);
+            add(refB.id, "singleWins", m.scoreB > m.scoreA ? 1 : 0); add(refB.id, "singleLosses", m.scoreB < m.scoreA ? 1 : 0);
+          }
+        });
+      }
+
+      if (data.winner && data.runnerUp) {
+        const winMembers = sideRef(data, data.winner), loseMembers = sideRef(data, data.runnerUp);
+        winMembers.forEach(m => { if (m.type !== "pool") return; add(m.id, data.format === "single" ? "singleChampionships" : "tagTeamFinalWins", 1); });
+        loseMembers.forEach(m => { if (m.type !== "pool") return; add(m.id, data.format === "single" ? "singleRunnerUps" : "tagTeamFinalLosses", 1); });
+      }
+    });
+
+    const playersSnap = await getDocs(collection(db, "players"));
+    for (const d of playersSnap.docs) {
+      const reset = {};
+      statFields.forEach(f => { reset[f] = 0; });
+      Object.assign(reset, deltas[d.id] || {});
+      await updateDoc(doc(db, "players", d.id), reset);
+    }
+    await loadPool();
   }
 
   async function exportRecords() {
@@ -1240,17 +1380,19 @@
       <button class="primary" id="saveBtn_${tid}">Save result</button>
       <p class="status-msg" id="status_${tid}"></p>
     `;
-    document.getElementById("saveBtn_" + tid).addEventListener("click", async () => {
+    document.getElementById("saveBtn_" + tid).addEventListener("click", async (ev) => {
       const s1 = parseInt(document.getElementById("s1_" + tid).value, 10);
       const s2 = parseInt(document.getElementById("s2_" + tid).value, 10);
       const statusEl = document.getElementById("status_" + tid);
       if (isNaN(s1) || isNaN(s2) || s1 === s2 || s1 < 0 || s2 < 0) { statusEl.textContent = "Enter valid, non-tied scores."; return; }
+      if (ev.target.disabled) return;
+      ev.target.disabled = true;
       try {
         await finalizeTournament(tid, data, nameA, nameB, s1, s2);
         statusEl.textContent = "Result saved.";
         showWinnerBanner(container, s1 > s2 ? nameA : nameB);
         setTimeout(() => renderLiveTournaments(), 2200);
-      } catch (e) { statusEl.textContent = "Failed: " + e.message; }
+      } catch (e) { statusEl.textContent = "Failed: " + e.message; ev.target.disabled = false; }
     });
   }
 
@@ -1310,7 +1452,11 @@
         row.innerHTML = `<span class="name">${m.sideA}</span><input type="number" min="0" value="${m.scoreA ?? ""}" data-idx="${idx}" data-side="A"><span>-</span><input type="number" min="0" value="${m.scoreB ?? ""}" data-idx="${idx}" data-side="B"><span class="name">${m.sideB}</span>`;
         const btn = document.createElement("button");
         btn.textContent = m.scoreA !== null ? "Update" : "Save";
-        btn.addEventListener("click", () => saveGroupMatch(tid, data, idx, container));
+        btn.addEventListener("click", () => {
+          if (btn.disabled) return;
+          btn.disabled = true;
+          saveGroupMatch(tid, data, idx, container);
+        });
         row.appendChild(btn);
       }
       matchesDiv.appendChild(row);
@@ -1436,30 +1582,46 @@
   function renderKnockout(container, tid, data) {
     const wrap = document.createElement("div");
     wrap.innerHTML = "<h3>Knockout stage</h3>";
+    const columns = document.createElement("div");
+    columns.className = "bracket-columns";
+
     data.knockout.stages.forEach((stage, si) => {
-      const stageDiv = document.createElement("div");
-      stageDiv.innerHTML = "<h3>" + stage.name + "</h3>";
+      const isFinalStage = si === data.knockout.stages.length - 1;
+      const col = document.createElement("div");
+      col.className = "bracket-col" + (isFinalStage ? " bracket-final" : "");
+      col.innerHTML = "<h4>" + stage.name + "</h4>";
+
       stage.matches.forEach((m, mi) => {
-        const row = document.createElement("div");
-        row.className = "match-row";
+        const box = document.createElement("div");
+        box.className = "bracket-match";
         const bothKnown = !m.sideA.toString().startsWith("TBD") && !m.sideB.toString().startsWith("TBD");
-        if (!currentAdmin) {
-          const scoreText = (m.scoreA !== null && m.scoreB !== null) ? (m.scoreA + " - " + m.scoreB) : (bothKnown ? "vs" : "-");
-          row.innerHTML = `<span class="name">${m.sideA}</span><span>${scoreText}</span><span class="name">${m.sideB}</span>`;
+        const decided = m.scoreA !== null && m.scoreB !== null;
+        const aWon = decided && m.scoreA > m.scoreB;
+        const bWon = decided && m.scoreB > m.scoreA;
+
+        if (!currentAdmin || !bothKnown) {
+          box.innerHTML =
+            `<div class="side${aWon ? " winner-side" : ""}"><span class="side-name">${m.sideA}</span><span>${decided ? m.scoreA : ""}</span></div>` +
+            `<div class="side${bWon ? " winner-side" : ""}"><span class="side-name">${m.sideB}</span><span>${decided ? m.scoreB : ""}</span></div>`;
         } else {
-          const editable = bothKnown;
-          row.innerHTML = `<span class="name">${m.sideA}</span><input type="number" min="0" value="${m.scoreA ?? ""}" ${editable ? "" : "disabled"} data-stage="${si}" data-match="${mi}" data-side="A"><span>-</span><input type="number" min="0" value="${m.scoreB ?? ""}" ${editable ? "" : "disabled"} data-stage="${si}" data-match="${mi}" data-side="B"><span class="name">${m.sideB}</span>`;
-          if (editable) {
-            const btn = document.createElement("button");
-            btn.textContent = m.scoreA !== null ? "Update" : "Save";
-            btn.addEventListener("click", () => saveKnockoutMatch(tid, data, si, mi, container));
-            row.appendChild(btn);
-          }
+          box.innerHTML =
+            `<div class="side${aWon ? " winner-side" : ""}"><span class="side-name">${m.sideA}</span><input type="number" min="0" value="${m.scoreA ?? ""}" data-stage="${si}" data-match="${mi}" data-side="A"></div>` +
+            `<div class="side${bWon ? " winner-side" : ""}"><span class="side-name">${m.sideB}</span><input type="number" min="0" value="${m.scoreB ?? ""}" data-stage="${si}" data-match="${mi}" data-side="B"></div>`;
+          const btn = document.createElement("button");
+          btn.textContent = decided ? "Update" : "Save";
+          btn.addEventListener("click", () => {
+            if (btn.disabled) return;
+            btn.disabled = true;
+            saveKnockoutMatch(tid, data, si, mi, container);
+          });
+          box.appendChild(btn);
         }
-        stageDiv.appendChild(row);
+        col.appendChild(box);
       });
-      wrap.appendChild(stageDiv);
+      columns.appendChild(col);
     });
+
+    wrap.appendChild(columns);
     container.appendChild(wrap);
   }
 
@@ -1471,8 +1633,17 @@
 
     const stage = data.knockout.stages[si];
     const m = stage.matches[mi];
+    const wasAlreadyScored = m.scoreA !== null;
     m.scoreA = sA; m.scoreB = sB;
     const winner = sA > sB ? m.sideA : m.sideB;
+
+    if (wasAlreadyScored) {
+      // Score is being corrected, not entered for the first time — update the number
+      // only, since stats/champion/participation were already applied the first time.
+      await updateDoc(doc(db, "tournaments", tid), { knockout: data.knockout });
+      refreshTournamentCard(tid, container);
+      return;
+    }
 
     if (data.format === "single") {
       const refA = sideRef(data, m.sideA)[0], refB = sideRef(data, m.sideB)[0];
@@ -1518,9 +1689,11 @@
   // ================= RECORDS =================
   let recordsTab = "players";
   let viewingPlayerId = null;
+  let viewingTournamentId = null;
 
   function renderRecords() {
     viewingPlayerId = null;
+    viewingTournamentId = null;
     viewArea.innerHTML = `
       <h2>Records</h2>
       <div class="tab-row" id="recordsTabs">
@@ -1533,6 +1706,7 @@
       if (!e.target.dataset.t) return;
       recordsTab = e.target.dataset.t;
       viewingPlayerId = null;
+      viewingTournamentId = null;
       renderRecordsBody();
     });
     updateTabHighlight();
@@ -1546,8 +1720,69 @@
     updateTabHighlight();
     const body = document.getElementById("recordsBody");
     if (viewingPlayerId) return renderPlayerProfile(body, viewingPlayerId);
+    if (viewingTournamentId) return renderTournamentDetail(body, viewingTournamentId);
     if (recordsTab === "players") return renderPlayersList(body);
     return renderTournamentRecords(body);
+  }
+
+  async function renderTournamentDetail(body, tid) {
+    body.innerHTML = "<p>Loading...</p>";
+    const snap = await getDoc(doc(db, "tournaments", tid));
+    if (!snap.exists()) { body.innerHTML = "<button id='backToTournaments'>&larr; Back</button><p>Tournament not found.</p>"; document.getElementById("backToTournaments").addEventListener("click", () => { viewingTournamentId = null; renderRecordsBody(); }); return; }
+    const data = snap.data();
+
+    let html = "<button id='backToTournaments'>&larr; Back to tournaments</button><h2>" + data.name + "</h2>";
+    if (data.winner) html += "<p class='status-msg'>Champion: <strong style='color:var(--accent);'>" + data.winner + "</strong> &middot; Runner-up: " + data.runnerUp + "</p>";
+    body.innerHTML = html;
+    document.getElementById("backToTournaments").addEventListener("click", () => { viewingTournamentId = null; renderRecordsBody(); });
+
+    const contentDiv = document.createElement("div");
+    body.appendChild(contentDiv);
+
+    if (data.groups) {
+      data.groups.forEach((g, gi) => contentDiv.appendChild(standingsTable("Group " + (gi + 1), computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi)))));
+    } else if (data.matches) {
+      const allNames = [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
+      contentDiv.appendChild(standingsTable("Standings", computeStandings(allNames, data.matches)));
+    }
+
+    if (data.knockout) {
+      renderKnockoutReadOnly(contentDiv, data);
+    } else if (data.finalScore) {
+      const nameA = data.teams ? data.teams[0].teamName : data.participants[0].name;
+      const nameB = data.teams ? data.teams[1].teamName : data.participants[1].name;
+      const box = document.createElement("div");
+      box.className = "match-row";
+      box.innerHTML = `<span class="name">${nameA}</span><span>${data.finalScore.side1} - ${data.finalScore.side2}</span><span class="name">${nameB}</span>`;
+      contentDiv.appendChild(box);
+    }
+  }
+
+  function renderKnockoutReadOnly(container, data) {
+    const wrap = document.createElement("div");
+    wrap.innerHTML = "<h3>Knockout stage</h3>";
+    const columns = document.createElement("div");
+    columns.className = "bracket-columns";
+    data.knockout.stages.forEach((stage, si) => {
+      const isFinalStage = si === data.knockout.stages.length - 1;
+      const col = document.createElement("div");
+      col.className = "bracket-col" + (isFinalStage ? " bracket-final" : "");
+      col.innerHTML = "<h4>" + stage.name + "</h4>";
+      stage.matches.forEach(m => {
+        const decided = m.scoreA !== null && m.scoreB !== null;
+        const aWon = decided && m.scoreA > m.scoreB;
+        const bWon = decided && m.scoreB > m.scoreA;
+        const box = document.createElement("div");
+        box.className = "bracket-match";
+        box.innerHTML =
+          `<div class="side${aWon ? " winner-side" : ""}"><span class="side-name">${m.sideA}</span><span>${decided ? m.scoreA : ""}</span></div>` +
+          `<div class="side${bWon ? " winner-side" : ""}"><span class="side-name">${m.sideB}</span><span>${decided ? m.scoreB : ""}</span></div>`;
+        col.appendChild(box);
+      });
+      columns.appendChild(col);
+    });
+    wrap.appendChild(columns);
+    container.appendChild(wrap);
   }
 
   function renderPlayersList(body) {
@@ -1609,19 +1844,19 @@
         if (!topScorer || num(p.singleGoalsFor) > num(topScorer.singleGoalsFor)) topScorer = p;
       });
       const singleList = [];
-      resultsSnap.forEach(d => singleList.push(d.data()));
+      resultsSnap.forEach(d => singleList.push({ id: d.id, ...d.data() }));
       singleList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
-      let singleRows = singleList.map(r => "<tr><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td></tr>").join("");
+      let singleRows = singleList.map(r => "<tr class='tourn-row' data-tid='" + r.id + "'><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td></tr>").join("");
 
       const regularSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "tagteam"), where("subMode", "==", "regular")));
-      const regularList = []; regularSnap.forEach(d => regularList.push(d.data()));
+      const regularList = []; regularSnap.forEach(d => regularList.push({ id: d.id, ...d.data() }));
       regularList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
-      let regularRows = regularList.map(r => "<tr><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td></tr>").join("");
+      let regularRows = regularList.map(r => "<tr class='tourn-row' data-tid='" + r.id + "'><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td></tr>").join("");
 
       const multiSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "tagteam"), where("subMode", "==", "multi")));
-      const multiList = []; multiSnap.forEach(d => multiList.push(d.data()));
+      const multiList = []; multiSnap.forEach(d => multiList.push({ id: d.id, ...d.data() }));
       multiList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
-      let multiRows = multiList.map(r => "<tr><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td></tr>").join("");
+      let multiRows = multiList.map(r => "<tr class='tourn-row' data-tid='" + r.id + "'><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td></tr>").join("");
 
       body.innerHTML = `
         <h3>Single player</h3>
@@ -1631,6 +1866,7 @@
           <div class="stat-card"><div class="label">Most-time runner-up</div><div class="value">${topRunnerUp && num(topRunnerUp.singleRunnerUps) > 0 ? topRunnerUp.name + " (" + topRunnerUp.singleRunnerUps + ")" : "-"}</div></div>
           <div class="stat-card"><div class="label">Most goals scored</div><div class="value">${topScorer && num(topScorer.singleGoalsFor) > 0 ? topScorer.name + " (" + topScorer.singleGoalsFor + ")" : "-"}</div></div>
         </div>
+        <p style="font-size:11px;color:var(--text-muted);">Tap a row to see the full bracket.</p>
         <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th></tr></thead><tbody>${singleRows || "<tr><td colspan=3>None yet.</td></tr>"}</tbody></table>
 
         <h3>Tag-team regular controller</h3>
@@ -1639,6 +1875,13 @@
         <h3>Tag-team multiple controller</h3>
         <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th></tr></thead><tbody>${multiRows || "<tr><td colspan=3>None yet.</td></tr>"}</tbody></table>
       `;
+      body.querySelectorAll(".tourn-row").forEach(row => {
+        row.style.cursor = "pointer";
+        row.addEventListener("click", () => {
+          viewingTournamentId = row.dataset.tid;
+          renderRecordsBody();
+        });
+      });
     } catch (e) {
       body.innerHTML = "<p class='warn'>Failed to load tournament records: " + e.message + "</p>";
     }
