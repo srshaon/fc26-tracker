@@ -949,10 +949,13 @@
 
   function todayNameFragment() {
     const now = new Date();
-    const bd = new Date(now.getTime() + (6 * 60 * 60 * 1000 - now.getTimezoneOffset() * 60000));
-    const day = bd.getDate();
-    const month = bd.toLocaleString("en-US", { month: "short" });
-    const year = bd.getFullYear();
+    // Shift the true UTC instant forward by Bangladesh's fixed UTC+6 offset, then
+    // read the calendar fields back out using UTC getters/timeZone so the visitor's
+    // own device timezone never gets applied a second time on top of this.
+    const bd = new Date(now.getTime() + 6 * 60 * 60 * 1000);
+    const day = bd.getUTCDate();
+    const month = bd.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
+    const year = bd.getUTCFullYear();
     const suffix = (day % 10 === 1 && day !== 11) ? "st" : (day % 10 === 2 && day !== 12) ? "nd" : (day % 10 === 3 && day !== 13) ? "rd" : "th";
     return day + suffix + " " + month + " " + year;
   }
@@ -1827,8 +1830,39 @@
 
     let html = "<button id='backToTournaments'>&larr; Back to tournaments</button><h2>" + data.name + "</h2>";
     if (data.winner) html += "<p class='status-msg'>Champion: <strong style='color:var(--accent);'>" + data.winner + "</strong> &middot; Runner-up: " + data.runnerUp + "</p>";
+    if (currentAdmin && currentAdmin.isMaster) {
+      html += `
+        <div class="card">
+          <label>Tournament name</label>
+          <input type="text" id="renameInput" value="${data.name}">
+          <br><button class="primary" id="renameBtn">Save name</button>
+          <p class="status-msg" id="renameStatus"></p>
+        </div>
+      `;
+    }
     body.innerHTML = html;
     document.getElementById("backToTournaments").addEventListener("click", () => { viewingTournamentId = null; renderRecordsBody(); });
+
+    if (currentAdmin && currentAdmin.isMaster) {
+      document.getElementById("renameBtn").addEventListener("click", async () => {
+        const statusEl = document.getElementById("renameStatus");
+        const newName = document.getElementById("renameInput").value.trim();
+        if (!newName) { statusEl.textContent = "Name can't be empty."; return; }
+        try {
+          await updateDoc(doc(db, "tournaments", tid), { name: newName });
+          await updateDoc(doc(db, "resultsTable", tid), { tournamentName: newName });
+          const champKey = data.format + "_" + (data.subMode || "none");
+          const champSnap = await getDoc(doc(db, "champions", champKey));
+          if (champSnap.exists() && champSnap.data().tournamentName === data.name) {
+            await updateDoc(doc(db, "champions", champKey), { tournamentName: newName });
+          }
+          statusEl.textContent = "Renamed.";
+          renderTournamentDetail(body, tid);
+        } catch (e) {
+          statusEl.textContent = "Failed: " + e.message;
+        }
+      });
+    }
 
     const contentDiv = document.createElement("div");
     body.appendChild(contentDiv);
@@ -1904,13 +1938,9 @@
     container.appendChild(wrap);
   }
 
-  // Only single-player matches from this date onward count toward head-to-head,
-  // so any earlier/legacy data never factors in.
-  const HEAD_TO_HEAD_CUTOFF = new Date("2026-08-23T00:00:00+06:00").getTime();
-
   function renderHeadToHead(body) {
     body.innerHTML = `
-      <p style="font-size:12px;color:var(--text-muted);">Counts single player matches from 23rd Aug 2026 onward only.</p>
+      <p style="font-size:12px;color:var(--text-muted);">Counts every single player tournament that appears in the Tournaments tab.</p>
       <label>Player A</label>
       <select id="h2hPlayerA"><option value="">-- choose --</option></select>
       <label>Player B</label>
@@ -1933,7 +1963,7 @@
       const nameA = poolPlayers.find(p => p.id === idA).name;
       const nameB = poolPlayers.find(p => p.id === idB).name;
       if (stats.matches === 0) {
-        resultDiv.innerHTML = "<p class='status-msg'>" + nameA + " and " + nameB + " haven't played each other yet (since 23rd Aug 2026).</p>";
+        resultDiv.innerHTML = "<p class='status-msg'>" + nameA + " and " + nameB + " haven't played each other yet.</p>";
         return;
       }
       resultDiv.innerHTML = `
@@ -1949,12 +1979,15 @@
   }
 
   async function computeHeadToHead(idA, idB) {
-    const tournamentsSnap = await getDocs(collection(db, "tournaments"));
+    // Uses the exact same source list as Records -> Tournaments -> Single player,
+    // so head-to-head always matches what's shown there instead of a fixed date.
+    const resultsSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "single")));
     const stats = { matches: 0, winsA: 0, winsB: 0, goalsA: 0, goalsB: 0 };
-    tournamentsSnap.forEach(d => {
-      const data = d.data();
-      if (data.format !== "single" || data.status !== "completed") return;
-      if ((data.createdAt || 0) < HEAD_TO_HEAD_CUTOFF) return;
+
+    for (const resultDoc of resultsSnap.docs) {
+      const tSnap = await getDoc(doc(db, "tournaments", resultDoc.id));
+      if (!tSnap.exists()) continue;
+      const data = tSnap.data();
 
       let matchList = [];
       if (data.finalScore) matchList.push({ sideA: data.participants[0].name, sideB: data.participants[1].name, scoreA: data.finalScore.side1, scoreB: data.finalScore.side2 });
@@ -1972,7 +2005,7 @@
         stats.goalsA += sA; stats.goalsB += sB;
         if (sA > sB) stats.winsA++; else if (sB > sA) stats.winsB++;
       });
-    });
+    }
     return stats;
   }
 
