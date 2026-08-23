@@ -874,8 +874,9 @@
     const bd = new Date(now.getTime() + (6 * 60 * 60 * 1000 - now.getTimezoneOffset() * 60000));
     const day = bd.getDate();
     const month = bd.toLocaleString("en-US", { month: "short" });
+    const year = bd.getFullYear();
     const suffix = (day % 10 === 1 && day !== 11) ? "st" : (day % 10 === 2 && day !== 12) ? "nd" : (day % 10 === 3 && day !== 13) ? "rd" : "th";
-    return day + suffix + " " + month;
+    return day + suffix + " " + month + " " + year;
   }
   function typeLabel() {
     if (sel.format === "single") return "Single Player Tournament";
@@ -1440,6 +1441,9 @@
 
   function renderBracketBody(container, tid, data) {
     container.innerHTML = "";
+    const knockoutStarted = !!data.knockout;
+
+    const groupSection = document.createElement("div");
     const matchesDiv = document.createElement("div");
     matchesDiv.innerHTML = "<h3>Group / round-robin matches</h3>";
     data.matches.forEach((m, idx) => {
@@ -1461,7 +1465,7 @@
       }
       matchesDiv.appendChild(row);
     });
-    container.appendChild(matchesDiv);
+    groupSection.appendChild(matchesDiv);
 
     const standingsDiv = document.createElement("div");
     if (data.groups) {
@@ -1470,7 +1474,20 @@
       const allNames = [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
       standingsDiv.appendChild(standingsTable("Standings", computeStandings(allNames, data.matches)));
     }
-    container.appendChild(standingsDiv);
+    groupSection.appendChild(standingsDiv);
+
+    if (knockoutStarted) {
+      groupSection.style.display = "none";
+      const toggleBtn = document.createElement("button");
+      toggleBtn.textContent = "Show group stage";
+      toggleBtn.addEventListener("click", () => {
+        const showing = groupSection.style.display !== "none";
+        groupSection.style.display = showing ? "none" : "block";
+        toggleBtn.textContent = showing ? "Show group stage" : "Hide group stage";
+      });
+      container.appendChild(toggleBtn);
+    }
+    container.appendChild(groupSection);
 
     const allGroupMatchesDone = data.matches.every(m => m.scoreA !== null && m.scoreB !== null);
     if (allGroupMatchesDone) {
@@ -1739,11 +1756,26 @@
     const contentDiv = document.createElement("div");
     body.appendChild(contentDiv);
 
-    if (data.groups) {
-      data.groups.forEach((g, gi) => contentDiv.appendChild(standingsTable("Group " + (gi + 1), computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi)))));
-    } else if (data.matches) {
-      const allNames = [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
-      contentDiv.appendChild(standingsTable("Standings", computeStandings(allNames, data.matches)));
+    const hasGroupInfo = !!(data.groups || data.matches);
+    if (hasGroupInfo) {
+      const groupSection = document.createElement("div");
+      groupSection.style.display = "none";
+      if (data.groups) {
+        data.groups.forEach((g, gi) => groupSection.appendChild(standingsTable("Group " + (gi + 1), computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi)))));
+      } else if (data.matches) {
+        const allNames = [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
+        groupSection.appendChild(standingsTable("Standings", computeStandings(allNames, data.matches)));
+      }
+      const toggleBtn = document.createElement("button");
+      toggleBtn.textContent = "Show group stage";
+      toggleBtn.style.marginTop = "10px";
+      toggleBtn.addEventListener("click", () => {
+        const showing = groupSection.style.display !== "none";
+        groupSection.style.display = showing ? "none" : "block";
+        toggleBtn.textContent = showing ? "Show group stage" : "Hide group stage";
+      });
+      contentDiv.appendChild(toggleBtn);
+      contentDiv.appendChild(groupSection);
     }
 
     if (data.knockout) {
@@ -1846,17 +1878,17 @@
       const singleList = [];
       resultsSnap.forEach(d => singleList.push({ id: d.id, ...d.data() }));
       singleList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
-      let singleRows = singleList.map(r => "<tr class='tourn-row' data-tid='" + r.id + "'><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td></tr>").join("");
+      let singleRows = singleList.map(r => "<tr data-tid='" + r.id + "'><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td><td><button class='detailsBtn' data-tid='" + r.id + "'>Details</button></td></tr>").join("");
 
       const regularSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "tagteam"), where("subMode", "==", "regular")));
       const regularList = []; regularSnap.forEach(d => regularList.push({ id: d.id, ...d.data() }));
       regularList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
-      let regularRows = regularList.map(r => "<tr class='tourn-row' data-tid='" + r.id + "'><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td></tr>").join("");
+      let regularRows = regularList.map(r => "<tr data-tid='" + r.id + "'><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td><td><button class='detailsBtn' data-tid='" + r.id + "'>Details</button></td></tr>").join("");
 
       const multiSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "tagteam"), where("subMode", "==", "multi")));
       const multiList = []; multiSnap.forEach(d => multiList.push({ id: d.id, ...d.data() }));
       multiList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
-      let multiRows = multiList.map(r => "<tr class='tourn-row' data-tid='" + r.id + "'><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td></tr>").join("");
+      let multiRows = multiList.map(r => "<tr data-tid='" + r.id + "'><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td><td><button class='detailsBtn' data-tid='" + r.id + "'>Details</button></td></tr>").join("");
 
       body.innerHTML = `
         <h3>Single player</h3>
@@ -1866,19 +1898,17 @@
           <div class="stat-card"><div class="label">Most-time runner-up</div><div class="value">${topRunnerUp && num(topRunnerUp.singleRunnerUps) > 0 ? topRunnerUp.name + " (" + topRunnerUp.singleRunnerUps + ")" : "-"}</div></div>
           <div class="stat-card"><div class="label">Most goals scored</div><div class="value">${topScorer && num(topScorer.singleGoalsFor) > 0 ? topScorer.name + " (" + topScorer.singleGoalsFor + ")" : "-"}</div></div>
         </div>
-        <p style="font-size:11px;color:var(--text-muted);">Tap a row to see the full bracket.</p>
-        <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th></tr></thead><tbody>${singleRows || "<tr><td colspan=3>None yet.</td></tr>"}</tbody></table>
+        <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th><th></th></tr></thead><tbody>${singleRows || "<tr><td colspan=4>None yet.</td></tr>"}</tbody></table>
 
         <h3>Tag-team regular controller</h3>
-        <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th></tr></thead><tbody>${regularRows || "<tr><td colspan=3>None yet.</td></tr>"}</tbody></table>
+        <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th><th></th></tr></thead><tbody>${regularRows || "<tr><td colspan=4>None yet.</td></tr>"}</tbody></table>
 
         <h3>Tag-team multiple controller</h3>
-        <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th></tr></thead><tbody>${multiRows || "<tr><td colspan=3>None yet.</td></tr>"}</tbody></table>
+        <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th><th></th></tr></thead><tbody>${multiRows || "<tr><td colspan=4>None yet.</td></tr>"}</tbody></table>
       `;
-      body.querySelectorAll(".tourn-row").forEach(row => {
-        row.style.cursor = "pointer";
-        row.addEventListener("click", () => {
-          viewingTournamentId = row.dataset.tid;
+      body.querySelectorAll(".detailsBtn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          viewingTournamentId = btn.dataset.tid;
           renderRecordsBody();
         });
       });
