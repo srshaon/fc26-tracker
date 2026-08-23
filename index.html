@@ -245,6 +245,23 @@
   }
   .bracket-final .bracket-match { border-color: var(--accent); }
 
+  .music-toggle {
+    position: fixed;
+    bottom: 18px;
+    right: 18px;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 50;
+    display: none;
+  }
+
   @media (max-width: 520px) {
     body { margin: 12px auto; padding: 0 12px; }
     h1 { font-size: 19px; }
@@ -270,6 +287,9 @@
 <nav id="mainNav"></nav>
 
 <div id="viewArea"></div>
+
+<audio id="bgMusic" loop></audio>
+<button id="musicToggle" class="music-toggle" title="Play/pause music">&#9835;</button>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -324,6 +344,36 @@
     }
   }
   loadTheme();
+
+  const bgMusic = document.getElementById("bgMusic");
+  const musicToggle = document.getElementById("musicToggle");
+  let musicPlaying = false;
+
+  async function loadMusic() {
+    try {
+      const snap = await getDoc(doc(db, "settings", "music"));
+      if (snap.exists() && snap.data().url) {
+        bgMusic.src = snap.data().url;
+        musicToggle.style.display = "block";
+      } else {
+        musicToggle.style.display = "none";
+      }
+    } catch (e) {
+      musicToggle.style.display = "none";
+    }
+  }
+  loadMusic();
+
+  musicToggle.addEventListener("click", () => {
+    if (musicPlaying) {
+      bgMusic.pause();
+      musicToggle.textContent = "\u266B";
+    } else {
+      bgMusic.play().catch(() => {});
+      musicToggle.textContent = "\u23F8";
+    }
+    musicPlaying = !musicPlaying;
+  });
 
   // ---------- Auth ----------
   onAuthStateChanged(auth, async (user) => {
@@ -542,6 +592,14 @@
         <p class="status-msg" id="themeStatus"></p>
       </div>
       <div class="card">
+        <h3>Site background music</h3>
+        <p style="font-size:12px;color:var(--text-muted);">Paste a direct link to an audio file (.mp3) — royalty-free or your own. A play/pause button appears in the corner for everyone. Leave blank and save to remove music entirely.</p>
+        <label>Audio file URL</label>
+        <input type="url" id="musicUrlInput" placeholder="https://example.com/song.mp3">
+        <br><button class="primary" id="saveMusicBtn">Save music</button>
+        <p class="status-msg" id="musicSettingStatus"></p>
+      </div>
+      <div class="card">
         <h3>Recalculate player stats</h3>
         <p style="font-size:12px;color:var(--text-muted);">Rebuilds every player's stats from scratch using the actual saved tournament history. Use this if numbers ever look off (like a double-counted win). Does not delete any tournaments.</p>
         <button class="primary" id="recalcBtn">Recalculate all player stats</button>
@@ -564,6 +622,7 @@
     `;
     await refreshAdminList();
     await renderThemePicker();
+    await renderMusicSetting();
     document.getElementById("exportBtn").addEventListener("click", exportRecords);
     document.getElementById("recalcBtn").addEventListener("click", async () => {
       const statusEl = document.getElementById("recalcStatus");
@@ -586,6 +645,25 @@
         await resetAllRecords();
         statusEl.textContent = "All records have been reset.";
         confirmInput.value = "";
+      } catch (e) {
+        statusEl.textContent = "Failed: " + e.message;
+      }
+    });
+  }
+
+  async function renderMusicSetting() {
+    const input = document.getElementById("musicUrlInput");
+    try {
+      const snap = await getDoc(doc(db, "settings", "music"));
+      if (snap.exists() && snap.data().url) input.value = snap.data().url;
+    } catch (e) { /* ignore */ }
+    document.getElementById("saveMusicBtn").addEventListener("click", async () => {
+      const statusEl = document.getElementById("musicSettingStatus");
+      const url = input.value.trim();
+      try {
+        await setDoc(doc(db, "settings", "music"), { url: url || null, updatedAt: Date.now() });
+        await loadMusic();
+        statusEl.textContent = url ? "Music saved and live for everyone." : "Music removed.";
       } catch (e) {
         statusEl.textContent = "Failed: " + e.message;
       }
@@ -1441,10 +1519,20 @@
 
   function renderBracketBody(container, tid, data) {
     container.innerHTML = "";
-    const knockoutStarted = !!data.knockout;
 
-    const groupSection = document.createElement("div");
+    // Standings table(s) — always visible by default
+    const standingsDiv = document.createElement("div");
+    if (data.groups) {
+      data.groups.forEach((g, gi) => standingsDiv.appendChild(standingsTable("Group " + (gi + 1), computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi)))));
+    } else {
+      const allNames = [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
+      standingsDiv.appendChild(standingsTable("Standings", computeStandings(allNames, data.matches)));
+    }
+    container.appendChild(standingsDiv);
+
+    // Individual group/round-robin matches — hidden behind a toggle
     const matchesDiv = document.createElement("div");
+    matchesDiv.style.display = "none";
     matchesDiv.innerHTML = "<h3>Group / round-robin matches</h3>";
     data.matches.forEach((m, idx) => {
       const row = document.createElement("div");
@@ -1465,29 +1553,16 @@
       }
       matchesDiv.appendChild(row);
     });
-    groupSection.appendChild(matchesDiv);
 
-    const standingsDiv = document.createElement("div");
-    if (data.groups) {
-      data.groups.forEach((g, gi) => standingsDiv.appendChild(standingsTable("Group " + (gi + 1), computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi)))));
-    } else {
-      const allNames = [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
-      standingsDiv.appendChild(standingsTable("Standings", computeStandings(allNames, data.matches)));
-    }
-    groupSection.appendChild(standingsDiv);
-
-    if (knockoutStarted) {
-      groupSection.style.display = "none";
-      const toggleBtn = document.createElement("button");
-      toggleBtn.textContent = "Show group stage";
-      toggleBtn.addEventListener("click", () => {
-        const showing = groupSection.style.display !== "none";
-        groupSection.style.display = showing ? "none" : "block";
-        toggleBtn.textContent = showing ? "Show group stage" : "Hide group stage";
-      });
-      container.appendChild(toggleBtn);
-    }
-    container.appendChild(groupSection);
+    const toggleBtn = document.createElement("button");
+    toggleBtn.textContent = "Show group stage matches";
+    toggleBtn.addEventListener("click", () => {
+      const showing = matchesDiv.style.display !== "none";
+      matchesDiv.style.display = showing ? "none" : "block";
+      toggleBtn.textContent = showing ? "Show group stage matches" : "Hide group stage matches";
+    });
+    container.appendChild(toggleBtn);
+    container.appendChild(matchesDiv);
 
     const allGroupMatchesDone = data.matches.every(m => m.scoreA !== null && m.scoreB !== null);
     if (allGroupMatchesDone) {
@@ -1716,6 +1791,7 @@
       <div class="tab-row" id="recordsTabs">
         <button data-t="players">Players</button>
         <button data-t="tournaments">Tournaments</button>
+        <button data-t="h2h">Head-to-head</button>
       </div>
       <div id="recordsBody"></div>
     `;
@@ -1739,6 +1815,7 @@
     if (viewingPlayerId) return renderPlayerProfile(body, viewingPlayerId);
     if (viewingTournamentId) return renderTournamentDetail(body, viewingTournamentId);
     if (recordsTab === "players") return renderPlayersList(body);
+    if (recordsTab === "h2h") return renderHeadToHead(body);
     return renderTournamentRecords(body);
   }
 
@@ -1758,24 +1835,34 @@
 
     const hasGroupInfo = !!(data.groups || data.matches);
     if (hasGroupInfo) {
-      const groupSection = document.createElement("div");
-      groupSection.style.display = "none";
       if (data.groups) {
-        data.groups.forEach((g, gi) => groupSection.appendChild(standingsTable("Group " + (gi + 1), computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi)))));
+        data.groups.forEach((g, gi) => contentDiv.appendChild(standingsTable("Group " + (gi + 1), computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi)))));
       } else if (data.matches) {
         const allNames = [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
-        groupSection.appendChild(standingsTable("Standings", computeStandings(allNames, data.matches)));
+        contentDiv.appendChild(standingsTable("Standings", computeStandings(allNames, data.matches)));
       }
+
+      const matchListDiv = document.createElement("div");
+      matchListDiv.style.display = "none";
+      matchListDiv.innerHTML = "<h3>Group / round-robin matches</h3>";
+      data.matches.forEach(m => {
+        const row = document.createElement("div");
+        row.className = "match-row";
+        const scoreText = (m.scoreA !== null && m.scoreB !== null) ? (m.scoreA + " - " + m.scoreB) : "vs";
+        row.innerHTML = `<span class="name">${m.sideA}</span><span>${scoreText}</span><span class="name">${m.sideB}</span>`;
+        matchListDiv.appendChild(row);
+      });
+
       const toggleBtn = document.createElement("button");
-      toggleBtn.textContent = "Show group stage";
-      toggleBtn.style.marginTop = "10px";
+      toggleBtn.textContent = "Show group stage matches";
+      toggleBtn.style.marginTop = "6px";
       toggleBtn.addEventListener("click", () => {
-        const showing = groupSection.style.display !== "none";
-        groupSection.style.display = showing ? "none" : "block";
-        toggleBtn.textContent = showing ? "Show group stage" : "Hide group stage";
+        const showing = matchListDiv.style.display !== "none";
+        matchListDiv.style.display = showing ? "none" : "block";
+        toggleBtn.textContent = showing ? "Show group stage matches" : "Hide group stage matches";
       });
       contentDiv.appendChild(toggleBtn);
-      contentDiv.appendChild(groupSection);
+      contentDiv.appendChild(matchListDiv);
     }
 
     if (data.knockout) {
@@ -1815,6 +1902,78 @@
     });
     wrap.appendChild(columns);
     container.appendChild(wrap);
+  }
+
+  // Only single-player matches from this date onward count toward head-to-head,
+  // so any earlier/legacy data never factors in.
+  const HEAD_TO_HEAD_CUTOFF = new Date("2026-08-23T00:00:00+06:00").getTime();
+
+  function renderHeadToHead(body) {
+    body.innerHTML = `
+      <p style="font-size:12px;color:var(--text-muted);">Counts single player matches from 23rd Aug 2026 onward only.</p>
+      <label>Player A</label>
+      <select id="h2hPlayerA"><option value="">-- choose --</option></select>
+      <label>Player B</label>
+      <select id="h2hPlayerB"><option value="">-- choose --</option></select>
+      <button class="primary" id="h2hCompareBtn">Compare</button>
+      <div id="h2hResult"></div>
+    `;
+    const selA = document.getElementById("h2hPlayerA");
+    const selB = document.getElementById("h2hPlayerB");
+    poolPlayers.forEach(p => {
+      selA.innerHTML += "<option value='" + p.id + "'>" + p.name + "</option>";
+      selB.innerHTML += "<option value='" + p.id + "'>" + p.name + "</option>";
+    });
+    document.getElementById("h2hCompareBtn").addEventListener("click", async () => {
+      const idA = selA.value, idB = selB.value;
+      const resultDiv = document.getElementById("h2hResult");
+      if (!idA || !idB || idA === idB) { resultDiv.innerHTML = "<p class='status-msg'>Pick two different players.</p>"; return; }
+      resultDiv.innerHTML = "<p class='status-msg'>Loading...</p>";
+      const stats = await computeHeadToHead(idA, idB);
+      const nameA = poolPlayers.find(p => p.id === idA).name;
+      const nameB = poolPlayers.find(p => p.id === idB).name;
+      if (stats.matches === 0) {
+        resultDiv.innerHTML = "<p class='status-msg'>" + nameA + " and " + nameB + " haven't played each other yet (since 23rd Aug 2026).</p>";
+        return;
+      }
+      resultDiv.innerHTML = `
+        <div class="stat-grid">
+          <div class="stat-card"><div class="label">Matches played</div><div class="value">${stats.matches}</div></div>
+          <div class="stat-card"><div class="label">${nameA} wins</div><div class="value">${stats.winsA}</div></div>
+          <div class="stat-card"><div class="label">${nameB} wins</div><div class="value">${stats.winsB}</div></div>
+          <div class="stat-card"><div class="label">Goals ${nameA} scored</div><div class="value">${stats.goalsA}</div></div>
+          <div class="stat-card"><div class="label">Goals ${nameB} scored</div><div class="value">${stats.goalsB}</div></div>
+        </div>
+      `;
+    });
+  }
+
+  async function computeHeadToHead(idA, idB) {
+    const tournamentsSnap = await getDocs(collection(db, "tournaments"));
+    const stats = { matches: 0, winsA: 0, winsB: 0, goalsA: 0, goalsB: 0 };
+    tournamentsSnap.forEach(d => {
+      const data = d.data();
+      if (data.format !== "single" || data.status !== "completed") return;
+      if ((data.createdAt || 0) < HEAD_TO_HEAD_CUTOFF) return;
+
+      let matchList = [];
+      if (data.finalScore) matchList.push({ sideA: data.participants[0].name, sideB: data.participants[1].name, scoreA: data.finalScore.side1, scoreB: data.finalScore.side2 });
+      if (data.matches) matchList = matchList.concat(data.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
+      if (data.knockout) data.knockout.stages.forEach(stage => { matchList = matchList.concat(stage.matches.filter(m => m.scoreA !== null && m.scoreB !== null)); });
+
+      matchList.forEach(m => {
+        const refA = sideRef(data, m.sideA)[0], refB = sideRef(data, m.sideB)[0];
+        if (!refA || !refB) return;
+        let sA, sB;
+        if (refA.id === idA && refB.id === idB) { sA = m.scoreA; sB = m.scoreB; }
+        else if (refA.id === idB && refB.id === idA) { sA = m.scoreB; sB = m.scoreA; }
+        else return;
+        stats.matches++;
+        stats.goalsA += sA; stats.goalsB += sB;
+        if (sA > sB) stats.winsA++; else if (sB > sA) stats.winsB++;
+      });
+    });
+    return stats;
   }
 
   function renderPlayersList(body) {
