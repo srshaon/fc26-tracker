@@ -2280,9 +2280,15 @@
   async function loadRecentForm(playerId) {
     const row = document.getElementById("recentFormRow");
     const tournamentsSnap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "single"), where("status", "==", "completed")));
+    const tournaments = [];
+    tournamentsSnap.forEach(d => tournaments.push(d.data()));
+    tournaments.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)); // oldest tournament first
+
     const results = [];
-    tournamentsSnap.forEach(d => {
-      const data = d.data();
+    tournaments.forEach(data => {
+      // Matches don't have their own timestamps, only the tournament does — so within
+      // one tournament we rely on natural play order instead: group stage first, then
+      // knockout stages in sequence (quarterfinal, semifinal, final).
       let matchList = [];
       if (data.finalScore) matchList.push({ sideA: data.participants[0].name, sideB: data.participants[1].name, scoreA: data.finalScore.side1, scoreB: data.finalScore.side2 });
       if (data.matches) matchList = matchList.concat(data.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
@@ -2294,11 +2300,10 @@
         else if (refB && refB.id === playerId) { mine = m.scoreB; opp = m.scoreA; }
         else return;
         const result = mine > opp ? "W" : mine < opp ? "L" : "D";
-        results.push({ result, at: data.createdAt || 0 });
+        results.push({ result });
       });
     });
-    results.sort((a, b) => b.at - a.at);
-    const last5 = results.slice(0, 5).reverse();
+    const last5 = results.slice(-5); // already oldest-to-newest, so the tail is the most recent
     if (!row) return;
     if (last5.length === 0) { row.innerHTML = "<span class='status-msg'>No single player matches yet.</span>"; return; }
     const colors = { W: "#2ecc71", L: "#e74c3c", D: "#999" };
