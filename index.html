@@ -262,6 +262,19 @@
     display: none;
   }
 
+  .progress-bar-track {
+    height: 5px;
+    border-radius: 3px;
+    background: var(--bg-surface-alt);
+    margin-top: 4px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+  }
+
   @media (max-width: 520px) {
     body { margin: 12px auto; padding: 0 12px; }
     h1 { font-size: 19px; }
@@ -753,6 +766,7 @@
       await updateDoc(doc(db, "players", d.id), reset);
     }
     await loadPool();
+    tournamentRecordsCache = null;
   }
 
   async function exportRecords() {
@@ -808,6 +822,7 @@
 
     await setDoc(doc(db, "counters", "guestPlayers"), { count: 0 });
     await loadPool();
+    tournamentRecordsCache = null;
   }
   async function refreshAdminList() {
     const snap = await getDocs(collection(db, "admins"));
@@ -1396,7 +1411,23 @@
       const header = document.createElement("div");
       header.className = "tourn-header";
       const titleSpan = document.createElement("span");
-      titleSpan.innerHTML = "<strong>" + data.name + "</strong>";
+      titleSpan.style.flex = "1";
+      let progressHtml = "";
+      if (data.status === "in-progress") {
+        let done = 0, total = 0, label = "Group stage";
+        if (!data.knockout) {
+          total = data.matches.length;
+          done = data.matches.filter(m => m.scoreA !== null).length;
+        } else {
+          label = "Knockout stage";
+          const allKoMatches = data.knockout.stages.flatMap(s => s.matches);
+          total = allKoMatches.length;
+          done = allKoMatches.filter(m => m.scoreA !== null).length;
+        }
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+        progressHtml = `<div style="font-size:10px; color:var(--text-muted); margin-top:2px;">${label}: ${done}/${total} matches</div><div class="progress-bar-track"><div class="progress-bar-fill" style="width:${pct}%;"></div></div>`;
+      }
+      titleSpan.innerHTML = "<strong>" + data.name + "</strong>" + progressHtml;
       const rightSide = document.createElement("span");
       rightSide.style.display = "flex";
       rightSide.style.alignItems = "center";
@@ -1547,6 +1578,7 @@
     await setDoc(doc(db, "champions", data.format + "_" + (data.subMode || "none")), { tournamentName: data.name, winner: winnerName, runnerUp: runnerUpName, updatedAt: Date.now() });
     await setDoc(doc(db, "resultsTable", tid), { format: data.format, subMode: data.subMode || null, tournamentName: data.name, winner: winnerName, runnerUp: runnerUpName, completedAt: Date.now() });
     await loadPool();
+    tournamentRecordsCache = null;
   }
 
   function computeStandings(sideNames, matches) {
@@ -1594,7 +1626,7 @@
         btn.addEventListener("click", () => {
           if (btn.disabled) return;
           btn.disabled = true;
-          saveGroupMatch(tid, data, idx, container);
+          saveGroupMatch(tid, data, idx, container, btn);
         });
         row.appendChild(btn);
       }
@@ -1637,6 +1669,19 @@
             changeBtn.remove();
           });
           container.appendChild(changeBtn);
+
+          if (data.previousKnockout) {
+            const undoBtn = document.createElement("button");
+            undoBtn.textContent = "Undo last format change";
+            undoBtn.style.marginTop = "10px";
+            undoBtn.style.marginLeft = "8px";
+            undoBtn.addEventListener("click", async () => {
+              if (!confirm("Restore the previous knockout stage? This replaces what's here now.")) return;
+              await updateDoc(doc(db, "tournaments", tid), { knockout: data.previousKnockout, previousKnockout: null });
+              refreshTournamentCard(tid, container);
+            });
+            container.appendChild(undoBtn);
+          }
         }
       }
     }
@@ -1650,7 +1695,10 @@
     appendTo.appendChild(setup);
     setup.querySelector(".options").addEventListener("click", async (e) => {
       if (!e.target.classList.contains("option-btn")) return;
-      if (isChange && !confirm("Replace the current knockout stage with a new format? Any scores already entered there will be lost.")) return;
+      if (isChange && !confirm("Replace the current knockout stage with a new format? Any scores already entered there will be lost. You can undo this once, right after.")) return;
+      if (isChange && data.knockout) {
+        await updateDoc(doc(db, "tournaments", tid), { previousKnockout: data.knockout });
+      }
       await generateKnockout(tid, data, parseInt(e.target.dataset.v, 10));
       refreshTournamentCard(tid, outerContainer || appendTo);
     });
@@ -1668,21 +1716,28 @@
     return wrap;
   }
 
-  async function saveGroupMatch(tid, data, idx, container) {
+  async function saveGroupMatch(tid, data, idx, container, btn) {
     const inputA = container.querySelector('input[data-idx="' + idx + '"][data-side="A"]');
     const inputB = container.querySelector('input[data-idx="' + idx + '"][data-side="B"]');
     const sA = parseInt(inputA.value, 10), sB = parseInt(inputB.value, 10);
-    if (isNaN(sA) || isNaN(sB) || sA < 0 || sB < 0) { alert("Enter valid scores."); return; }
+    if (isNaN(sA) || isNaN(sB) || sA < 0 || sB < 0) { alert("Enter valid scores."); if (btn) btn.disabled = false; return; }
     const wasAlreadyScored = data.matches[idx].scoreA !== null;
+    const prevA = data.matches[idx].scoreA, prevB = data.matches[idx].scoreB;
     data.matches[idx].scoreA = sA; data.matches[idx].scoreB = sB;
-    await updateDoc(doc(db, "tournaments", tid), { matches: data.matches });
-    if (data.format === "single" && !wasAlreadyScored) {
-      const refA = sideRef(data, data.matches[idx].sideA)[0], refB = sideRef(data, data.matches[idx].sideB)[0];
-      if (refA && refA.type === "pool") await bump(refA.id, { singleMatchesPlayed: 1, singleGoalsFor: sA, singleGoalsAgainst: sB, singleWins: sA > sB ? 1 : 0, singleLosses: sA < sB ? 1 : 0 });
-      if (refB && refB.type === "pool") await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: sB, singleGoalsAgainst: sA, singleWins: sB > sA ? 1 : 0, singleLosses: sB < sA ? 1 : 0 });
-      await loadPool();
+    try {
+      await updateDoc(doc(db, "tournaments", tid), { matches: data.matches });
+      if (data.format === "single" && !wasAlreadyScored) {
+        const refA = sideRef(data, data.matches[idx].sideA)[0], refB = sideRef(data, data.matches[idx].sideB)[0];
+        if (refA && refA.type === "pool") await bump(refA.id, { singleMatchesPlayed: 1, singleGoalsFor: sA, singleGoalsAgainst: sB, singleWins: sA > sB ? 1 : 0, singleLosses: sA < sB ? 1 : 0 });
+        if (refB && refB.type === "pool") await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: sB, singleGoalsAgainst: sA, singleWins: sB > sA ? 1 : 0, singleLosses: sB < sA ? 1 : 0 });
+        await loadPool();
+      }
+      refreshTournamentCard(tid, container);
+    } catch (e) {
+      data.matches[idx].scoreA = prevA; data.matches[idx].scoreB = prevB;
+      if (btn) { btn.disabled = false; }
+      alert("Couldn't save (connection issue?). Your entered score is still in the box — just click Save/Update again to retry.");
     }
-    refreshTournamentCard(tid, container);
   }
 
   async function refreshTournamentCard(tid, container) {
@@ -1876,58 +1931,67 @@
     const stage = data.knockout.stages[si];
     const m = stage.matches[mi];
     const wasAlreadyScored = m.scoreA !== null;
+    const prevState = { scoreA: m.scoreA, scoreB: m.scoreB, penaltyA: m.penaltyA, penaltyB: m.penaltyB };
     m.scoreA = sA; m.scoreB = sB;
     if (penA !== null) { m.penaltyA = penA; m.penaltyB = penB; }
     const winner = (sA === sB) ? (penA > penB ? m.sideA : m.sideB) : (sA > sB ? m.sideA : m.sideB);
 
-    if (wasAlreadyScored) {
-      // Score is being corrected, not entered for the first time — update the number
-      // only, since stats/champion/participation were already applied the first time.
-      await updateDoc(doc(db, "tournaments", tid), { knockout: data.knockout });
-      refreshTournamentCard(tid, container);
-      return;
-    }
-
-    if (data.format === "single") {
-      const refA = sideRef(data, m.sideA)[0], refB = sideRef(data, m.sideB)[0];
-      const aWon = winner === m.sideA, bWon = winner === m.sideB;
-      if (refA && refA.type === "pool") await bump(refA.id, { singleMatchesPlayed: 1, singleGoalsFor: sA, singleGoalsAgainst: sB, singleWins: aWon ? 1 : 0, singleLosses: bWon ? 1 : 0 });
-      if (refB && refB.type === "pool") await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: sB, singleGoalsAgainst: sA, singleWins: bWon ? 1 : 0, singleLosses: aWon ? 1 : 0 });
-      await loadPool();
-    }
-
-    // advance winner into next stage TBD slot
-    if (si + 1 < data.knockout.stages.length) {
-      const nextStage = data.knockout.stages[si + 1];
-      const slot = nextStage.matches.find(nm => nm.sideA.toString().startsWith("TBD") || nm.sideB.toString().startsWith("TBD"));
-      if (slot) { if (slot.sideA.toString().startsWith("TBD")) slot.sideA = winner; else slot.sideB = winner; }
-    }
-
-    const isFinal = si === data.knockout.stages.length - 1;
-    await updateDoc(doc(db, "tournaments", tid), { knockout: data.knockout });
-
-    if (isFinal) {
-      const winnerName = winner, runnerUpName = winner === m.sideA ? m.sideB : m.sideA;
-      const allMembers = data.format === "single" ? data.participants : data.teams.flatMap(t => t.members);
-      for (const mem of allMembers) {
-        if (mem.type !== "pool") continue;
-        if (data.format === "single") await bump(mem.id, { singleTournamentsPlayed: 1 });
-        else await bump(mem.id, { tagTeamTournamentsPlayed: 1 });
+    try {
+      if (wasAlreadyScored) {
+        // Score is being corrected, not entered for the first time — update the number
+        // only, since stats/champion/participation were already applied the first time.
+        await updateDoc(doc(db, "tournaments", tid), { knockout: data.knockout });
+        refreshTournamentCard(tid, container);
+        return;
       }
-      const winMembers = sideRef(data, winnerName), loseMembers = sideRef(data, runnerUpName);
-      for (const mem of winMembers) { if (mem.type !== "pool") continue; if (data.format === "single") await bump(mem.id, { singleChampionships: 1 }); else await bump(mem.id, { tagTeamFinalWins: 1 }); }
-      for (const mem of loseMembers) { if (mem.type !== "pool") continue; if (data.format === "single") await bump(mem.id, { singleRunnerUps: 1 }); else await bump(mem.id, { tagTeamFinalLosses: 1 }); }
 
-      await updateDoc(doc(db, "tournaments", tid), { status: "completed", winner: winnerName, runnerUp: runnerUpName });
-      await setDoc(doc(db, "champions", data.format + "_" + (data.subMode || "none")), { tournamentName: data.name, winner: winnerName, runnerUp: runnerUpName, updatedAt: Date.now() });
-      await setDoc(doc(db, "resultsTable", tid), { format: data.format, subMode: data.subMode || null, tournamentName: data.name, winner: winnerName, runnerUp: runnerUpName, completedAt: Date.now() });
-      await loadPool();
-      showWinnerBanner(container, winnerName);
-      setTimeout(() => refreshTournamentCard(tid, container), 2200);
-      return;
+      if (data.format === "single") {
+        const refA = sideRef(data, m.sideA)[0], refB = sideRef(data, m.sideB)[0];
+        const aWon = winner === m.sideA, bWon = winner === m.sideB;
+        if (refA && refA.type === "pool") await bump(refA.id, { singleMatchesPlayed: 1, singleGoalsFor: sA, singleGoalsAgainst: sB, singleWins: aWon ? 1 : 0, singleLosses: bWon ? 1 : 0 });
+        if (refB && refB.type === "pool") await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: sB, singleGoalsAgainst: sA, singleWins: bWon ? 1 : 0, singleLosses: aWon ? 1 : 0 });
+        await loadPool();
+      }
+
+      // advance winner into next stage TBD slot
+      if (si + 1 < data.knockout.stages.length) {
+        const nextStage = data.knockout.stages[si + 1];
+        const slot = nextStage.matches.find(nm => nm.sideA.toString().startsWith("TBD") || nm.sideB.toString().startsWith("TBD"));
+        if (slot) { if (slot.sideA.toString().startsWith("TBD")) slot.sideA = winner; else slot.sideB = winner; }
+      }
+
+      const isFinal = si === data.knockout.stages.length - 1;
+      await updateDoc(doc(db, "tournaments", tid), { knockout: data.knockout });
+
+      if (isFinal) {
+        const winnerName = winner, runnerUpName = winner === m.sideA ? m.sideB : m.sideA;
+        const allMembers = data.format === "single" ? data.participants : data.teams.flatMap(t => t.members);
+        for (const mem of allMembers) {
+          if (mem.type !== "pool") continue;
+          if (data.format === "single") await bump(mem.id, { singleTournamentsPlayed: 1 });
+          else await bump(mem.id, { tagTeamTournamentsPlayed: 1 });
+        }
+        const winMembers = sideRef(data, winnerName), loseMembers = sideRef(data, runnerUpName);
+        for (const mem of winMembers) { if (mem.type !== "pool") continue; if (data.format === "single") await bump(mem.id, { singleChampionships: 1 }); else await bump(mem.id, { tagTeamFinalWins: 1 }); }
+        for (const mem of loseMembers) { if (mem.type !== "pool") continue; if (data.format === "single") await bump(mem.id, { singleRunnerUps: 1 }); else await bump(mem.id, { tagTeamFinalLosses: 1 }); }
+
+        await updateDoc(doc(db, "tournaments", tid), { status: "completed", winner: winnerName, runnerUp: runnerUpName });
+        await setDoc(doc(db, "champions", data.format + "_" + (data.subMode || "none")), { tournamentName: data.name, winner: winnerName, runnerUp: runnerUpName, updatedAt: Date.now() });
+        await setDoc(doc(db, "resultsTable", tid), { format: data.format, subMode: data.subMode || null, tournamentName: data.name, winner: winnerName, runnerUp: runnerUpName, completedAt: Date.now() });
+        await loadPool();
+        tournamentRecordsCache = null;
+        showWinnerBanner(container, winnerName);
+        setTimeout(() => refreshTournamentCard(tid, container), 2200);
+        return;
+      }
+
+      refreshTournamentCard(tid, container);
+    } catch (e) {
+      m.scoreA = prevState.scoreA; m.scoreB = prevState.scoreB;
+      m.penaltyA = prevState.penaltyA; m.penaltyB = prevState.penaltyB;
+      btn.disabled = false;
+      alert("Couldn't save (connection issue?). Your entered score is still in the box — just click Save/Update again to retry.");
     }
-
-    refreshTournamentCard(tid, container);
   }
 
   // ================= RECORDS =================
@@ -2006,6 +2070,7 @@
             await updateDoc(doc(db, "champions", champKey), { tournamentName: newName });
           }
           statusEl.textContent = "Renamed.";
+          tournamentRecordsCache = null;
           renderTournamentDetail(body, tid);
         } catch (e) {
           statusEl.textContent = "Failed: " + e.message;
@@ -2184,6 +2249,8 @@
     body.innerHTML = `
       <button id="backToPlayers">&larr; Back to players</button>
       <h2>${p.name}</h2>
+      <h3>Recent form</h3>
+      <div id="recentFormRow" style="display:flex; gap:6px;"><span class="status-msg">Loading...</span></div>
       <h3>Tournament participation</h3>
       <div class="stat-grid">
         <div class="stat-card"><div class="label">Single player tournaments</div><div class="value">${num(p.singleTournamentsPlayed)}</div></div>
@@ -2207,11 +2274,63 @@
       </div>
     `;
     document.getElementById("backToPlayers").addEventListener("click", () => { viewingPlayerId = null; renderRecordsBody(); });
+    loadRecentForm(playerId);
+  }
+
+  async function loadRecentForm(playerId) {
+    const row = document.getElementById("recentFormRow");
+    const tournamentsSnap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "single"), where("status", "==", "completed")));
+    const results = [];
+    tournamentsSnap.forEach(d => {
+      const data = d.data();
+      let matchList = [];
+      if (data.finalScore) matchList.push({ sideA: data.participants[0].name, sideB: data.participants[1].name, scoreA: data.finalScore.side1, scoreB: data.finalScore.side2 });
+      if (data.matches) matchList = matchList.concat(data.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
+      if (data.knockout) data.knockout.stages.forEach(stage => { matchList = matchList.concat(stage.matches.filter(m => m.scoreA !== null && m.scoreB !== null)); });
+      matchList.forEach(m => {
+        const refA = sideRef(data, m.sideA)[0], refB = sideRef(data, m.sideB)[0];
+        let mine = null, opp = null;
+        if (refA && refA.id === playerId) { mine = m.scoreA; opp = m.scoreB; }
+        else if (refB && refB.id === playerId) { mine = m.scoreB; opp = m.scoreA; }
+        else return;
+        const result = mine > opp ? "W" : mine < opp ? "L" : "D";
+        results.push({ result, at: data.createdAt || 0 });
+      });
+    });
+    results.sort((a, b) => b.at - a.at);
+    const last5 = results.slice(0, 5).reverse();
+    if (!row) return;
+    if (last5.length === 0) { row.innerHTML = "<span class='status-msg'>No single player matches yet.</span>"; return; }
+    const colors = { W: "#2ecc71", L: "#e74c3c", D: "#999" };
+    row.innerHTML = last5.map(r => `<span style="width:26px; height:26px; border-radius:50%; background:${colors[r.result]}; color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold;">${r.result}</span>`).join("");
+  }
+
+  async function computeDuoStats() {
+    const tournamentsSnap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "tagteam"), where("status", "==", "completed")));
+    const stats = {};
+    tournamentsSnap.forEach(d => {
+      const data = d.data();
+      if (!data.teams || !data.winner || !data.runnerUp) return;
+      const winTeam = data.teams.find(t => t.teamName === data.winner);
+      const loseTeam = data.teams.find(t => t.teamName === data.runnerUp);
+      if (winTeam && winTeam.members.length === 2) {
+        stats[winTeam.teamName] = stats[winTeam.teamName] || { name: winTeam.teamName, wins: 0, losses: 0 };
+        stats[winTeam.teamName].wins++;
+      }
+      if (loseTeam && loseTeam.members.length === 2) {
+        stats[loseTeam.teamName] = stats[loseTeam.teamName] || { name: loseTeam.teamName, wins: 0, losses: 0 };
+        stats[loseTeam.teamName].losses++;
+      }
+    });
+    let best = null;
+    Object.values(stats).forEach(s => { if (!best || s.wins > best.wins) best = s; });
+    return { best };
   }
 
   async function computeFunRecords() {
     const tournamentsSnap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "single"), where("status", "==", "completed")));
     let biggestScoring = null, biggestMargin = null;
+    const cleanSheetCounts = {};
 
     tournamentsSnap.forEach(d => {
       const data = d.data();
@@ -2226,12 +2345,26 @@
         const entry = { sideA: m.sideA, sideB: m.sideB, scoreA: m.scoreA, scoreB: m.scoreB, tournamentName: data.name };
         if (!biggestScoring || total > biggestScoring.total) biggestScoring = { ...entry, total };
         if (margin > 0 && (!biggestMargin || margin > biggestMargin.margin)) biggestMargin = { ...entry, margin };
+        if (m.scoreB === 0) cleanSheetCounts[m.sideA] = (cleanSheetCounts[m.sideA] || 0) + 1;
+        if (m.scoreA === 0) cleanSheetCounts[m.sideB] = (cleanSheetCounts[m.sideB] || 0) + 1;
       });
     });
-    return { biggestScoring, biggestMargin };
+
+    let mostCleanSheets = null;
+    Object.entries(cleanSheetCounts).forEach(([name, count]) => {
+      if (!mostCleanSheets || count > mostCleanSheets.count) mostCleanSheets = { name, count };
+    });
+
+    return { biggestScoring, biggestMargin, mostCleanSheets };
   }
 
-  async function renderTournamentRecords(body) {
+  let tournamentRecordsCache = null;
+
+  async function renderTournamentRecords(body, forceRefresh) {
+    if (tournamentRecordsCache && !forceRefresh) {
+      renderTournamentRecordsHtml(body, tournamentRecordsCache);
+      return;
+    }
     body.innerHTML = "<p>Loading...</p>";
     try {
       const resultsSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "single")));
@@ -2241,49 +2374,61 @@
         if (!topRunnerUp || num(p.singleRunnerUps) > num(topRunnerUp.singleRunnerUps)) topRunnerUp = p;
         if (!topScorer || num(p.singleGoalsFor) > num(topScorer.singleGoalsFor)) topScorer = p;
       });
-      const { biggestScoring, biggestMargin } = await computeFunRecords();
+      const { biggestScoring, biggestMargin, mostCleanSheets } = await computeFunRecords();
+      const duoStats = await computeDuoStats();
       const singleList = [];
       resultsSnap.forEach(d => singleList.push({ id: d.id, ...d.data() }));
       singleList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
-      let singleRows = singleList.map(r => "<tr data-tid='" + r.id + "'><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td><td><button class='detailsBtn' data-tid='" + r.id + "'>Details</button></td></tr>").join("");
 
       const regularSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "tagteam"), where("subMode", "==", "regular")));
       const regularList = []; regularSnap.forEach(d => regularList.push({ id: d.id, ...d.data() }));
       regularList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
-      let regularRows = regularList.map(r => "<tr data-tid='" + r.id + "'><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td><td><button class='detailsBtn' data-tid='" + r.id + "'>Details</button></td></tr>").join("");
 
       const multiSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "tagteam"), where("subMode", "==", "multi")));
       const multiList = []; multiSnap.forEach(d => multiList.push({ id: d.id, ...d.data() }));
       multiList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
-      let multiRows = multiList.map(r => "<tr data-tid='" + r.id + "'><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td><td><button class='detailsBtn' data-tid='" + r.id + "'>Details</button></td></tr>").join("");
 
-      body.innerHTML = `
-        <h3>Single player</h3>
-        <div class="stat-grid">
-          <div class="stat-card"><div class="label">Total tournaments played</div><div class="value">${resultsSnap.size}</div></div>
-          <div class="stat-card"><div class="label">Most-time champion</div><div class="value">${topChampion && num(topChampion.singleChampionships) > 0 ? topChampion.name + " (" + topChampion.singleChampionships + ")" : "-"}</div></div>
-          <div class="stat-card"><div class="label">Most-time runner-up</div><div class="value">${topRunnerUp && num(topRunnerUp.singleRunnerUps) > 0 ? topRunnerUp.name + " (" + topRunnerUp.singleRunnerUps + ")" : "-"}</div></div>
-          <div class="stat-card"><div class="label">Most goals scored</div><div class="value">${topScorer && num(topScorer.singleGoalsFor) > 0 ? topScorer.name + " (" + topScorer.singleGoalsFor + ")" : "-"}</div></div>
-          <div class="stat-card"><div class="label">Biggest scoring match</div><div class="value">${biggestScoring ? biggestScoring.sideA + " " + biggestScoring.scoreA + "-" + biggestScoring.scoreB + " " + biggestScoring.sideB + " (" + biggestScoring.total + " goals)" : "-"}</div></div>
-          <div class="stat-card"><div class="label">Biggest win margin</div><div class="value">${biggestMargin ? biggestMargin.sideA + " " + biggestMargin.scoreA + "-" + biggestMargin.scoreB + " " + biggestMargin.sideB + " (" + biggestMargin.margin + ")" : "-"}</div></div>
-        </div>
-        <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th><th></th></tr></thead><tbody>${singleRows || "<tr><td colspan=4>None yet.</td></tr>"}</tbody></table>
-
-        <h3>Tag-team regular controller</h3>
-        <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th><th></th></tr></thead><tbody>${regularRows || "<tr><td colspan=4>None yet.</td></tr>"}</tbody></table>
-
-        <h3>Tag-team multiple controller</h3>
-        <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th><th></th></tr></thead><tbody>${multiRows || "<tr><td colspan=4>None yet.</td></tr>"}</tbody></table>
-      `;
-      body.querySelectorAll(".detailsBtn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          viewingTournamentId = btn.dataset.tid;
-          renderRecordsBody();
-        });
-      });
+      tournamentRecordsCache = { total: resultsSnap.size, topChampion, topRunnerUp, topScorer, biggestScoring, biggestMargin, mostCleanSheets, duoStats, singleList, regularList, multiList };
+      renderTournamentRecordsHtml(body, tournamentRecordsCache);
     } catch (e) {
       body.innerHTML = "<p class='warn'>Failed to load tournament records: " + e.message + "</p>";
     }
+  }
+
+  function renderTournamentRecordsHtml(body, c) {
+    const rowHtml = (r) => "<tr data-tid='" + r.id + "'><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td><td><button class='detailsBtn' data-tid='" + r.id + "'>Details</button></td></tr>";
+    body.innerHTML = `
+      <button id="recordsRefreshBtn" style="float:right;">Refresh</button>
+      <h3>Single player</h3>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="label">Total tournaments played</div><div class="value">${c.total}</div></div>
+        <div class="stat-card"><div class="label">Most-time champion</div><div class="value">${c.topChampion && num(c.topChampion.singleChampionships) > 0 ? c.topChampion.name + " (" + c.topChampion.singleChampionships + ")" : "-"}</div></div>
+        <div class="stat-card"><div class="label">Most-time runner-up</div><div class="value">${c.topRunnerUp && num(c.topRunnerUp.singleRunnerUps) > 0 ? c.topRunnerUp.name + " (" + c.topRunnerUp.singleRunnerUps + ")" : "-"}</div></div>
+        <div class="stat-card"><div class="label">Most goals scored</div><div class="value">${c.topScorer && num(c.topScorer.singleGoalsFor) > 0 ? c.topScorer.name + " (" + c.topScorer.singleGoalsFor + ")" : "-"}</div></div>
+        <div class="stat-card"><div class="label">Biggest scoring match</div><div class="value">${c.biggestScoring ? c.biggestScoring.sideA + " " + c.biggestScoring.scoreA + "-" + c.biggestScoring.scoreB + " " + c.biggestScoring.sideB + " (" + c.biggestScoring.total + " goals)" : "-"}</div></div>
+        <div class="stat-card"><div class="label">Biggest win margin</div><div class="value">${c.biggestMargin ? c.biggestMargin.sideA + " " + c.biggestMargin.scoreA + "-" + c.biggestMargin.scoreB + " " + c.biggestMargin.sideB + " (" + c.biggestMargin.margin + ")" : "-"}</div></div>
+        <div class="stat-card"><div class="label">Most clean sheets</div><div class="value">${c.mostCleanSheets ? c.mostCleanSheets.name + " (" + c.mostCleanSheets.count + ")" : "-"}</div></div>
+      </div>
+      <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th><th></th></tr></thead><tbody>${c.singleList.map(rowHtml).join("") || "<tr><td colspan=4>None yet.</td></tr>"}</tbody></table>
+
+      <h3>Tag-team regular controller</h3>
+      <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th><th></th></tr></thead><tbody>${c.regularList.map(rowHtml).join("") || "<tr><td colspan=4>None yet.</td></tr>"}</tbody></table>
+
+      <h3>Tag-team multiple controller</h3>
+      <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th><th></th></tr></thead><tbody>${c.multiList.map(rowHtml).join("") || "<tr><td colspan=4>None yet.</td></tr>"}</tbody></table>
+
+      <h3>Tag-team duos</h3>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="label">Most successful duo</div><div class="value">${c.duoStats.best ? c.duoStats.best.name + " (" + c.duoStats.best.wins + "W-" + c.duoStats.best.losses + "L)" : "-"}</div></div>
+      </div>
+    `;
+    document.getElementById("recordsRefreshBtn").addEventListener("click", () => { tournamentRecordsCache = null; renderTournamentRecords(body, true); });
+    body.querySelectorAll(".detailsBtn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        viewingTournamentId = btn.dataset.tid;
+        renderRecordsBody();
+      });
+    });
   }
 </script>
 
