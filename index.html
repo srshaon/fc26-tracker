@@ -275,6 +275,102 @@
     border-radius: 3px;
   }
 
+  /* Trophy foil sweep on the winner banner */
+  .win-banner::before {
+    content: "";
+    position: absolute;
+    top: 0; left: -60%;
+    width: 40%; height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.55), transparent);
+    transform: skewX(-20deg);
+    animation: foilSweep 1.4s ease-out 0.5s 1;
+  }
+  @keyframes foilSweep {
+    from { left: -60%; }
+    to { left: 140%; }
+  }
+
+  /* Standings rows sliding in on render */
+  .stat-card, table tbody tr { animation: rowSlideIn 0.35s ease both; }
+  table tbody tr:nth-child(1) { animation-delay: 0.02s; }
+  table tbody tr:nth-child(2) { animation-delay: 0.06s; }
+  table tbody tr:nth-child(3) { animation-delay: 0.10s; }
+  table tbody tr:nth-child(4) { animation-delay: 0.14s; }
+  table tbody tr:nth-child(5) { animation-delay: 0.18s; }
+  table tbody tr:nth-child(n+6) { animation-delay: 0.20s; }
+  @keyframes rowSlideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* Live pulse ring for in-progress tournaments */
+  .live-dot {
+    position: relative;
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-right: 6px;
+  }
+  .live-dot::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: liveRing 1.6s ease-out infinite;
+  }
+  @keyframes liveRing {
+    0% { transform: scale(1); opacity: 0.7; }
+    100% { transform: scale(3.2); opacity: 0; }
+  }
+
+  /* Score count-up */
+  .count-up { display: inline-block; }
+
+  /* Theme-specific flourishes */
+  [data-theme="matchday"] .option-btn:hover,
+  [data-theme="matchday"] nav button:hover {
+    background: linear-gradient(100deg, transparent 40%, rgba(242,201,76,0.5) 50%, transparent 60%);
+    background-size: 250% 100%;
+    animation: goldSweep 0.9s ease;
+  }
+  @keyframes goldSweep {
+    from { background-position: 150% 0; }
+    to { background-position: -50% 0; }
+  }
+
+  [data-theme="hud"] #viewArea { animation: scanlineFlicker 0.35s steps(2) 1; }
+  @keyframes scanlineFlicker {
+    0% { opacity: 0.4; filter: brightness(1.6); }
+    50% { opacity: 0.85; filter: brightness(0.9); }
+    100% { opacity: 1; filter: brightness(1); }
+  }
+
+  [data-theme="pitch"] .win-banner {
+    animation: winPop 0.55s cubic-bezier(.26,1.6,.4,1) both, stampThud 0.25s ease 0.55s 1;
+  }
+  @keyframes stampThud {
+    0% { transform: scale(1) rotate(0deg); }
+    40% { transform: scale(1.08) rotate(-2deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+
+  /* Bracket connector lines drawing in */
+  .bracket-col:not(:first-child)::before {
+    content: "";
+    display: block;
+    height: 2px;
+    background: var(--border-strong);
+    margin-bottom: 8px;
+    animation: lineDraw 0.5s ease both;
+    transform-origin: left;
+  }
+  @keyframes lineDraw {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+
   @media (max-width: 520px) {
     body { margin: 12px auto; padding: 0 12px; }
     h1 { font-size: 19px; }
@@ -1427,7 +1523,7 @@
         const pct = total > 0 ? Math.round((done / total) * 100) : 0;
         progressHtml = `<div style="font-size:10px; color:var(--text-muted); margin-top:2px;">${label}: ${done}/${total} matches</div><div class="progress-bar-track"><div class="progress-bar-fill" style="width:${pct}%;"></div></div>`;
       }
-      titleSpan.innerHTML = "<strong>" + data.name + "</strong>" + progressHtml;
+      titleSpan.innerHTML = "<span class='live-dot'></span><strong>" + data.name + "</strong>" + progressHtml;
       const rightSide = document.createElement("span");
       rightSide.style.display = "flex";
       rightSide.style.alignItems = "center";
@@ -1804,6 +1900,28 @@
           { id: "q2", sideA: A[2], sideB: B[1], scoreA: null, scoreB: null },
           { id: "q3", sideA: A[3], sideB: B[0], scoreA: null, scoreB: null }
         ];
+      } else if (data.groups && data.groups.length === 3 && data.groups.every(g => g.members.length >= 4)) {
+        // 3 groups of 4+: top 2 from each group (6) plus the 2 best 3rd-place teams (ranked
+        // by wins, then goal difference, then goals scored) fill out the 8 quarterfinalists.
+        const groupStandings = data.groups.map((g, gi) => computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi)));
+        const withGroup = (r, gi) => ({ name: r.name, group: gi, wins: r.wins, gd: r.gf - r.ga, gf: r.gf });
+        const rankTier = (arr) => arr.slice().sort((a, b) => b.wins - a.wins || b.gd - a.gd || b.gf - a.gf);
+
+        const winners = rankTier(groupStandings.map((s, gi) => withGroup(s[0], gi)));
+        const runnersUp = rankTier(groupStandings.map((s, gi) => withGroup(s[1], gi)));
+        const thirds = rankTier(groupStandings.map((s, gi) => withGroup(s[2], gi))).slice(0, 2);
+
+        let seeds = [...winners, ...runnersUp, ...thirds]; // 3 + 3 + 2 = 8, strongest to weakest
+        const pairIdx = [[0, 7], [1, 6], [2, 5], [3, 4]];
+        const hasClash = (arr) => pairIdx.some(([i, j]) => arr[i].group === arr[j].group);
+        if (hasClash(seeds)) {
+          const swapped = seeds.slice();
+          [swapped[6], swapped[7]] = [swapped[7], swapped[6]];
+          if (!hasClash(swapped)) seeds = swapped;
+          // if a clash still remains, proceed anyway — with only 3 groups, a same-group
+          // quarterfinal rematch can occasionally be unavoidable, same as real tournaments.
+        }
+        qfMatches = pairIdx.map(([i, j], idx) => ({ id: "q" + idx, sideA: seeds[i].name, sideB: seeds[j].name, scoreA: null, scoreB: null }));
       } else {
         // Fallback: 4 groups of top-2, or round-robin top 8, seeded 1v8, 4v5, 2v7, 3v6
         const q = seedQuarterfinalists(data);
@@ -2126,6 +2244,18 @@
     }
   }
 
+  function animateNumber(el, to, duration) {
+    if (!el) return;
+    duration = duration || 600;
+    const start = performance.now();
+    function step(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      el.textContent = Math.round(progress * to);
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
   function renderKnockoutReadOnly(container, data) {
     const wrap = document.createElement("div");
     wrap.innerHTML = "<h3>Knockout stage</h3>";
@@ -2144,10 +2274,13 @@
         const box = document.createElement("div");
         box.className = "bracket-match";
         box.innerHTML =
-          `<div class="side${aWon ? " winner-side" : ""}"><span class="side-name">${m.sideA}</span><span>${decided ? m.scoreA : ""}</span></div>` +
-          `<div class="side${bWon ? " winner-side" : ""}"><span class="side-name">${m.sideB}</span><span>${decided ? m.scoreB : ""}</span></div>` +
+          `<div class="side${aWon ? " winner-side" : ""}"><span class="side-name">${m.sideA}</span><span class="count-up" data-final="${decided ? m.scoreA : ""}">${decided ? "" : ""}</span></div>` +
+          `<div class="side${bWon ? " winner-side" : ""}"><span class="side-name">${m.sideB}</span><span class="count-up" data-final="${decided ? m.scoreB : ""}">${decided ? "" : ""}</span></div>` +
           (wentToPens ? `<div style="font-size:10px; text-align:center; color:var(--text-muted);">${m.penaltyA}-${m.penaltyB} pens</div>` : "");
         col.appendChild(box);
+        if (decided) {
+          box.querySelectorAll(".count-up").forEach(el => animateNumber(el, parseInt(el.dataset.final, 10)));
+        }
       });
       columns.appendChild(col);
     });
