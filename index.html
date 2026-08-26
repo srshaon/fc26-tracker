@@ -564,6 +564,7 @@
     const items = [
       { key: "home", label: "Home" },
       { key: "records", label: "Records" },
+      { key: "rankings", label: "Rankings" },
       { key: "playerPool", label: "Player pool" },
       { key: "liveTournaments", label: "Live tournaments" }
     ];
@@ -596,6 +597,7 @@
   function renderView() {
     if (currentView === "home") return renderHome();
     if (currentView === "records") return renderRecords();
+    if (currentView === "rankings") return renderRankings();
     if (currentView === "login") return renderLogin();
     if (currentView === "createAdmin") return requireAdmin() && renderCreateAdmin();
     if (currentView === "adminList") return requireMaster() && renderAdminList();
@@ -804,7 +806,7 @@
   }
 
   async function recalculateAllStats() {
-    const statFields = ["singleMatchesPlayed", "singleGoalsFor", "singleGoalsAgainst", "singleWins", "singleLosses",
+    const statFields = ["singleMatchesPlayed", "singleGoalsFor", "singleGoalsAgainst", "singleWins", "singleDraws", "singleLosses",
       "singleTournamentsPlayed", "singleChampionships", "singleRunnerUps",
       "tagTeamTournamentsPlayed", "tagTeamFinalWins", "tagTeamFinalLosses"];
     const deltas = {}; // playerId -> { field: total }
@@ -838,11 +840,11 @@
           const refA = sideRef(data, m.sideA)[0], refB = sideRef(data, m.sideB)[0];
           if (refA && refA.type === "pool") {
             add(refA.id, "singleMatchesPlayed", 1); add(refA.id, "singleGoalsFor", m.scoreA); add(refA.id, "singleGoalsAgainst", m.scoreB);
-            add(refA.id, "singleWins", m.scoreA > m.scoreB ? 1 : 0); add(refA.id, "singleLosses", m.scoreA < m.scoreB ? 1 : 0);
+            add(refA.id, "singleWins", m.scoreA > m.scoreB ? 1 : 0); add(refA.id, "singleDraws", m.scoreA === m.scoreB ? 1 : 0); add(refA.id, "singleLosses", m.scoreA < m.scoreB ? 1 : 0);
           }
           if (refB && refB.type === "pool") {
             add(refB.id, "singleMatchesPlayed", 1); add(refB.id, "singleGoalsFor", m.scoreB); add(refB.id, "singleGoalsAgainst", m.scoreA);
-            add(refB.id, "singleWins", m.scoreB > m.scoreA ? 1 : 0); add(refB.id, "singleLosses", m.scoreB < m.scoreA ? 1 : 0);
+            add(refB.id, "singleWins", m.scoreB > m.scoreA ? 1 : 0); add(refB.id, "singleDraws", m.scoreA === m.scoreB ? 1 : 0); add(refB.id, "singleLosses", m.scoreB < m.scoreA ? 1 : 0);
           }
         });
       }
@@ -908,7 +910,7 @@
     const resultsSnap = await getDocs(collection(db, "resultsTable"));
     for (const d of resultsSnap.docs) await deleteDoc(doc(db, "resultsTable", d.id));
 
-    const statFields = ["singleMatchesPlayed", "singleGoalsFor", "singleGoalsAgainst", "singleWins", "singleLosses",
+    const statFields = ["singleMatchesPlayed", "singleGoalsFor", "singleGoalsAgainst", "singleWins", "singleDraws", "singleLosses",
       "singleTournamentsPlayed", "singleChampionships", "singleRunnerUps",
       "tagTeamTournamentsPlayed", "tagTeamFinalWins", "tagTeamFinalLosses"];
     const resetFields = {};
@@ -1048,13 +1050,14 @@
   let regularTeams = [[], []];
   let multiTeamCount = 0;
   let multiTeams = [];
+  let multiParticipants = [];
   let bracketStyle = null;
   let groupCount = null;
   let groups = [];
 
   function resetWizardState() {
     sel = { format: null, subMode: null, teamSize: null, time: null, usePenalties: true };
-    singleParticipants = []; regularTeams = [[], []]; multiTeamCount = 0; multiTeams = [];
+    singleParticipants = []; regularTeams = [[], []]; multiTeamCount = 0; multiTeams = []; multiParticipants = [];
     bracketStyle = null; groupCount = null; groups = [];
   }
 
@@ -1116,6 +1119,16 @@
           <button class="option-btn selected" data-v="yes">Yes, use penalties</button>
           <button class="option-btn" data-v="no">No, require a decisive score</button>
         </div>
+        <h3>Group stage points system</h3>
+        <div class="options" id="pointsSystemOptions">
+          <button class="option-btn selected" data-v="default">Default (2 win / 1 draw / 0 loss)</button>
+          <button class="option-btn" data-v="custom">Set custom points</button>
+        </div>
+        <div id="customPointsRow" style="display:none; margin-top:8px;">
+          <label>Win</label><input type="number" id="pointsWinInput" value="2" style="width:70px;">
+          <label>Draw</label><input type="number" id="pointsDrawInput" value="1" style="width:70px;">
+          <label>Loss</label><input type="number" id="pointsLossInput" value="0" style="width:70px;">
+        </div>
       </div>
       <div id="selectionStep" style="display:none;"></div>
       <div id="bracketConfigStep" style="display:none;"></div>
@@ -1123,6 +1136,12 @@
       <button class="primary" id="saveTournamentBtn" style="display:none;">Create tournament and matches</button>
       <p class="status-msg" id="createStatus"></p>
     `;
+
+    document.getElementById("pointsSystemOptions").addEventListener("click", (e) => {
+      if (!e.target.classList.contains("option-btn")) return;
+      markSelected("pointsSystemOptions", e.target);
+      document.getElementById("customPointsRow").style.display = e.target.dataset.v === "custom" ? "block" : "none";
+    });
 
     document.getElementById("penaltyOptions").addEventListener("click", (e) => {
       if (!e.target.classList.contains("option-btn")) return;
@@ -1133,14 +1152,14 @@
     document.getElementById("formatOptions").addEventListener("click", (e) => {
       if (!e.target.classList.contains("option-btn")) return;
       sel = { format: e.target.dataset.v, subMode: null, teamSize: null, time: null, usePenalties: sel.usePenalties };
-      singleParticipants = []; regularTeams = [[], []]; multiTeamCount = 0; multiTeams = [];
+      singleParticipants = []; regularTeams = [[], []]; multiTeamCount = 0; multiTeams = []; multiParticipants = [];
       markSelected("formatOptions", e.target);
       updateWizard();
     });
     document.getElementById("subModeOptions").addEventListener("click", (e) => {
       if (!e.target.classList.contains("option-btn")) return;
       sel.subMode = e.target.dataset.v; sel.teamSize = null; sel.time = null;
-      regularTeams = [[], []]; multiTeamCount = 0; multiTeams = [];
+      regularTeams = [[], []]; multiTeamCount = 0; multiTeams = []; multiParticipants = [];
       markSelected("subModeOptions", e.target);
       updateWizard();
     });
@@ -1224,18 +1243,186 @@
     } else if (sel.format === "tagteam" && sel.subMode === "multi") {
       stepEl.style.display = "block";
       stepEl.innerHTML = `
-        <h3>4. Number of teams (2 members each)</h3>
-        <input type="number" id="multiTeamCountInput" min="2">
-        <button id="setMultiCountBtn">Set</button>
-        <div class="teams-grid" id="multiGrid"></div>
+        <h3>4. Select all participating players</h3>
+        <label>Add from player pool</label>
+        <select id="poolSelectMultiFlat"><option value="">-- choose --</option></select>
+        <div class="chip-list" id="multiParticipantChips"></div>
+        <label>Add guest players</label>
+        <div class="guest-row"><input type="text" id="guestMultiFlat" placeholder="Guest name"><button id="addGuestMultiFlat">Add</button></div>
+        <p class="status-msg" id="multiParticipantStatus"></p>
+        <div id="multiTeamModeStep" style="display:none;">
+          <h3>5. Team assignment</h3>
+          <div class="options" id="multiModeOptions">
+            <button class="option-btn" data-v="manual">Set teams manually</button>
+            <button class="option-btn" data-v="auto">Auto-balance teams based on stats</button>
+          </div>
+          <div id="multiTeamsResult"></div>
+        </div>
       `;
-      document.getElementById("setMultiCountBtn").addEventListener("click", () => {
-        const v = parseInt(document.getElementById("multiTeamCountInput").value, 10);
-        if (!v || v < 2) { alert("Enter a valid number of teams."); return; }
-        multiTeamCount = v; multiTeams = Array.from({ length: v }, () => []);
-        buildMultiTeamBoxes();
+      const poolSel = document.getElementById("poolSelectMultiFlat");
+      poolPlayers.forEach(p => { const o = document.createElement("option"); o.value = p.id; o.textContent = p.name; o.dataset.name = p.name; poolSel.appendChild(o); });
+      poolSel.addEventListener("change", () => {
+        if (!poolSel.value) return;
+        if (multiParticipants.find(x => x.id === poolSel.value)) { poolSel.value = ""; return; }
+        multiParticipants.push({ type: "pool", id: poolSel.value, name: poolSel.options[poolSel.selectedIndex].dataset.name });
+        poolSel.value = ""; renderMultiParticipantChips();
+      });
+      document.getElementById("addGuestMultiFlat").addEventListener("click", async () => {
+        const input = document.getElementById("guestMultiFlat");
+        const typed = input.value.trim();
+        const label = typed ? typed.toUpperCase() : await nextGuestLabel();
+        multiParticipants.push({ type: "guest", id: null, name: label });
+        input.value = ""; renderMultiParticipantChips();
+      });
+      renderMultiParticipantChips();
+      document.getElementById("multiModeOptions").addEventListener("click", (e) => {
+        if (!e.target.classList.contains("option-btn")) return;
+        markSelected("multiModeOptions", e.target);
+        multiTeamCount = multiParticipants.length / 2;
+        multiTeams = [];
+        if (e.target.dataset.v === "manual") buildManualMultiTeams();
+        else runAutoBalance();
       });
     }
+  }
+
+  function renderMultiParticipantChips() {
+    const list = document.getElementById("multiParticipantChips");
+    if (!list) return;
+    list.innerHTML = "";
+    multiParticipants.forEach((p, idx) => {
+      const chip = document.createElement("div"); chip.className = "chip";
+      chip.innerHTML = "<span>" + p.name + (p.type === "guest" ? " (guest)" : "") + "</span>";
+      const btn = document.createElement("button"); btn.textContent = "x";
+      btn.addEventListener("click", () => { multiParticipants.splice(idx, 1); multiTeams = []; renderMultiParticipantChips(); });
+      chip.appendChild(btn); list.appendChild(chip);
+    });
+    const modeStep = document.getElementById("multiTeamModeStep");
+    const statusEl = document.getElementById("multiParticipantStatus");
+    const n = multiParticipants.length;
+    if (n >= 4 && n % 2 === 0) {
+      modeStep.style.display = "block";
+      statusEl.textContent = "";
+    } else {
+      modeStep.style.display = "none";
+      statusEl.textContent = n === 0 ? "" : "Need an even number of players (4 or more) to form 2-member teams.";
+      document.getElementById("bracketConfigStep").style.display = "none";
+      document.getElementById("bracketConfigStep").innerHTML = "";
+    }
+  }
+
+  function buildManualMultiTeams() {
+    const teamCount = multiTeamCount;
+    multiTeams = Array.from({ length: teamCount }, () => []);
+    const resultDiv = document.getElementById("multiTeamsResult");
+    resultDiv.innerHTML = `<div class="teams-grid" id="manualMultiGrid"></div><p class="status-msg" id="manualMultiStatus"></p>`;
+    const grid = document.getElementById("manualMultiGrid");
+    for (let i = 0; i < teamCount; i++) {
+      const box = document.createElement("div"); box.className = "card";
+      box.innerHTML = `<h3>Team ${i + 1}</h3><select class="manualTeamSel" data-t="${i}"></select><div class="chip-list" data-t="${i}"></div>`;
+      grid.appendChild(box);
+    }
+    document.querySelectorAll(".manualTeamSel").forEach(sel => {
+      sel.addEventListener("change", () => {
+        const t = parseInt(sel.dataset.t, 10);
+        if (!sel.value) return;
+        const idx = parseInt(sel.value, 10);
+        if (multiTeams[t].length >= 2) { alert("Team " + (t + 1) + " already has 2 members."); refreshManualMultiSelects(); return; }
+        multiTeams[t].push({ ...multiParticipants[idx], _idx: idx });
+        refreshManualMultiSelects();
+        maybeShowBracketConfig();
+      });
+    });
+    refreshManualMultiSelects();
+  }
+
+  function refreshManualMultiSelects() {
+    const usedIdx = new Set(multiTeams.flat().map(m => m._idx));
+    document.querySelectorAll(".manualTeamSel").forEach(sel => {
+      const t = parseInt(sel.dataset.t, 10);
+      const currentVal = sel.value;
+      sel.innerHTML = '<option value="">-- add player --</option>' + multiParticipants.map((p, idx) => usedIdx.has(idx) ? "" : "<option value='" + idx + "'>" + p.name + (p.type === "guest" ? " (guest)" : "") + "</option>").join("");
+      sel.value = "";
+    });
+    document.querySelectorAll("#manualMultiGrid .chip-list").forEach(list => {
+      const t = parseInt(list.dataset.t, 10);
+      list.innerHTML = "";
+      multiTeams[t].forEach((m, idx) => {
+        const chip = document.createElement("div"); chip.className = "chip";
+        chip.innerHTML = "<span>" + m.name + (m.type === "guest" ? " (guest)" : "") + "</span>";
+        const btn = document.createElement("button"); btn.textContent = "x";
+        btn.addEventListener("click", () => { multiTeams[t].splice(idx, 1); refreshManualMultiSelects(); maybeShowBracketConfig(); });
+        chip.appendChild(btn); list.appendChild(chip);
+      });
+    });
+  }
+
+  function num2(v) { return v || 0; }
+
+  async function getRecentFormResults(playerId) {
+    const tournamentsSnap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "single"), where("status", "==", "completed")));
+    const tournaments = [];
+    tournamentsSnap.forEach(d => tournaments.push(d.data()));
+    tournaments.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    const results = [];
+    tournaments.forEach(data => {
+      let matchList = [];
+      if (data.finalScore) matchList.push({ sideA: data.participants[0].name, sideB: data.participants[1].name, scoreA: data.finalScore.side1, scoreB: data.finalScore.side2 });
+      if (data.matches) matchList = matchList.concat(data.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
+      if (data.knockout) data.knockout.stages.forEach(stage => { matchList = matchList.concat(stage.matches.filter(m => m.scoreA !== null && m.scoreB !== null)); });
+      matchList.forEach(m => {
+        const refA = sideRef(data, m.sideA)[0], refB = sideRef(data, m.sideB)[0];
+        let mine = null, opp = null;
+        if (refA && refA.id === playerId) { mine = m.scoreA; opp = m.scoreB; }
+        else if (refB && refB.id === playerId) { mine = m.scoreB; opp = m.scoreA; }
+        else return;
+        results.push(mine > opp ? "W" : mine < opp ? "L" : "D");
+      });
+    });
+    return results.slice(-5);
+  }
+
+  async function computePlayerRating(participant) {
+    if (participant.type !== "pool") return 50; // no history for guests — neutral rating
+    const p = poolPlayers.find(x => x.id === participant.id);
+    if (!p) return 50;
+    const matches = num2(p.singleMatchesPlayed);
+    const winRate = matches > 0 ? num2(p.singleWins) / matches : 0.5;
+    const goalDiffPerMatch = matches > 0 ? (num2(p.singleGoalsFor) - num2(p.singleGoalsAgainst)) / matches : 0;
+    const tagMatches = num2(p.tagTeamFinalWins) + num2(p.tagTeamFinalLosses);
+    const tagWinRate = tagMatches > 0 ? num2(p.tagTeamFinalWins) / tagMatches : 0.5;
+    const form = await getRecentFormResults(p.id);
+    const formScore = form.reduce((sum, r) => sum + (r === "W" ? 2 : r === "L" ? -1 : 0), 0);
+    return winRate * 60 + goalDiffPerMatch * 5 + tagWinRate * 25 + formScore * 3;
+  }
+
+  async function autoBalanceTeams(participants) {
+    const rated = [];
+    for (const p of participants) {
+      const rating = await computePlayerRating(p);
+      rated.push({ ...p, rating });
+    }
+    rated.sort((a, b) => b.rating - a.rating); // strongest first
+    const pairs = [];
+    let i = 0, j = rated.length - 1;
+    while (i < j) { pairs.push([rated[i], rated[j]]); i++; j--; }
+    return pairs.map(pair => ({ members: pair.map(m => ({ type: m.type, id: m.id, name: m.name })), teamName: pair.map(m => m.name).join(" & ") }));
+  }
+
+  async function runAutoBalance() {
+    const resultDiv = document.getElementById("multiTeamsResult");
+    resultDiv.innerHTML = "<p class='status-msg'>Calculating balanced teams from stats and recent form...</p>";
+    const teams = await autoBalanceTeams(multiParticipants);
+    multiTeams = teams.map(t => t.members);
+    resultDiv.innerHTML = `<p style="font-size:12px;color:var(--text-muted);">Paired strongest with weakest by a rating based on win rate, goal difference, tag-team record, and recent form — so total strength is spread evenly across teams.</p><div class="teams-grid" id="autoTeamsPreview"></div><button id="switchManualBtn" style="margin-top:8px;">Switch to manual instead</button>`;
+    const grid = document.getElementById("autoTeamsPreview");
+    teams.forEach((t, i) => {
+      const box = document.createElement("div"); box.className = "card";
+      box.innerHTML = "<h3>Team " + (i + 1) + "</h3>" + t.members.map(m => m.name + (m.type === "guest" ? " (guest)" : "")).join("<br>");
+      grid.appendChild(box);
+    });
+    document.getElementById("switchManualBtn").addEventListener("click", buildManualMultiTeams);
+    maybeShowBracketConfig();
   }
 
   function renderSingleChips() {
@@ -1291,50 +1478,6 @@
       chip.innerHTML = "<span>" + m.name + (m.type === "guest" ? " (guest)" : "") + "</span>";
       const btn = document.createElement("button"); btn.textContent = "x";
       btn.addEventListener("click", () => { regularTeams[t].splice(idx, 1); renderRegularChips(t); });
-      chip.appendChild(btn); list.appendChild(chip);
-    });
-  }
-
-  function buildMultiTeamBoxes() {
-    const grid = document.getElementById("multiGrid");
-    grid.innerHTML = "";
-    for (let i = 0; i < multiTeamCount; i++) {
-      const box = document.createElement("div"); box.className = "card";
-      box.innerHTML = `<h3>Team ${i + 1}</h3><select class="multiPoolSel" data-t="${i}"><option value="">-- add player --</option></select><div class="chip-list" data-t="${i}"></div><div class="guest-row"><input type="text" class="multiGuestInput" data-t="${i}" placeholder="Guest name"><button class="multiGuestBtn" data-t="${i}">Add</button></div>`;
-      grid.appendChild(box);
-    }
-    grid.querySelectorAll(".multiPoolSel").forEach(sel2 => {
-      poolPlayers.forEach(p => { const o = document.createElement("option"); o.value = p.id; o.textContent = p.name; sel2.appendChild(o); });
-      sel2.addEventListener("change", () => {
-        const t = parseInt(sel2.dataset.t, 10);
-        if (!sel2.value) return;
-        if (multiTeams.some(team => team.some(m => m.id === sel2.value))) { alert("That player is already on a team."); sel2.value = ""; return; }
-        if (multiTeams[t].length >= 2) { alert("Team " + (t + 1) + " already has 2 members."); sel2.value = ""; return; }
-        const p = poolPlayers.find(x => x.id === sel2.value);
-        multiTeams[t].push({ type: "pool", id: p.id, name: p.name });
-        sel2.value = ""; renderMultiChips(t); maybeShowBracketConfig();
-      });
-    });
-    grid.querySelectorAll(".multiGuestBtn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const t = parseInt(btn.dataset.t, 10);
-        if (multiTeams[t].length >= 2) { alert("Team " + (t + 1) + " already has 2 members."); return; }
-        const input = grid.querySelector('.multiGuestInput[data-t="' + t + '"]');
-        const typed = input.value.trim();
-        const label = typed ? typed.toUpperCase() : await nextGuestLabel();
-        multiTeams[t].push({ type: "guest", id: null, name: label });
-        input.value = ""; renderMultiChips(t); maybeShowBracketConfig();
-      });
-    });
-  }
-  function renderMultiChips(t) {
-    const list = document.querySelector('#multiGrid .chip-list[data-t="' + t + '"]');
-    list.innerHTML = "";
-    multiTeams[t].forEach((m, idx) => {
-      const chip = document.createElement("div"); chip.className = "chip";
-      chip.innerHTML = "<span>" + m.name + (m.type === "guest" ? " (guest)" : "") + "</span>";
-      const btn = document.createElement("button"); btn.textContent = "x";
-      btn.addEventListener("click", () => { multiTeams[t].splice(idx, 1); renderMultiChips(t); maybeShowBracketConfig(); });
       chip.appendChild(btn); list.appendChild(chip);
     });
   }
@@ -1450,7 +1593,16 @@
     if (sel.format === "tagteam" && sel.subMode === "regular" && !sel.teamSize) { statusEl.textContent = "Select a team size."; return; }
     if (!sel.time) { statusEl.textContent = "Set a match time."; return; }
 
-    const base = { format: sel.format, subMode: sel.subMode, teamSize: sel.teamSize, matchTimeMinutes: sel.time, usePenalties: sel.usePenalties, name: todayNameFragment() + " " + typeLabel(), createdAt: Date.now() };
+    const pointsMode = document.querySelector("#pointsSystemOptions .selected");
+    let pointsSystem = { win: 2, draw: 1, loss: 0 };
+    if (pointsMode && pointsMode.dataset.v === "custom") {
+      pointsSystem = {
+        win: parseInt(document.getElementById("pointsWinInput").value, 10) || 0,
+        draw: parseInt(document.getElementById("pointsDrawInput").value, 10) || 0,
+        loss: parseInt(document.getElementById("pointsLossInput").value, 10) || 0
+      };
+    }
+    const base = { format: sel.format, subMode: sel.subMode, teamSize: sel.teamSize, matchTimeMinutes: sel.time, usePenalties: sel.usePenalties, pointsSystem, name: todayNameFragment() + " " + typeLabel(), createdAt: Date.now() };
 
     try {
       if (sel.format === "single") {
@@ -1677,7 +1829,8 @@
     tournamentRecordsCache = null;
   }
 
-  function computeStandings(sideNames, matches) {
+  function computeStandings(sideNames, matches, pointsSystem) {
+    const pts = pointsSystem || { win: 2, draw: 1, loss: 0 };
     const stats = {};
     sideNames.forEach(n => { stats[n] = { name: n, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0 }; });
     matches.forEach(m => {
@@ -1689,7 +1842,8 @@
       else if (m.scoreB > m.scoreA) { stats[m.sideB].wins++; stats[m.sideA].losses++; }
       else { stats[m.sideA].draws++; stats[m.sideB].draws++; }
     });
-    return Object.values(stats).sort((a, b) => b.wins - a.wins || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf);
+    Object.values(stats).forEach(s => { s.points = s.wins * pts.win + s.draws * pts.draw + s.losses * pts.loss; });
+    return Object.values(stats).sort((a, b) => b.points - a.points || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf);
   }
 
   function renderBracketBody(container, tid, data) {
@@ -1698,10 +1852,10 @@
     // Standings table(s) — always visible by default
     const standingsDiv = document.createElement("div");
     if (data.groups) {
-      data.groups.forEach((g, gi) => standingsDiv.appendChild(standingsTable("Group " + (gi + 1), computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi)))));
+      data.groups.forEach((g, gi) => standingsDiv.appendChild(standingsTable("Group " + (gi + 1), computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi), data.pointsSystem))));
     } else {
       const allNames = [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
-      standingsDiv.appendChild(standingsTable("Standings", computeStandings(allNames, data.matches)));
+      standingsDiv.appendChild(standingsTable("Standings", computeStandings(allNames, data.matches, data.pointsSystem)));
     }
     container.appendChild(standingsDiv);
 
@@ -1802,11 +1956,11 @@
 
   function standingsTable(title, rows) {
     const wrap = document.createElement("div");
-    wrap.innerHTML = "<h3>" + title + "</h3><table><thead><tr><th>#</th><th>Name</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th></tr></thead><tbody></tbody></table>";
+    wrap.innerHTML = "<h3>" + title + "</h3><table><thead><tr><th>#</th><th>Name</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody></tbody></table>";
     const tbody = wrap.querySelector("tbody");
     rows.forEach((r, i) => {
       const tr = document.createElement("tr");
-      tr.innerHTML = "<td>" + (i + 1) + "</td><td>" + r.name + "</td><td>" + r.played + "</td><td>" + r.wins + "</td><td>" + (r.draws || 0) + "</td><td>" + r.losses + "</td><td>" + r.gf + "</td><td>" + r.ga + "</td><td>" + (r.gf - r.ga) + "</td>";
+      tr.innerHTML = "<td>" + (i + 1) + "</td><td>" + r.name + "</td><td>" + r.played + "</td><td>" + r.wins + "</td><td>" + (r.draws || 0) + "</td><td>" + r.losses + "</td><td>" + r.gf + "</td><td>" + r.ga + "</td><td>" + (r.gf - r.ga) + "</td><td><strong>" + (r.points ?? "-") + "</strong></td>";
       tbody.appendChild(tr);
     });
     return wrap;
@@ -1824,8 +1978,8 @@
       await updateDoc(doc(db, "tournaments", tid), { matches: data.matches });
       if (data.format === "single" && !wasAlreadyScored) {
         const refA = sideRef(data, data.matches[idx].sideA)[0], refB = sideRef(data, data.matches[idx].sideB)[0];
-        if (refA && refA.type === "pool") await bump(refA.id, { singleMatchesPlayed: 1, singleGoalsFor: sA, singleGoalsAgainst: sB, singleWins: sA > sB ? 1 : 0, singleLosses: sA < sB ? 1 : 0 });
-        if (refB && refB.type === "pool") await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: sB, singleGoalsAgainst: sA, singleWins: sB > sA ? 1 : 0, singleLosses: sB < sA ? 1 : 0 });
+        if (refA && refA.type === "pool") await bump(refA.id, { singleMatchesPlayed: 1, singleGoalsFor: sA, singleGoalsAgainst: sB, singleWins: sA > sB ? 1 : 0, singleDraws: sA === sB ? 1 : 0, singleLosses: sA < sB ? 1 : 0 });
+        if (refB && refB.type === "pool") await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: sB, singleGoalsAgainst: sA, singleWins: sB > sA ? 1 : 0, singleDraws: sA === sB ? 1 : 0, singleLosses: sB < sA ? 1 : 0 });
         await loadPool();
       }
       refreshTournamentCard(tid, container);
@@ -1851,13 +2005,13 @@
     let direct = [], nextTier = [];
     if (grouped) {
       data.groups.forEach((g, gi) => {
-        const standings = computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi));
+        const standings = computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi), data.pointsSystem);
         if (option === 1) direct.push(...standings.slice(0, 2));
         else { direct.push(standings[0]); nextTier.push(...standings.slice(1, 3)); }
       });
     } else {
       const allNames = [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
-      const standings = computeStandings(allNames, data.matches);
+      const standings = computeStandings(allNames, data.matches, data.pointsSystem);
       if (option === 1) direct = standings.slice(0, 4);
       else { direct = standings.slice(0, 2); nextTier = standings.slice(2, 6); }
     }
@@ -1874,12 +2028,12 @@
     let qualifiers = [];
     if (grouped) {
       data.groups.forEach((g, gi) => {
-        const standings = computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi));
+        const standings = computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi), data.pointsSystem);
         qualifiers.push(...standings.slice(0, 2));
       });
     } else {
       const allNames = [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
-      qualifiers = computeStandings(allNames, data.matches).slice(0, 8);
+      qualifiers = computeStandings(allNames, data.matches, data.pointsSystem).slice(0, 8);
     }
     return qualifiers.map(r => r.name);
   }
@@ -1892,8 +2046,8 @@
       // Most common shape for a QF field: exactly 2 groups of 4 each. Everyone
       // from both groups advances, cross-seeded 1st vs 4th, 2nd vs 3rd across groups.
       if (data.groups && data.groups.length === 2 && data.groups[0].members.length >= 4 && data.groups[1].members.length >= 4) {
-        const A = computeStandings(data.groups[0].members, data.matches.filter(m => m.groupIndex === 0)).map(r => r.name).slice(0, 4);
-        const B = computeStandings(data.groups[1].members, data.matches.filter(m => m.groupIndex === 1)).map(r => r.name).slice(0, 4);
+        const A = computeStandings(data.groups[0].members, data.matches.filter(m => m.groupIndex === 0), data.pointsSystem).map(r => r.name).slice(0, 4);
+        const B = computeStandings(data.groups[1].members, data.matches.filter(m => m.groupIndex === 1), data.pointsSystem).map(r => r.name).slice(0, 4);
         qfMatches = [
           { id: "q0", sideA: A[0], sideB: B[3], scoreA: null, scoreB: null },
           { id: "q1", sideA: A[1], sideB: B[2], scoreA: null, scoreB: null },
@@ -1903,7 +2057,7 @@
       } else if (data.groups && data.groups.length === 3 && data.groups.every(g => g.members.length >= 4)) {
         // 3 groups of 4+: top 2 from each group (6) plus the 2 best 3rd-place teams (ranked
         // by wins, then goal difference, then goals scored) fill out the 8 quarterfinalists.
-        const groupStandings = data.groups.map((g, gi) => computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi)));
+        const groupStandings = data.groups.map((g, gi) => computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi), data.pointsSystem));
         const withGroup = (r, gi) => ({ name: r.name, group: gi, wins: r.wins, gd: r.gf - r.ga, gf: r.gf });
         const rankTier = (arr) => arr.slice().sort((a, b) => b.wins - a.wins || b.gd - a.gd || b.gf - a.gf);
 
@@ -2143,6 +2297,35 @@
     document.querySelectorAll("#recordsTabs button").forEach(b => b.classList.toggle("active", b.dataset.t === recordsTab));
   }
 
+  // ================= RANKINGS (public) =================
+  function renderRankings() {
+    viewArea.innerHTML = `
+      <h2>Rankings</h2>
+      <p style="font-size:12px;color:var(--text-muted);">Ranked by single player wins, draws, and losses — raw totals, not win percentage.</p>
+      <table>
+        <thead><tr><th>#</th><th>Player</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th></tr></thead>
+        <tbody id="rankingsBody"></tbody>
+      </table>
+    `;
+    const body = document.getElementById("rankingsBody");
+    const ranked = poolPlayers
+      .map(p => ({
+        name: p.name,
+        wins: num(p.singleWins), draws: num(p.singleDraws), losses: num(p.singleLosses),
+        gf: num(p.singleGoalsFor), ga: num(p.singleGoalsAgainst)
+      }))
+      .filter(p => p.wins + p.draws + p.losses > 0)
+      .sort((a, b) => b.wins - a.wins || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf);
+
+    if (ranked.length === 0) {
+      body.innerHTML = "<tr><td colspan=8>No single player matches recorded yet.</td></tr>";
+      return;
+    }
+    body.innerHTML = ranked.map((r, i) =>
+      "<tr><td>" + (i + 1) + "</td><td>" + r.name + "</td><td>" + r.wins + "</td><td>" + r.draws + "</td><td>" + r.losses + "</td><td>" + r.gf + "</td><td>" + r.ga + "</td><td>" + (r.gf - r.ga) + "</td></tr>"
+    ).join("");
+  }
+
   async function renderRecordsBody() {
     updateTabHighlight();
     const body = document.getElementById("recordsBody");
@@ -2202,10 +2385,10 @@
     const hasGroupInfo = !!(data.groups || data.matches);
     if (hasGroupInfo) {
       if (data.groups) {
-        data.groups.forEach((g, gi) => contentDiv.appendChild(standingsTable("Group " + (gi + 1), computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi)))));
+        data.groups.forEach((g, gi) => contentDiv.appendChild(standingsTable("Group " + (gi + 1), computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi), data.pointsSystem))));
       } else if (data.matches) {
         const allNames = [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
-        contentDiv.appendChild(standingsTable("Standings", computeStandings(allNames, data.matches)));
+        contentDiv.appendChild(standingsTable("Standings", computeStandings(allNames, data.matches, data.pointsSystem)));
       }
 
       const matchListDiv = document.createElement("div");
