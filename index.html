@@ -2303,7 +2303,7 @@
       <h2>Rankings</h2>
       <p style="font-size:12px;color:var(--text-muted);">Ranked by single player wins, draws, and losses — raw totals, not win percentage.</p>
       <table>
-        <thead><tr><th>#</th><th>Player</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th></tr></thead>
+        <thead><tr><th>#</th><th>Player</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th></tr></thead>
         <tbody id="rankingsBody"></tbody>
       </table>
     `;
@@ -2311,6 +2311,7 @@
     const ranked = poolPlayers
       .map(p => ({
         name: p.name,
+        played: num(p.singleMatchesPlayed),
         wins: num(p.singleWins), draws: num(p.singleDraws), losses: num(p.singleLosses),
         gf: num(p.singleGoalsFor), ga: num(p.singleGoalsAgainst)
       }))
@@ -2318,11 +2319,11 @@
       .sort((a, b) => b.wins - a.wins || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf);
 
     if (ranked.length === 0) {
-      body.innerHTML = "<tr><td colspan=8>No single player matches recorded yet.</td></tr>";
+      body.innerHTML = "<tr><td colspan=9>No single player matches recorded yet.</td></tr>";
       return;
     }
     body.innerHTML = ranked.map((r, i) =>
-      "<tr><td>" + (i + 1) + "</td><td>" + r.name + "</td><td>" + r.wins + "</td><td>" + r.draws + "</td><td>" + r.losses + "</td><td>" + r.gf + "</td><td>" + r.ga + "</td><td>" + (r.gf - r.ga) + "</td></tr>"
+      "<tr><td>" + (i + 1) + "</td><td>" + r.name + "</td><td>" + r.played + "</td><td>" + r.wins + "</td><td>" + r.draws + "</td><td>" + r.losses + "</td><td>" + r.gf + "</td><td>" + r.ga + "</td><td>" + (r.gf - r.ga) + "</td></tr>"
     ).join("");
   }
 
