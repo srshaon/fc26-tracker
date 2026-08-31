@@ -371,6 +371,47 @@
     to { transform: scaleX(1); }
   }
 
+  .toast-stack {
+    position: fixed;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 100;
+    width: min(90vw, 380px);
+  }
+  .toast {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border-strong);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    animation: toastIn 0.25s ease both;
+  }
+  .toast.toast-error { border-left-color: #e74c3c; }
+  .toast.toast-out { animation: toastOut 0.25s ease forwards; }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes toastOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(10px); }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 30px 16px;
+    color: var(--text-muted);
+  }
+  .empty-state .icon { font-size: 30px; margin-bottom: 8px; opacity: 0.6; }
+  .empty-state .msg { font-size: 13px; }
+
   @media (max-width: 520px) {
     body { margin: 12px auto; padding: 0 12px; }
     h1 { font-size: 19px; }
@@ -399,6 +440,7 @@
 
 <audio id="bgMusic" loop></audio>
 <button id="musicToggle" class="music-toggle" title="Play/pause music">&#9835;</button>
+<div id="toastStack" class="toast-stack"></div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -435,6 +477,19 @@
   const viewArea = document.getElementById("viewArea");
 
   function usernameToEmail(u) { return u.trim().toLowerCase() + "@fc26tracker.app"; }
+
+  function showToast(message, type) {
+    const stack = document.getElementById("toastStack");
+    if (!stack) { console.log(message); return; }
+    const toast = document.createElement("div");
+    toast.className = "toast" + (type === "error" ? " toast-error" : "");
+    toast.textContent = message;
+    stack.appendChild(toast);
+    setTimeout(() => {
+      toast.classList.add("toast-out");
+      setTimeout(() => toast.remove(), 250);
+    }, 3200);
+  }
   function num(v) { return v || 0; }
 
   const THEMES = [
@@ -719,6 +774,7 @@
       <div class="card">
         <h3>Export records (backup)</h3>
         <p style="font-size:12px;color:var(--text-muted);">Downloads a copy of all players, tournaments, champions, and results as a file you can keep. Recommended before resetting.</p>
+        <p class="status-msg" id="lastBackupNote">Checking last backup...</p>
         <button class="primary" id="exportBtn">Export records</button>
         <p class="status-msg" id="exportStatus"></p>
       </div>
@@ -735,6 +791,7 @@
     await renderThemePicker();
     await renderMusicSetting();
     document.getElementById("exportBtn").addEventListener("click", exportRecords);
+    renderLastBackupNote();
     document.getElementById("recalcBtn").addEventListener("click", async () => {
       const statusEl = document.getElementById("recalcStatus");
       if (!confirm("Rebuild every player's stats from tournament history? This corrects drift but does not delete anything.")) return;
@@ -867,6 +924,20 @@
     tournamentRecordsCache = null;
   }
 
+  async function renderLastBackupNote() {
+    const el = document.getElementById("lastBackupNote");
+    if (!el) return;
+    try {
+      const snap = await getDoc(doc(db, "settings", "lastBackup"));
+      if (!snap.exists()) { el.textContent = "No backup has been taken yet."; el.classList.add("warn"); return; }
+      const days = Math.floor((Date.now() - snap.data().at) / (24 * 60 * 60 * 1000));
+      el.classList.remove("warn");
+      if (days === 0) el.textContent = "Last backup: today.";
+      else if (days === 1) el.textContent = "Last backup: yesterday.";
+      else { el.textContent = "Last backup: " + days + " days ago."; if (days >= 14) el.classList.add("warn"); }
+    } catch (e) { el.textContent = ""; }
+  }
+
   async function exportRecords() {
     const statusEl = document.getElementById("exportStatus");
     statusEl.textContent = "Preparing export...";
@@ -894,6 +965,8 @@
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      await setDoc(doc(db, "settings", "lastBackup"), { at: Date.now() });
+      renderLastBackupNote();
       statusEl.textContent = "Backup downloaded.";
     } catch (e) {
       statusEl.textContent = "Export failed: " + e.message;
@@ -1030,7 +1103,7 @@
     saveBtn.textContent = "Save";
     saveBtn.addEventListener("click", async () => {
       const newName = nameInput.value.trim();
-      if (!newName) { alert("Name is required."); return; }
+      if (!newName) { showToast("Name is required.", "error"); return; }
       await updateDoc(doc(db, "players", p.id), { name: newName.toUpperCase(), imageUrl: imgInput.value.trim() || null });
       await loadPool();
       refreshPlayerTable();
@@ -1327,7 +1400,7 @@
         const t = parseInt(sel.dataset.t, 10);
         if (!sel.value) return;
         const idx = parseInt(sel.value, 10);
-        if (multiTeams[t].length >= 2) { alert("Team " + (t + 1) + " already has 2 members."); refreshManualMultiSelects(); return; }
+        if (multiTeams[t].length >= 2) { showToast("Team " + (t + 1) + " already has 2 members.", "error"); refreshManualMultiSelects(); return; }
         multiTeams[t].push({ ...multiParticipants[idx], _idx: idx });
         refreshManualMultiSelects();
         maybeShowBracketConfig();
@@ -1451,8 +1524,8 @@
       sel2.addEventListener("change", () => {
         const t = parseInt(sel2.dataset.t, 10);
         if (!sel2.value) return;
-        if (regularTeams[0].some(m => m.id === sel2.value) || regularTeams[1].some(m => m.id === sel2.value)) { alert("That player is already on a team."); sel2.value = ""; return; }
-        if (regularTeams[t].length >= sel.teamSize) { alert("Team " + (t + 1) + " is full."); sel2.value = ""; return; }
+        if (regularTeams[0].some(m => m.id === sel2.value) || regularTeams[1].some(m => m.id === sel2.value)) { showToast("That player is already on a team.", "error"); sel2.value = ""; return; }
+        if (regularTeams[t].length >= sel.teamSize) { showToast("Team " + (t + 1) + " is full.", "error"); sel2.value = ""; return; }
         const p = poolPlayers.find(x => x.id === sel2.value);
         regularTeams[t].push({ type: "pool", id: p.id, name: p.name });
         sel2.value = ""; renderRegularChips(t);
@@ -1461,7 +1534,7 @@
     grid.querySelectorAll(".regGuestBtn").forEach(btn => {
       btn.addEventListener("click", async () => {
         const t = parseInt(btn.dataset.t, 10);
-        if (regularTeams[t].length >= sel.teamSize) { alert("Team " + (t + 1) + " is full."); return; }
+        if (regularTeams[t].length >= sel.teamSize) { showToast("Team " + (t + 1) + " is full.", "error"); return; }
         const input = grid.querySelector('.regGuestInput[data-t="' + t + '"]');
         const typed = input.value.trim();
         const label = typed ? typed.toUpperCase() : await nextGuestLabel();
@@ -1535,8 +1608,8 @@
   function setupGroups(random) {
     const gc = parseInt(document.getElementById("groupCountInput").value, 10);
     const names = currentSideNames();
-    if (!gc || gc < 2) { alert("Enter a valid number of groups."); return; }
-    if (names.length % gc !== 0) { alert("Participant count (" + names.length + ") must divide evenly into " + gc + " groups."); return; }
+    if (!gc || gc < 2) { showToast("Enter a valid number of groups.", "error"); return; }
+    if (names.length % gc !== 0) { showToast("Participant count (" + names.length + ") must divide evenly into " + gc + " groups.", "error"); return; }
     groupCount = gc;
     const perGroup = names.length / gc;
     if (random) {
@@ -1563,7 +1636,7 @@
         s.innerHTML = '<option value="">-- add --</option>' + names.filter(n => !groups.some(gr => gr.includes(n))).map(n => "<option>" + n + "</option>").join("");
         s.addEventListener("change", () => {
           if (!s.value) return;
-          if (groups[gi].length >= perGroup) { alert("Group " + (gi + 1) + " is full."); return; }
+          if (groups[gi].length >= perGroup) { showToast("Group " + (gi + 1) + " is full.", "error"); return; }
           groups[gi].push(s.value);
           renderGroupsPreview(false, perGroup);
         });
@@ -1651,7 +1724,7 @@
     const q1 = query(collection(db, "tournaments"), where("status", "in", ["ready", "in-progress"]));
     const snap = await getDocs(q1);
     list.innerHTML = "";
-    if (snap.empty) { list.innerHTML = "<p class='status-msg'>No live tournaments right now.</p>"; return; }
+    if (snap.empty) { list.innerHTML = "<div class='empty-state'><div class='icon'>&#9917;</div><div class='msg'>No live tournaments right now.<br>Create one to get started.</div></div>"; return; }
     snap.forEach(d => {
       const data = d.data();
       const card = document.createElement("div");
@@ -1970,7 +2043,7 @@
     const inputA = container.querySelector('input[data-idx="' + idx + '"][data-side="A"]');
     const inputB = container.querySelector('input[data-idx="' + idx + '"][data-side="B"]');
     const sA = parseInt(inputA.value, 10), sB = parseInt(inputB.value, 10);
-    if (isNaN(sA) || isNaN(sB) || sA < 0 || sB < 0) { alert("Enter valid scores."); if (btn) btn.disabled = false; return; }
+    if (isNaN(sA) || isNaN(sB) || sA < 0 || sB < 0) { showToast("Enter valid scores.", "error"); if (btn) btn.disabled = false; return; }
     const wasAlreadyScored = data.matches[idx].scoreA !== null;
     const prevA = data.matches[idx].scoreA, prevB = data.matches[idx].scoreB;
     data.matches[idx].scoreA = sA; data.matches[idx].scoreB = sB;
@@ -1986,7 +2059,7 @@
     } catch (e) {
       data.matches[idx].scoreA = prevA; data.matches[idx].scoreB = prevB;
       if (btn) { btn.disabled = false; }
-      alert("Couldn't save (connection issue?). Your entered score is still in the box — just click Save/Update again to retry.");
+      showToast("Couldn't save (connection issue?). Your entered score is still in the box — just click Save/Update again to retry.", "error");
     }
   }
 
@@ -2080,7 +2153,7 @@
         // Fallback: 4 groups of top-2, or round-robin top 8, seeded 1v8, 4v5, 2v7, 3v6
         const q = seedQuarterfinalists(data);
         if (q.length !== 8) {
-          alert("Quarterfinals need exactly 8 qualifying participants/teams (2 groups of 4, 4 groups of top-2, or 8 in round-robin) — current setup gives " + q.length + ".");
+          showToast("Quarterfinals need exactly 8 qualifying participants/teams (2 groups of 4, 4 groups of top-2, or 8 in round-robin) — current setup gives " + q.length + ".", "error");
           return;
         }
         qfMatches = [
@@ -2117,7 +2190,7 @@
         { id: "s1", sideA: direct[1], sideB: direct[2], scoreA: null, scoreB: null }
       ]});
     } else {
-      alert("Could not determine a clean 4-team knockout stage from the current standings — you may need to adjust group/team counts.");
+      showToast("Could not determine a clean 4-team knockout stage from the current standings — you may need to adjust group/team counts.", "error");
       return;
     }
     stages.push({ name: "Final", matches: [ { id: "f0", sideA: "TBD", sideB: "TBD", scoreA: null, scoreB: null } ] });
@@ -2182,7 +2255,7 @@
     const inputA = container.querySelector('input[data-stage="' + si + '"][data-match="' + mi + '"][data-side="A"]');
     const inputB = container.querySelector('input[data-stage="' + si + '"][data-match="' + mi + '"][data-side="B"]');
     const sA = parseInt(inputA.value, 10), sB = parseInt(inputB.value, 10);
-    const statusMsg = (t) => alert(t);
+    const statusMsg = (t) => showToast(t, "error");
     if (isNaN(sA) || isNaN(sB) || sA < 0 || sB < 0) { statusMsg("Enter valid scores."); return; }
 
     let penA = null, penB = null;
@@ -2262,7 +2335,7 @@
       m.scoreA = prevState.scoreA; m.scoreB = prevState.scoreB;
       m.penaltyA = prevState.penaltyA; m.penaltyB = prevState.penaltyB;
       btn.disabled = false;
-      alert("Couldn't save (connection issue?). Your entered score is still in the box — just click Save/Update again to retry.");
+      showToast("Couldn't save (connection issue?). Your entered score is still in the box — just click Save/Update again to retry.", "error");
     }
   }
 
@@ -2298,9 +2371,35 @@
   }
 
   // ================= RANKINGS (public) =================
+  let rankingsTab = "wins";
+
   function renderRankings() {
     viewArea.innerHTML = `
       <h2>Rankings</h2>
+      <div class="tab-row" id="rankingsTabs">
+        <button data-t="wins">Wins only</button>
+        <button data-t="weighted">Wins + Placement</button>
+      </div>
+      <div id="rankingsBodyWrap"></div>
+    `;
+    document.getElementById("rankingsTabs").addEventListener("click", (e) => {
+      if (!e.target.dataset.t) return;
+      rankingsTab = e.target.dataset.t;
+      renderRankingsBody();
+    });
+    document.querySelectorAll("#rankingsTabs button").forEach(b => b.classList.toggle("active", b.dataset.t === rankingsTab));
+    renderRankingsBody();
+  }
+
+  function renderRankingsBody() {
+    document.querySelectorAll("#rankingsTabs button").forEach(b => b.classList.toggle("active", b.dataset.t === rankingsTab));
+    const wrap = document.getElementById("rankingsBodyWrap");
+    if (rankingsTab === "wins") renderWinsOnlyRankings(wrap);
+    else renderWeightedRankings(wrap);
+  }
+
+  function renderWinsOnlyRankings(wrap) {
+    wrap.innerHTML = `
       <p style="font-size:12px;color:var(--text-muted);">Ranked by single player wins, draws, and losses — raw totals, not win percentage.</p>
       <table>
         <thead><tr><th>#</th><th>Player</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th></tr></thead>
@@ -2319,11 +2418,86 @@
       .sort((a, b) => b.wins - a.wins || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf);
 
     if (ranked.length === 0) {
-      body.innerHTML = "<tr><td colspan=9>No single player matches recorded yet.</td></tr>";
+      body.innerHTML = "<tr><td colspan=9 style='text-align:center; padding:24px; color:var(--text-muted);'>&#127942; No single player matches recorded yet.</td></tr>";
       return;
     }
     body.innerHTML = ranked.map((r, i) =>
       "<tr><td>" + (i + 1) + "</td><td>" + r.name + "</td><td>" + r.played + "</td><td>" + r.wins + "</td><td>" + r.draws + "</td><td>" + r.losses + "</td><td>" + r.gf + "</td><td>" + r.ga + "</td><td>" + (r.gf - r.ga) + "</td></tr>"
+    ).join("");
+  }
+
+  const PLACEMENT_POINTS = { champion: 5, runnerUp: 3, semifinalist: 2, quarterfinalist: 1 };
+
+  function matchWinnerName(m) {
+    if (m.scoreA === m.scoreB) {
+      if (m.penaltyA !== undefined) return m.penaltyA > m.penaltyB ? m.sideA : m.sideB;
+      return null;
+    }
+    return m.scoreA > m.scoreB ? m.sideA : m.sideB;
+  }
+
+  async function computePlacementCounts() {
+    const tournamentsSnap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "single"), where("status", "==", "completed")));
+    const counts = {}; // playerId -> { champion, runnerUp, semifinalist, quarterfinalist }
+    function bump(id, tier) {
+      if (!id) return;
+      if (!counts[id]) counts[id] = { champion: 0, runnerUp: 0, semifinalist: 0, quarterfinalist: 0 };
+      counts[id][tier]++;
+    }
+    tournamentsSnap.forEach(d => {
+      const data = d.data();
+      if (!data.winner || !data.runnerUp) return;
+      const winnerRef = sideRef(data, data.winner)[0];
+      const runnerRef = sideRef(data, data.runnerUp)[0];
+      if (winnerRef && winnerRef.type === "pool") bump(winnerRef.id, "champion");
+      if (runnerRef && runnerRef.type === "pool") bump(runnerRef.id, "runnerUp");
+
+      if (data.knockout) {
+        const stages = data.knockout.stages;
+        stages.forEach((stage, si) => {
+          if (si === stages.length - 1) return; // final already handled via winner/runnerUp above
+          const tier = si === stages.length - 2 ? "semifinalist" : "quarterfinalist";
+          stage.matches.forEach(m => {
+            if (m.scoreA === null || m.scoreB === null) return;
+            const winnerName = matchWinnerName(m);
+            if (!winnerName) return;
+            const loserName = winnerName === m.sideA ? m.sideB : m.sideA;
+            const loserRef = sideRef(data, loserName)[0];
+            if (loserRef && loserRef.type === "pool") bump(loserRef.id, tier);
+          });
+        });
+      }
+    });
+    return counts;
+  }
+
+  async function renderWeightedRankings(wrap) {
+    wrap.innerHTML = "<p class='status-msg'>Calculating...</p>";
+    const counts = await computePlacementCounts();
+    const ranked = poolPlayers
+      .map(p => {
+        const c = counts[p.id] || { champion: 0, runnerUp: 0, semifinalist: 0, quarterfinalist: 0 };
+        const wins = num(p.singleWins);
+        const score = wins * 1 + c.champion * PLACEMENT_POINTS.champion + c.runnerUp * PLACEMENT_POINTS.runnerUp + c.semifinalist * PLACEMENT_POINTS.semifinalist + c.quarterfinalist * PLACEMENT_POINTS.quarterfinalist;
+        return { name: p.name, wins, ...c, score, gf: num(p.singleGoalsFor), ga: num(p.singleGoalsAgainst) };
+      })
+      .filter(p => p.wins > 0 || p.champion > 0 || p.runnerUp > 0 || p.semifinalist > 0 || p.quarterfinalist > 0)
+      .sort((a, b) => b.score - a.score || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf);
+
+    wrap.innerHTML = `
+      <p style="font-size:12px;color:var(--text-muted);">1 point per match win, +${PLACEMENT_POINTS.champion} for winning a tournament, +${PLACEMENT_POINTS.runnerUp} for runner-up, +${PLACEMENT_POINTS.semifinalist} for reaching the semifinal, +${PLACEMENT_POINTS.quarterfinalist} for reaching the quarterfinal.</p>
+      <table>
+        <thead><tr><th>#</th><th>Player</th><th>W</th><th>Champ</th><th>RU</th><th>SF</th><th>QF</th><th>Score</th></tr></thead>
+        <tbody id="weightedRankingsBody"></tbody>
+      </table>
+    `;
+    const body = document.getElementById("weightedRankingsBody");
+    if (ranked.length === 0) {
+      body.innerHTML = "<tr><td colspan=8 style='text-align:center; padding:24px; color:var(--text-muted);'>&#127942; No single player matches recorded yet.</td></tr>";
+      return;
+    }
+    body.innerHTML = ranked.map((r, i) =>
+      "<tr><td>" + (i + 1) + "</td><td>" + r.name + "</td><td>" + r.wins + "</td><td>" + r.champion + "</td><td>" + r.runnerUp + "</td><td>" + r.semifinalist + "</td><td>" + r.quarterfinalist + "</td><td><strong>" + r.score + "</strong></td></tr>"
     ).join("");
   }
 
