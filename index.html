@@ -2511,6 +2511,28 @@
     return renderTournamentRecords(body);
   }
 
+  function computeGoldenBoot(data) {
+    if (data.format !== "single" || !data.participants) return null;
+    const stats = {};
+    data.participants.forEach(p => { stats[p.name] = { goals: 0, matches: 0, gf: 0, ga: 0 }; });
+
+    let matchList = [];
+    if (data.finalScore) matchList.push({ sideA: data.participants[0].name, sideB: data.participants[1].name, scoreA: data.finalScore.side1, scoreB: data.finalScore.side2 });
+    if (data.matches) matchList = matchList.concat(data.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
+    if (data.knockout) data.knockout.stages.forEach(stage => { matchList = matchList.concat(stage.matches.filter(m => m.scoreA !== null && m.scoreB !== null)); });
+
+    matchList.forEach(m => {
+      if (stats[m.sideA]) { stats[m.sideA].goals += m.scoreA; stats[m.sideA].matches++; stats[m.sideA].gf += m.scoreA; stats[m.sideA].ga += m.scoreB; }
+      if (stats[m.sideB]) { stats[m.sideB].goals += m.scoreB; stats[m.sideB].matches++; stats[m.sideB].gf += m.scoreB; stats[m.sideB].ga += m.scoreA; }
+    });
+
+    const entries = Object.entries(stats).map(([name, s]) => ({ name, goals: s.goals, matches: s.matches, gd: s.gf - s.ga }));
+    if (entries.length === 0 || entries.every(e => e.goals === 0)) return null;
+    // Most goals; tie-break: fewest matches played (more efficient), then best goal difference.
+    entries.sort((a, b) => b.goals - a.goals || a.matches - b.matches || b.gd - a.gd);
+    return entries[0];
+  }
+
   async function renderTournamentDetail(body, tid) {
     body.innerHTML = "<p>Loading...</p>";
     const snap = await getDoc(doc(db, "tournaments", tid));
@@ -2519,6 +2541,8 @@
 
     let html = "<button id='backToTournaments'>&larr; Back to tournaments</button><h2>" + data.name + "</h2>";
     if (data.winner) html += "<p class='status-msg'>Champion: <strong style='color:var(--accent);'>" + data.winner + "</strong> &middot; Runner-up: " + data.runnerUp + "</p>";
+    const goldenBoot = computeGoldenBoot(data);
+    if (goldenBoot) html += "<p class='status-msg'>&#9917; Golden Boot: <strong style='color:var(--accent);'>" + goldenBoot.name + "</strong> (" + goldenBoot.goals + " goal" + (goldenBoot.goals === 1 ? "" : "s") + ")</p>";
     if (currentAdmin && currentAdmin.isMaster) {
       html += `
         <div class="card">
@@ -2827,6 +2851,7 @@
     const tournamentsSnap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "single"), where("status", "==", "completed")));
     let biggestScoring = null, biggestMargin = null;
     const cleanSheetCounts = {};
+    const goldenBootCounts = {};
 
     tournamentsSnap.forEach(d => {
       const data = d.data();
@@ -2844,6 +2869,9 @@
         if (m.scoreB === 0) cleanSheetCounts[m.sideA] = (cleanSheetCounts[m.sideA] || 0) + 1;
         if (m.scoreA === 0) cleanSheetCounts[m.sideB] = (cleanSheetCounts[m.sideB] || 0) + 1;
       });
+
+      const gb = computeGoldenBoot(data);
+      if (gb) goldenBootCounts[gb.name] = (goldenBootCounts[gb.name] || 0) + 1;
     });
 
     let mostCleanSheets = null;
@@ -2851,7 +2879,12 @@
       if (!mostCleanSheets || count > mostCleanSheets.count) mostCleanSheets = { name, count };
     });
 
-    return { biggestScoring, biggestMargin, mostCleanSheets };
+    let mostGoldenBoots = null;
+    Object.entries(goldenBootCounts).forEach(([name, count]) => {
+      if (!mostGoldenBoots || count > mostGoldenBoots.count) mostGoldenBoots = { name, count };
+    });
+
+    return { biggestScoring, biggestMargin, mostCleanSheets, mostGoldenBoots };
   }
 
   let tournamentRecordsCache = null;
@@ -2870,7 +2903,7 @@
         if (!topRunnerUp || num(p.singleRunnerUps) > num(topRunnerUp.singleRunnerUps)) topRunnerUp = p;
         if (!topScorer || num(p.singleGoalsFor) > num(topScorer.singleGoalsFor)) topScorer = p;
       });
-      const { biggestScoring, biggestMargin, mostCleanSheets } = await computeFunRecords();
+      const { biggestScoring, biggestMargin, mostCleanSheets, mostGoldenBoots } = await computeFunRecords();
       const duoStats = await computeDuoStats();
       const singleList = [];
       resultsSnap.forEach(d => singleList.push({ id: d.id, ...d.data() }));
@@ -2884,7 +2917,7 @@
       const multiList = []; multiSnap.forEach(d => multiList.push({ id: d.id, ...d.data() }));
       multiList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
 
-      tournamentRecordsCache = { total: resultsSnap.size, topChampion, topRunnerUp, topScorer, biggestScoring, biggestMargin, mostCleanSheets, duoStats, singleList, regularList, multiList };
+      tournamentRecordsCache = { total: resultsSnap.size, topChampion, topRunnerUp, topScorer, biggestScoring, biggestMargin, mostCleanSheets, mostGoldenBoots, duoStats, singleList, regularList, multiList };
       renderTournamentRecordsHtml(body, tournamentRecordsCache);
     } catch (e) {
       body.innerHTML = "<p class='warn'>Failed to load tournament records: " + e.message + "</p>";
@@ -2904,6 +2937,7 @@
         <div class="stat-card"><div class="label">Biggest scoring match</div><div class="value">${c.biggestScoring ? c.biggestScoring.sideA + " " + c.biggestScoring.scoreA + "-" + c.biggestScoring.scoreB + " " + c.biggestScoring.sideB + " (" + c.biggestScoring.total + " goals)" : "-"}</div></div>
         <div class="stat-card"><div class="label">Biggest win margin</div><div class="value">${c.biggestMargin ? c.biggestMargin.sideA + " " + c.biggestMargin.scoreA + "-" + c.biggestMargin.scoreB + " " + c.biggestMargin.sideB + " (" + c.biggestMargin.margin + ")" : "-"}</div></div>
         <div class="stat-card"><div class="label">Most clean sheets</div><div class="value">${c.mostCleanSheets ? c.mostCleanSheets.name + " (" + c.mostCleanSheets.count + ")" : "-"}</div></div>
+        <div class="stat-card"><div class="label">Most Golden Boots</div><div class="value">${c.mostGoldenBoots ? c.mostGoldenBoots.name + " (" + c.mostGoldenBoots.count + ")" : "-"}</div></div>
       </div>
       <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th><th></th></tr></thead><tbody>${c.singleList.map(rowHtml).join("") || "<tr><td colspan=4>None yet.</td></tr>"}</tbody></table>
 
