@@ -2897,11 +2897,12 @@
     body.innerHTML = "<p>Loading...</p>";
     try {
       const resultsSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "single")));
-      let topChampion = null, topRunnerUp = null, topScorer = null;
+      let topChampion = null, topRunnerUp = null, topScorer = null, topConceder = null;
       poolPlayers.forEach(p => {
         if (!topChampion || num(p.singleChampionships) > num(topChampion.singleChampionships)) topChampion = p;
         if (!topRunnerUp || num(p.singleRunnerUps) > num(topRunnerUp.singleRunnerUps)) topRunnerUp = p;
         if (!topScorer || num(p.singleGoalsFor) > num(topScorer.singleGoalsFor)) topScorer = p;
+        if (!topConceder || num(p.singleGoalsAgainst) > num(topConceder.singleGoalsAgainst)) topConceder = p;
       });
       const { biggestScoring, biggestMargin, mostCleanSheets, mostGoldenBoots } = await computeFunRecords();
       const duoStats = await computeDuoStats();
@@ -2917,7 +2918,7 @@
       const multiList = []; multiSnap.forEach(d => multiList.push({ id: d.id, ...d.data() }));
       multiList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
 
-      tournamentRecordsCache = { total: resultsSnap.size, topChampion, topRunnerUp, topScorer, biggestScoring, biggestMargin, mostCleanSheets, mostGoldenBoots, duoStats, singleList, regularList, multiList };
+      tournamentRecordsCache = { total: resultsSnap.size, topChampion, topRunnerUp, topScorer, topConceder, biggestScoring, biggestMargin, mostCleanSheets, mostGoldenBoots, duoStats, singleList, regularList, multiList };
       renderTournamentRecordsHtml(body, tournamentRecordsCache);
     } catch (e) {
       body.innerHTML = "<p class='warn'>Failed to load tournament records: " + e.message + "</p>";
@@ -2934,6 +2935,7 @@
         <div class="stat-card"><div class="label">Most-time champion</div><div class="value">${c.topChampion && num(c.topChampion.singleChampionships) > 0 ? c.topChampion.name + " (" + c.topChampion.singleChampionships + ")" : "-"}</div></div>
         <div class="stat-card"><div class="label">Most-time runner-up</div><div class="value">${c.topRunnerUp && num(c.topRunnerUp.singleRunnerUps) > 0 ? c.topRunnerUp.name + " (" + c.topRunnerUp.singleRunnerUps + ")" : "-"}</div></div>
         <div class="stat-card"><div class="label">Most goals scored</div><div class="value">${c.topScorer && num(c.topScorer.singleGoalsFor) > 0 ? c.topScorer.name + " (" + c.topScorer.singleGoalsFor + ")" : "-"}</div></div>
+        <div class="stat-card"><div class="label">Most goals conceded</div><div class="value">${c.topConceder && num(c.topConceder.singleGoalsAgainst) > 0 ? c.topConceder.name + " (" + c.topConceder.singleGoalsAgainst + ")" : "-"}</div></div>
         <div class="stat-card"><div class="label">Biggest scoring match</div><div class="value">${c.biggestScoring ? c.biggestScoring.sideA + " " + c.biggestScoring.scoreA + "-" + c.biggestScoring.scoreB + " " + c.biggestScoring.sideB + " (" + c.biggestScoring.total + " goals)" : "-"}</div></div>
         <div class="stat-card"><div class="label">Biggest win margin</div><div class="value">${c.biggestMargin ? c.biggestMargin.sideA + " " + c.biggestMargin.scoreA + "-" + c.biggestMargin.scoreB + " " + c.biggestMargin.sideB + " (" + c.biggestMargin.margin + ")" : "-"}</div></div>
         <div class="stat-card"><div class="label">Most clean sheets</div><div class="value">${c.mostCleanSheets ? c.mostCleanSheets.name + " (" + c.mostCleanSheets.count + ")" : "-"}</div></div>
