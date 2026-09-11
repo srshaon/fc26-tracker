@@ -1939,8 +1939,10 @@
     data.matches.forEach((m, idx) => {
       const row = document.createElement("div");
       row.className = "match-row";
-      if (!currentAdmin) {
-        const scoreText = (m.scoreA !== null && m.scoreB !== null) ? (m.scoreA + " - " + m.scoreB) : "vs";
+      const alreadyScored = m.scoreA !== null && m.scoreB !== null;
+      const canEdit = !currentAdmin ? false : (alreadyScored ? currentAdmin.isMaster : true);
+      if (!canEdit) {
+        const scoreText = alreadyScored ? (m.scoreA + " - " + m.scoreB) : "vs";
         row.innerHTML = `<span class="name">${m.sideA}</span><span>${scoreText}</span><span class="name">${m.sideB}</span>`;
       } else {
         row.innerHTML = `<span class="name">${m.sideA}</span><input type="number" min="0" value="${m.scoreA ?? ""}" data-idx="${idx}" data-side="A"><span>-</span><input type="number" min="0" value="${m.scoreB ?? ""}" data-idx="${idx}" data-side="B"><span class="name">${m.sideB}</span>`;
@@ -2219,7 +2221,9 @@
         const aWon = decided && (wentToPens ? m.penaltyA > m.penaltyB : m.scoreA > m.scoreB);
         const bWon = decided && (wentToPens ? m.penaltyB > m.penaltyA : m.scoreB > m.scoreA);
 
-        if (!currentAdmin || !bothKnown) {
+        const canEdit = currentAdmin && bothKnown && (!decided || currentAdmin.isMaster);
+
+        if (!canEdit) {
           const penText = wentToPens ? " (" + m.penaltyA + "-" + m.penaltyB + " pens)" : "";
           box.innerHTML =
             `<div class="side${aWon ? " winner-side" : ""}"><span class="side-name">${m.sideA}</span><span>${decided ? m.scoreA : ""}</span></div>` +
