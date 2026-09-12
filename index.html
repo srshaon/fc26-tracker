@@ -412,6 +412,62 @@
   .empty-state .icon { font-size: 30px; margin-bottom: 8px; opacity: 0.6; }
   .empty-state .msg { font-size: 13px; }
 
+  /* 3. Eliminated side fades */
+  .bracket-match .side.loser-side { opacity: 0.5; text-decoration: line-through; }
+
+  /* 4. Scoreboard flip reveal on a freshly-saved match */
+  .bracket-match.flip-reveal { animation: flipReveal 0.5s ease; transform-origin: center; }
+  @keyframes flipReveal {
+    0% { transform: scaleY(0.15); opacity: 0.3; }
+    60% { transform: scaleY(1.08); }
+    100% { transform: scaleY(1); opacity: 1; }
+  }
+
+  /* 5. Pulsing glow on the match currently awaiting a result */
+  .bracket-match.awaiting { border-color: var(--accent); animation: awaitPulse 1.6s ease-in-out infinite; }
+  @keyframes awaitPulse {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); }
+    50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 0%, transparent); }
+  }
+
+  /* 2. Connector lines light up once the previous stage is fully decided */
+  .bracket-col.connector-lit::before { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+
+  /* 7. Extra fanfare on the champion's box in the Final */
+  .bracket-match.champion-box { position: relative; border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--bg-surface-alt)); }
+  .champion-crown { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 20px; animation: crownDrop 0.6s ease; }
+  @keyframes crownDrop {
+    from { transform: translate(-50%, -18px); opacity: 0; }
+    to { transform: translate(-50%, 0); opacity: 1; }
+  }
+
+  /* 11. Stage breadcrumb stepper */
+  .stage-breadcrumb { display: flex; gap: 6px; margin: 6px 0 10px; flex-wrap: wrap; }
+  .stage-breadcrumb .step {
+    padding: 4px 10px; border-radius: 12px; font-size: 11px;
+    background: var(--bg-surface-alt); color: var(--text-muted); border: 1px solid var(--border);
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  .stage-breadcrumb .step.current { background: var(--accent); color: var(--accent-contrast); font-weight: bold; }
+  .stage-breadcrumb .step.done { color: var(--text-secondary); }
+
+  /* 9. Path highlighting for a player's route through the bracket */
+  .bracket-match.path-highlight { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+  .side-name.clickable { cursor: pointer; text-decoration: underline dotted; }
+
+  /* 13. Replay zoom pop */
+  .replay-zoom-btn {
+    font-size: 10px; margin-top: 4px; cursor: pointer;
+    background: none; border: 1px solid var(--border-strong); border-radius: 4px;
+    padding: 2px 6px; color: var(--text-secondary); width: 100%;
+  }
+  .bracket-match.zooming { position: relative; z-index: 20; animation: zoomPop 0.9s ease; }
+  @keyframes zoomPop {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.3); box-shadow: 0 10px 26px rgba(0,0,0,0.45); }
+    100% { transform: scale(1); }
+  }
+
   @media (max-width: 520px) {
     body { margin: 12px auto; padding: 0 12px; }
     h1 { font-size: 19px; }
@@ -2199,41 +2255,125 @@
     await updateDoc(doc(db, "tournaments", tid), { knockout: { option, stages } });
   }
 
+  let justResolvedKnockoutKey = null;
+
+  function buildBreadcrumb(stages) {
+    const currentIdx = stages.findIndex(s => s.matches.some(m => m.scoreA === null));
+    const strip = document.createElement("div");
+    strip.className = "stage-breadcrumb";
+    stages.forEach((s, i) => {
+      const step = document.createElement("span");
+      let cls = "step";
+      if (i === currentIdx) cls += " current";
+      else if (currentIdx === -1 || i < currentIdx) cls += " done";
+      step.className = cls;
+      step.textContent = s.name;
+      strip.appendChild(step);
+    });
+    return strip;
+  }
+
+  function panBracketOnce(columnsEl) {
+    if (!columnsEl || columnsEl.dataset.panned || columnsEl.scrollWidth <= columnsEl.clientWidth) return;
+    columnsEl.dataset.panned = "1";
+    setTimeout(() => {
+      columnsEl.scrollTo({ left: columnsEl.scrollWidth, behavior: "smooth" });
+      setTimeout(() => columnsEl.scrollTo({ left: 0, behavior: "smooth" }), 900);
+    }, 300);
+  }
+
+  function highlightPlayerRoute(wrap, playerName) {
+    const boxes = wrap.querySelectorAll(".bracket-match");
+    const alreadyOn = wrap.dataset.highlighted === playerName;
+    boxes.forEach(b => b.classList.remove("path-highlight"));
+    wrap.dataset.highlighted = alreadyOn ? "" : playerName;
+    if (alreadyOn) return;
+    boxes.forEach(b => {
+      if (b.dataset.sideA === playerName || b.dataset.sideB === playerName) b.classList.add("path-highlight");
+    });
+  }
+
+  function attachNameClickHandlers(wrap) {
+    wrap.querySelectorAll(".side-name.clickable").forEach(el => {
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        highlightPlayerRoute(wrap, el.dataset.playerName);
+      });
+    });
+  }
+
+  function attachReplayZoomButtons(wrap) {
+    wrap.querySelectorAll(".replay-zoom-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const box = btn.closest(".bracket-match");
+        box.classList.remove("zooming"); void box.offsetWidth;
+        box.classList.add("zooming");
+        setTimeout(() => box.classList.remove("zooming"), 900);
+      });
+    });
+  }
+
   function renderKnockout(container, tid, data) {
     const wrap = document.createElement("div");
     wrap.innerHTML = "<h3>Knockout stage</h3>";
+    wrap.appendChild(buildBreadcrumb(data.knockout.stages));
     const columns = document.createElement("div");
     columns.className = "bracket-columns";
     const penaltiesEnabled = data.usePenalties !== false;
+
+    // find the single "next match up" across the whole bracket, if any
+    let awaitingKey = null;
+    for (let si = 0; si < data.knockout.stages.length && !awaitingKey; si++) {
+      const stage = data.knockout.stages[si];
+      for (let mi = 0; mi < stage.matches.length; mi++) {
+        const m = stage.matches[mi];
+        const bothKnown = !m.sideA.toString().startsWith("TBD") && !m.sideB.toString().startsWith("TBD");
+        if (bothKnown && m.scoreA === null) { awaitingKey = si + "_" + mi; break; }
+      }
+    }
 
     data.knockout.stages.forEach((stage, si) => {
       const isFinalStage = si === data.knockout.stages.length - 1;
       const col = document.createElement("div");
       col.className = "bracket-col" + (isFinalStage ? " bracket-final" : "");
+      const prevStageDone = si === 0 || data.knockout.stages[si - 1].matches.every(m => m.scoreA !== null);
+      if (si > 0 && prevStageDone) col.classList.add("connector-lit");
       col.innerHTML = "<h4>" + stage.name + "</h4>";
 
       stage.matches.forEach((m, mi) => {
         const box = document.createElement("div");
-        box.className = "bracket-match";
+        const key = si + "_" + mi;
         const bothKnown = !m.sideA.toString().startsWith("TBD") && !m.sideB.toString().startsWith("TBD");
         const decided = m.scoreA !== null && m.scoreB !== null;
         const wentToPens = decided && m.scoreA === m.scoreB;
         const aWon = decided && (wentToPens ? m.penaltyA > m.penaltyB : m.scoreA > m.scoreB);
         const bWon = decided && (wentToPens ? m.penaltyB > m.penaltyA : m.scoreB > m.scoreA);
+        const isChampionBox = isFinalStage && decided;
+
+        let boxClass = "bracket-match";
+        if (key === awaitingKey) boxClass += " awaiting";
+        if (key === justResolvedKnockoutKey) boxClass += " flip-reveal";
+        if (isChampionBox) boxClass += " champion-box";
+        box.className = boxClass;
+        box.dataset.sideA = m.sideA; box.dataset.sideB = m.sideB;
+
+        const crownHtml = isChampionBox ? `<div class="champion-crown">&#128081;</div>` : "";
 
         const canEdit = currentAdmin && bothKnown && (!decided || currentAdmin.isMaster);
 
         if (!canEdit) {
           const penText = wentToPens ? " (" + m.penaltyA + "-" + m.penaltyB + " pens)" : "";
-          box.innerHTML =
-            `<div class="side${aWon ? " winner-side" : ""}"><span class="side-name">${m.sideA}</span><span>${decided ? m.scoreA : ""}</span></div>` +
-            `<div class="side${bWon ? " winner-side" : ""}"><span class="side-name">${m.sideB}</span><span>${decided ? m.scoreB : ""}</span></div>` +
-            (penText ? `<div style="font-size:10px; text-align:center; color:var(--text-muted);">${penText.trim()}</div>` : "");
+          box.innerHTML = crownHtml +
+            `<div class="side${aWon ? " winner-side" : (decided ? " loser-side" : "")}"><span class="side-name clickable" data-player-name="${m.sideA}">${m.sideA}</span><span>${decided ? m.scoreA : ""}</span></div>` +
+            `<div class="side${bWon ? " winner-side" : (decided ? " loser-side" : "")}"><span class="side-name clickable" data-player-name="${m.sideB}">${m.sideB}</span><span>${decided ? m.scoreB : ""}</span></div>` +
+            (penText ? `<div style="font-size:10px; text-align:center; color:var(--text-muted);">${penText.trim()}</div>` : "") +
+            (decided ? `<button class="replay-zoom-btn">&#128269; Replay</button>` : "");
         } else {
           const pensId = "kopens_" + si + "_" + mi;
-          box.innerHTML =
-            `<div class="side${aWon ? " winner-side" : ""}"><span class="side-name">${m.sideA}</span><input type="number" min="0" value="${m.scoreA ?? ""}" data-stage="${si}" data-match="${mi}" data-side="A"></div>` +
-            `<div class="side${bWon ? " winner-side" : ""}"><span class="side-name">${m.sideB}</span><input type="number" min="0" value="${m.scoreB ?? ""}" data-stage="${si}" data-match="${mi}" data-side="B"></div>` +
+          box.innerHTML = crownHtml +
+            `<div class="side${aWon ? " winner-side" : (decided ? " loser-side" : "")}"><span class="side-name clickable" data-player-name="${m.sideA}">${m.sideA}</span><input type="number" min="0" value="${m.scoreA ?? ""}" data-stage="${si}" data-match="${mi}" data-side="A"></div>` +
+            `<div class="side${bWon ? " winner-side" : (decided ? " loser-side" : "")}"><span class="side-name clickable" data-player-name="${m.sideB}">${m.sideB}</span><input type="number" min="0" value="${m.scoreB ?? ""}" data-stage="${si}" data-match="${mi}" data-side="B"></div>` +
             `<div id="${pensId}" style="display:none; margin-top:4px;">
                <div class="side"><span class="side-name">Pens</span><input type="number" min="0" data-stage="${si}" data-match="${mi}" data-pen="A"></div>
                <div class="side"><span class="side-name">Pens</span><input type="number" min="0" data-stage="${si}" data-match="${mi}" data-pen="B"></div>
@@ -2245,6 +2385,12 @@
             saveKnockoutMatch(tid, data, si, mi, container, btn, pensId, penaltiesEnabled);
           });
           box.appendChild(btn);
+          if (decided) {
+            const zoomBtn = document.createElement("button");
+            zoomBtn.className = "replay-zoom-btn";
+            zoomBtn.innerHTML = "&#128269; Replay";
+            box.appendChild(zoomBtn);
+          }
         }
         col.appendChild(box);
       });
@@ -2253,6 +2399,10 @@
 
     wrap.appendChild(columns);
     container.appendChild(wrap);
+    attachNameClickHandlers(wrap);
+    attachReplayZoomButtons(wrap);
+    panBracketOnce(columns);
+    justResolvedKnockoutKey = null;
   }
 
   async function saveKnockoutMatch(tid, data, si, mi, container, btn, pensId, penaltiesEnabled) {
@@ -2301,6 +2451,7 @@
         if (refB && refB.type === "pool") await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: sB, singleGoalsAgainst: sA, singleWins: bWon ? 1 : 0, singleLosses: aWon ? 1 : 0 });
         await loadPool();
       }
+      justResolvedKnockoutKey = si + "_" + mi;
 
       // advance winner into next stage TBD slot
       if (si + 1 < data.knockout.stages.length) {
@@ -2645,24 +2796,31 @@
   function renderKnockoutReadOnly(container, data) {
     const wrap = document.createElement("div");
     wrap.innerHTML = "<h3>Knockout stage</h3>";
+    wrap.appendChild(buildBreadcrumb(data.knockout.stages));
     const columns = document.createElement("div");
     columns.className = "bracket-columns";
     data.knockout.stages.forEach((stage, si) => {
       const isFinalStage = si === data.knockout.stages.length - 1;
       const col = document.createElement("div");
       col.className = "bracket-col" + (isFinalStage ? " bracket-final" : "");
+      const prevStageDone = si === 0 || data.knockout.stages[si - 1].matches.every(m => m.scoreA !== null);
+      if (si > 0 && prevStageDone) col.classList.add("connector-lit");
       col.innerHTML = "<h4>" + stage.name + "</h4>";
       stage.matches.forEach(m => {
         const decided = m.scoreA !== null && m.scoreB !== null;
         const wentToPens = decided && m.scoreA === m.scoreB;
         const aWon = decided && (wentToPens ? m.penaltyA > m.penaltyB : m.scoreA > m.scoreB);
         const bWon = decided && (wentToPens ? m.penaltyB > m.penaltyA : m.scoreB > m.scoreA);
+        const isChampionBox = isFinalStage && decided;
         const box = document.createElement("div");
-        box.className = "bracket-match";
+        box.className = "bracket-match" + (isChampionBox ? " champion-box" : "");
+        box.dataset.sideA = m.sideA; box.dataset.sideB = m.sideB;
         box.innerHTML =
-          `<div class="side${aWon ? " winner-side" : ""}"><span class="side-name">${m.sideA}</span><span class="count-up" data-final="${decided ? m.scoreA : ""}">${decided ? "" : ""}</span></div>` +
-          `<div class="side${bWon ? " winner-side" : ""}"><span class="side-name">${m.sideB}</span><span class="count-up" data-final="${decided ? m.scoreB : ""}">${decided ? "" : ""}</span></div>` +
-          (wentToPens ? `<div style="font-size:10px; text-align:center; color:var(--text-muted);">${m.penaltyA}-${m.penaltyB} pens</div>` : "");
+          (isChampionBox ? `<div class="champion-crown">&#128081;</div>` : "") +
+          `<div class="side${aWon ? " winner-side" : (decided ? " loser-side" : "")}"><span class="side-name clickable" data-player-name="${m.sideA}">${m.sideA}</span><span class="count-up" data-final="${decided ? m.scoreA : ""}">${decided ? "" : ""}</span></div>` +
+          `<div class="side${bWon ? " winner-side" : (decided ? " loser-side" : "")}"><span class="side-name clickable" data-player-name="${m.sideB}">${m.sideB}</span><span class="count-up" data-final="${decided ? m.scoreB : ""}">${decided ? "" : ""}</span></div>` +
+          (wentToPens ? `<div style="font-size:10px; text-align:center; color:var(--text-muted);">${m.penaltyA}-${m.penaltyB} pens</div>` : "") +
+          (decided ? `<button class="replay-zoom-btn">&#128269; Replay</button>` : "");
         col.appendChild(box);
         if (decided) {
           box.querySelectorAll(".count-up").forEach(el => animateNumber(el, parseInt(el.dataset.final, 10)));
@@ -2672,6 +2830,9 @@
     });
     wrap.appendChild(columns);
     container.appendChild(wrap);
+    attachNameClickHandlers(wrap);
+    attachReplayZoomButtons(wrap);
+    panBracketOnce(columns);
   }
 
   function renderHeadToHead(body) {
