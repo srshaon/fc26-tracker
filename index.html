@@ -454,6 +454,30 @@
   .bracket-match.path-highlight { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
   .side-name.clickable { cursor: pointer; text-decoration: underline dotted; }
 
+  .pool-picker-list {
+    max-height: 180px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-top: 4px;
+  }
+  .pool-picker-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .pool-picker-row input { width: auto; }
+  .addSelectedBtn {
+    margin-top: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
   @media (max-width: 520px) {
     body { margin: 12px auto; padding: 0 12px; }
     h1 { font-size: 19px; }
@@ -1329,20 +1353,11 @@
       stepEl.innerHTML = `
         <h3>4. Select players</h3>
         <label>Add from player pool</label>
-        <select id="poolSelectSingle"><option value="">-- choose --</option></select>
+        <div id="poolSelectSingle"></div>
         <div class="chip-list" id="singleChips"></div>
         <label>Add guest players</label>
         <div class="guest-row"><input type="text" id="guestSingle" placeholder="Guest name"><button id="addGuestSingle">Add</button></div>
       `;
-      const poolSel = document.getElementById("poolSelectSingle");
-      poolPlayers.forEach(p => { const o = document.createElement("option"); o.value = p.id; o.textContent = p.name; poolSel.appendChild(o); });
-      poolSel.addEventListener("change", () => {
-        if (!poolSel.value) return;
-        if (singleParticipants.find(x => x.id === poolSel.value)) { poolSel.value = ""; return; }
-        const p = poolPlayers.find(x => x.id === poolSel.value);
-        singleParticipants.push({ type: "pool", id: p.id, name: p.name });
-        poolSel.value = ""; renderSingleChips(); maybeShowBracketConfig();
-      });
       document.getElementById("addGuestSingle").addEventListener("click", async () => {
         const input = document.getElementById("guestSingle");
         const typed = input.value.trim();
@@ -1360,7 +1375,7 @@
       stepEl.innerHTML = `
         <h3>4. Select all participating players</h3>
         <label>Add from player pool</label>
-        <select id="poolSelectMultiFlat"><option value="">-- choose --</option></select>
+        <div id="poolSelectMultiFlat"></div>
         <div class="chip-list" id="multiParticipantChips"></div>
         <label>Add guest players</label>
         <div class="guest-row"><input type="text" id="guestMultiFlat" placeholder="Guest name"><button id="addGuestMultiFlat">Add</button></div>
@@ -1370,18 +1385,11 @@
           <div class="options" id="multiModeOptions">
             <button class="option-btn" data-v="manual">Set teams manually</button>
             <button class="option-btn" data-v="auto">Auto-balance teams based on stats</button>
+            <button class="option-btn" data-v="random">Completely random (lucky draw)</button>
           </div>
           <div id="multiTeamsResult"></div>
         </div>
       `;
-      const poolSel = document.getElementById("poolSelectMultiFlat");
-      poolPlayers.forEach(p => { const o = document.createElement("option"); o.value = p.id; o.textContent = p.name; o.dataset.name = p.name; poolSel.appendChild(o); });
-      poolSel.addEventListener("change", () => {
-        if (!poolSel.value) return;
-        if (multiParticipants.find(x => x.id === poolSel.value)) { poolSel.value = ""; return; }
-        multiParticipants.push({ type: "pool", id: poolSel.value, name: poolSel.options[poolSel.selectedIndex].dataset.name });
-        poolSel.value = ""; renderMultiParticipantChips();
-      });
       document.getElementById("addGuestMultiFlat").addEventListener("click", async () => {
         const input = document.getElementById("guestMultiFlat");
         const typed = input.value.trim();
@@ -1396,9 +1404,30 @@
         multiTeamCount = multiParticipants.length / 2;
         multiTeams = [];
         if (e.target.dataset.v === "manual") buildManualMultiTeams();
-        else runAutoBalance();
+        else if (e.target.dataset.v === "auto") runAutoBalance();
+        else runRandomAssign();
       });
     }
+  }
+
+  // Renders a scrollable checkbox list of pool players (excluding already-used ones) plus
+  // an "Add selected" button, so several players can be added to a selection in one go.
+  function renderPoolCheckboxPicker(containerEl, excludeIds, onAdd) {
+    const available = poolPlayers.filter(p => !excludeIds.includes(p.id));
+    if (available.length === 0) {
+      containerEl.innerHTML = "<p class='status-msg'>Everyone in the pool has already been added.</p>";
+      return;
+    }
+    containerEl.innerHTML =
+      '<div class="pool-picker-list">' +
+      available.map(p => `<label class="pool-picker-row"><input type="checkbox" value="${p.id}"> ${p.name}</label>`).join("") +
+      '</div><button class="addSelectedBtn" type="button">Add selected</button>';
+    containerEl.querySelector(".addSelectedBtn").addEventListener("click", () => {
+      const checked = [...containerEl.querySelectorAll("input[type=checkbox]:checked")].map(cb => cb.value);
+      if (checked.length === 0) return;
+      const selected = checked.map(id => poolPlayers.find(p => p.id === id)).filter(Boolean);
+      onAdd(selected);
+    });
   }
 
   function renderMultiParticipantChips() {
@@ -1412,6 +1441,13 @@
       btn.addEventListener("click", () => { multiParticipants.splice(idx, 1); multiTeams = []; renderMultiParticipantChips(); });
       chip.appendChild(btn); list.appendChild(chip);
     });
+    const pickerEl = document.getElementById("poolSelectMultiFlat");
+    if (pickerEl) {
+      renderPoolCheckboxPicker(pickerEl, multiParticipants.filter(p => p.type === "pool").map(p => p.id), (selected) => {
+        selected.forEach(p => multiParticipants.push({ type: "pool", id: p.id, name: p.name }));
+        renderMultiParticipantChips();
+      });
+    }
     const modeStep = document.getElementById("multiTeamModeStep");
     const statusEl = document.getElementById("multiParticipantStatus");
     const n = multiParticipants.length;
@@ -1540,6 +1576,31 @@
     maybeShowBracketConfig();
   }
 
+  function randomAssignTeams(participants) {
+    const shuffled = fairShuffle(participants);
+    const pairs = [];
+    for (let i = 0; i < shuffled.length; i += 2) pairs.push([shuffled[i], shuffled[i + 1]]);
+    return pairs.map(pair => ({ members: pair.map(m => ({ type: m.type, id: m.id, name: m.name })), teamName: pair.map(m => m.name).join(" & ") }));
+  }
+
+  function runRandomAssign() {
+    const resultDiv = document.getElementById("multiTeamsResult");
+    const teams = randomAssignTeams(multiParticipants);
+    multiTeams = teams.map(t => t.members);
+    resultDiv.innerHTML = `<p style="font-size:12px;color:var(--text-muted);">Pure luck of the draw — shuffled and paired with no regard to stats or form, like a lucky draw.</p><div class="teams-grid" id="randomTeamsPreview"></div><button id="reshuffleRandomBtn" style="margin-top:8px;">Shuffle again</button> <button id="switchManualBtnRandom" style="margin-top:8px;">Switch to manual instead</button>`;
+    const grid = document.getElementById("randomTeamsPreview");
+    teams.forEach((t, i) => {
+      const box = document.createElement("div"); box.className = "card";
+      box.innerHTML = "<h3>Team " + (i + 1) + "</h3>" + t.members.map(m => m.name + (m.type === "guest" ? " (guest)" : "")).join("<br>");
+      grid.appendChild(box);
+    });
+    document.getElementById("reshuffleRandomBtn").addEventListener("click", runRandomAssign);
+    document.getElementById("switchManualBtnRandom").addEventListener("click", buildManualMultiTeams);
+    maybeShowBracketConfig();
+  }
+
+
+
   function renderSingleChips() {
     const list = document.getElementById("singleChips");
     if (!list) return;
@@ -1551,6 +1612,14 @@
       btn.addEventListener("click", () => { singleParticipants.splice(idx, 1); renderSingleChips(); maybeShowBracketConfig(); });
       chip.appendChild(btn); list.appendChild(chip);
     });
+    const pickerEl = document.getElementById("poolSelectSingle");
+    if (pickerEl) {
+      renderPoolCheckboxPicker(pickerEl, singleParticipants.filter(p => p.type === "pool").map(p => p.id), (selected) => {
+        selected.forEach(p => singleParticipants.push({ type: "pool", id: p.id, name: p.name }));
+        renderSingleChips();
+        maybeShowBracketConfig();
+      });
+    }
   }
 
   function buildRegularTeamBoxes() {
@@ -1558,21 +1627,9 @@
     grid.innerHTML = "";
     for (let i = 0; i < 2; i++) {
       const box = document.createElement("div"); box.className = "card";
-      box.innerHTML = `<h3>Team ${i + 1}</h3><select class="regPoolSel" data-t="${i}"><option value="">-- add player --</option></select><div class="chip-list" data-t="${i}"></div><div class="guest-row"><input type="text" class="regGuestInput" data-t="${i}" placeholder="Guest name"><button class="regGuestBtn" data-t="${i}">Add</button></div>`;
+      box.innerHTML = `<h3>Team ${i + 1}</h3><div class="regPoolPicker" data-t="${i}"></div><div class="chip-list" data-t="${i}"></div><div class="guest-row"><input type="text" class="regGuestInput" data-t="${i}" placeholder="Guest name"><button class="regGuestBtn" data-t="${i}">Add</button></div>`;
       grid.appendChild(box);
     }
-    grid.querySelectorAll(".regPoolSel").forEach(sel2 => {
-      poolPlayers.forEach(p => { const o = document.createElement("option"); o.value = p.id; o.textContent = p.name; sel2.appendChild(o); });
-      sel2.addEventListener("change", () => {
-        const t = parseInt(sel2.dataset.t, 10);
-        if (!sel2.value) return;
-        if (regularTeams[0].some(m => m.id === sel2.value) || regularTeams[1].some(m => m.id === sel2.value)) { showToast("That player is already on a team.", "error"); sel2.value = ""; return; }
-        if (regularTeams[t].length >= sel.teamSize) { showToast("Team " + (t + 1) + " is full.", "error"); sel2.value = ""; return; }
-        const p = poolPlayers.find(x => x.id === sel2.value);
-        regularTeams[t].push({ type: "pool", id: p.id, name: p.name });
-        sel2.value = ""; renderRegularChips(t);
-      });
-    });
     grid.querySelectorAll(".regGuestBtn").forEach(btn => {
       btn.addEventListener("click", async () => {
         const t = parseInt(btn.dataset.t, 10);
@@ -1584,6 +1641,7 @@
         input.value = ""; renderRegularChips(t);
       });
     });
+    renderRegularChips(0); renderRegularChips(1);
   }
   function renderRegularChips(t) {
     const list = document.querySelector('#regularGrid .chip-list[data-t="' + t + '"]');
@@ -1595,6 +1653,17 @@
       btn.addEventListener("click", () => { regularTeams[t].splice(idx, 1); renderRegularChips(t); });
       chip.appendChild(btn); list.appendChild(chip);
     });
+    const pickerEl = document.querySelector('#regularGrid .regPoolPicker[data-t="' + t + '"]');
+    if (pickerEl) {
+      const usedElsewhere = [...regularTeams[0].filter(m => m.id), ...regularTeams[1].filter(m => m.id)].map(m => m.id);
+      renderPoolCheckboxPicker(pickerEl, usedElsewhere, (selected) => {
+        const room = sel.teamSize - regularTeams[t].length;
+        const toAdd = selected.slice(0, room);
+        toAdd.forEach(p => regularTeams[t].push({ type: "pool", id: p.id, name: p.name }));
+        if (selected.length > toAdd.length) showToast("Team " + (t + 1) + " only had room for " + room + " more.", "error");
+        renderRegularChips(0); renderRegularChips(1);
+      });
+    }
   }
 
   function currentSideCount() {
@@ -1647,6 +1716,15 @@
     document.getElementById("randomGroupBtn").addEventListener("click", () => setupGroups(true));
   }
 
+  function fairShuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
   function setupGroups(random) {
     const gc = parseInt(document.getElementById("groupCountInput").value, 10);
     const names = currentSideNames();
@@ -1655,7 +1733,7 @@
     groupCount = gc;
     const perGroup = names.length / gc;
     if (random) {
-      const shuffled = [...names].sort(() => Math.random() - 0.5);
+      const shuffled = fairShuffle(names);
       groups = Array.from({ length: gc }, (_, i) => shuffled.slice(i * perGroup, (i + 1) * perGroup));
       renderGroupsPreview(true, perGroup);
     } else {
