@@ -694,6 +694,20 @@
   }
 
   // ---------- Nav ----------
+  let deferredInstallPrompt = null;
+  let isStandaloneMode = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    renderNav();
+  });
+  window.addEventListener("appinstalled", () => {
+    deferredInstallPrompt = null;
+    isStandaloneMode = true;
+    renderNav();
+  });
+
   function renderNav() {
     const items = [
       { key: "home", label: "Home" },
@@ -717,6 +731,28 @@
       btn.addEventListener("click", () => { currentView = it.key; renderNav(); renderView(); });
       mainNav.appendChild(btn);
     });
+
+    if (!isStandaloneMode) {
+      const installBtn = document.createElement("button");
+      installBtn.innerHTML = "&#11015; Install app";
+      installBtn.style.borderColor = "var(--accent)";
+      installBtn.addEventListener("click", async () => {
+        if (deferredInstallPrompt) {
+          deferredInstallPrompt.prompt();
+          await deferredInstallPrompt.userChoice;
+          deferredInstallPrompt = null;
+          renderNav();
+        } else {
+          const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+          if (isIOS) {
+            showToast("On iPhone: tap the Share icon in Safari, then \"Add to Home Screen.\"");
+          } else {
+            showToast("Look for \"Add to Home Screen\" or \"Install\" in your browser's menu.");
+          }
+        }
+      });
+      mainNav.appendChild(installBtn);
+    }
   }
 
   function requireAdmin() {
