@@ -3344,7 +3344,7 @@
 
       <h3>Tag-team duos</h3>
       <div class="stat-grid">
-        <div class="stat-card"><div class="label">Most successful duo</div><div class="value">${c.duoStats.best ? c.duoStats.best.name + " (" + c.duoStats.best.wins + "W-" + c.duoStats.best.losses + "L)" : "-"}</div></div>
+        <div class="stat-card"><div class="label">Most successful duo</div><div class="value">${c.duoStats.best ? c.duoStats.best.name + " (" + c.duoStats.best.wins + "-time champions)" : "-"}</div></div>
       </div>
     `;
     document.getElementById("recordsRefreshBtn").addEventListener("click", () => { tournamentRecordsCache = null; renderTournamentRecords(body, true); });
