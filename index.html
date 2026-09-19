@@ -928,6 +928,36 @@
     });
   }
 
+  async function deleteCompletedTournament(tid, data) {
+    await deleteDoc(doc(db, "tournaments", tid));
+    try { await deleteDoc(doc(db, "resultsTable", tid)); } catch (e) { /* may not exist */ }
+
+    // If this tournament was the current "most recent champion" for its type,
+    // hand that title to whichever remaining completed tournament of that type is next-most-recent.
+    const champKey = data.format + "_" + (data.subMode || "none");
+    const champSnap = await getDoc(doc(db, "champions", champKey));
+    if (champSnap.exists() && champSnap.data().tournamentName === data.name) {
+      const remainingQuery = data.subMode
+        ? query(collection(db, "resultsTable"), where("format", "==", data.format), where("subMode", "==", data.subMode))
+        : query(collection(db, "resultsTable"), where("format", "==", data.format));
+      const remainingSnap = await getDocs(remainingQuery);
+      let latest = null;
+      remainingSnap.forEach(d => {
+        const r = d.data();
+        if (!data.subMode && r.subMode) return; // keep single vs tagteam-without-submode separated correctly
+        if (!latest || (r.completedAt || 0) > (latest.completedAt || 0)) latest = r;
+      });
+      if (latest) {
+        await setDoc(doc(db, "champions", champKey), { tournamentName: latest.tournamentName, winner: latest.winner, runnerUp: latest.runnerUp, updatedAt: Date.now() });
+      } else {
+        try { await deleteDoc(doc(db, "champions", champKey)); } catch (e) { /* may not exist */ }
+      }
+    }
+
+    await recalculateAllStats();
+    tournamentRecordsCache = null;
+  }
+
   async function recalculateAllStats() {
     const statFields = ["singleMatchesPlayed", "singleGoalsFor", "singleGoalsAgainst", "singleWins", "singleDraws", "singleLosses",
       "singleTournamentsPlayed", "singleChampionships", "singleRunnerUps",
@@ -2837,6 +2867,12 @@
           <br><button class="primary" id="renameBtn">Save name</button>
           <p class="status-msg" id="renameStatus"></p>
         </div>
+        <div class="card" style="border:1px solid #e0a0a0;">
+          <h3 class="warn">Delete this tournament</h3>
+          <p style="font-size:12px;color:var(--text-muted);">Permanently removes this tournament and its results, and recalculates every player's stats so nothing it contributed (goals, wins, championships, tag-team results) is left behind. This cannot be undone.</p>
+          <button id="deleteTournamentBtn" style="background:#a33; color:white; border-color:#a33;">Delete tournament</button>
+          <p class="status-msg" id="deleteTournamentStatus"></p>
+        </div>
       `;
     }
     body.innerHTML = html;
@@ -2858,6 +2894,20 @@
           statusEl.textContent = "Renamed.";
           tournamentRecordsCache = null;
           renderTournamentDetail(body, tid);
+        } catch (e) {
+          statusEl.textContent = "Failed: " + e.message;
+        }
+      });
+
+      document.getElementById("deleteTournamentBtn").addEventListener("click", async () => {
+        const statusEl = document.getElementById("deleteTournamentStatus");
+        if (!confirm("Permanently delete \"" + data.name + "\"? All its stats (goals, wins, championships, etc.) will be removed from every player. This cannot be undone.")) return;
+        statusEl.textContent = "Deleting and recalculating stats...";
+        try {
+          await deleteCompletedTournament(tid, data);
+          statusEl.textContent = "Deleted.";
+          viewingTournamentId = null;
+          renderRecordsBody();
         } catch (e) {
           statusEl.textContent = "Failed: " + e.message;
         }
