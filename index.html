@@ -1010,7 +1010,9 @@
   async function recalculateAllStats() {
     const statFields = ["singleMatchesPlayed", "singleGoalsFor", "singleGoalsAgainst", "singleWins", "singleDraws", "singleLosses",
       "singleTournamentsPlayed", "singleChampionships", "singleRunnerUps",
-      "tagTeamTournamentsPlayed", "tagTeamFinalWins", "tagTeamFinalLosses"];
+      "tagRegularTournamentsPlayed", "tagRegularChampionships", "tagRegularRunnerUps",
+      "tagMultiTournamentsPlayed", "tagMultiChampionships", "tagMultiRunnerUps",
+      "tagMultiMatchesPlayed", "tagMultiWins", "tagMultiLosses"];
     const deltas = {}; // playerId -> { field: total }
     function add(playerId, field, amount) {
       if (!playerId) return;
@@ -1024,7 +1026,8 @@
       if (data.status !== "completed") return;
 
       const allMembers = data.format === "single" ? (data.participants || []) : (data.teams || []).flatMap(t => t.members);
-      const participationField = data.format === "single" ? "singleTournamentsPlayed" : "tagTeamTournamentsPlayed";
+      const prefix = tagPrefix(data.subMode);
+      const participationField = data.format === "single" ? "singleTournamentsPlayed" : (prefix + "TournamentsPlayed");
       allMembers.forEach(m => { if (m.type === "pool") add(m.id, participationField, 1); });
 
       // gather every scored match played across this tournament's life (simple final, group stage, knockout stages)
@@ -1049,12 +1052,21 @@
             add(refB.id, "singleWins", m.scoreB > m.scoreA ? 1 : 0); add(refB.id, "singleDraws", m.scoreA === m.scoreB ? 1 : 0); add(refB.id, "singleLosses", m.scoreB < m.scoreA ? 1 : 0);
           }
         });
+      } else if (data.subMode === "multi") {
+        // regular controller has no separate per-match stat (its 1 match IS the tournament result)
+        matchList.forEach(m => {
+          const winnerOfMatch = matchWinnerName(m);
+          if (!winnerOfMatch) return;
+          const sideAWon = winnerOfMatch === m.sideA;
+          sideRef(data, m.sideA).forEach(mem => { if (mem.type === "pool") { add(mem.id, "tagMultiMatchesPlayed", 1); add(mem.id, "tagMultiWins", sideAWon ? 1 : 0); add(mem.id, "tagMultiLosses", sideAWon ? 0 : 1); } });
+          sideRef(data, m.sideB).forEach(mem => { if (mem.type === "pool") { add(mem.id, "tagMultiMatchesPlayed", 1); add(mem.id, "tagMultiWins", sideAWon ? 0 : 1); add(mem.id, "tagMultiLosses", sideAWon ? 1 : 0); } });
+        });
       }
 
       if (data.winner && data.runnerUp) {
         const winMembers = sideRef(data, data.winner), loseMembers = sideRef(data, data.runnerUp);
-        winMembers.forEach(m => { if (m.type !== "pool") return; add(m.id, data.format === "single" ? "singleChampionships" : "tagTeamFinalWins", 1); });
-        loseMembers.forEach(m => { if (m.type !== "pool") return; add(m.id, data.format === "single" ? "singleRunnerUps" : "tagTeamFinalLosses", 1); });
+        winMembers.forEach(m => { if (m.type !== "pool") return; add(m.id, data.format === "single" ? "singleChampionships" : (prefix + "Championships"), 1); });
+        loseMembers.forEach(m => { if (m.type !== "pool") return; add(m.id, data.format === "single" ? "singleRunnerUps" : (prefix + "RunnerUps"), 1); });
       }
     });
 
@@ -1130,7 +1142,9 @@
 
     const statFields = ["singleMatchesPlayed", "singleGoalsFor", "singleGoalsAgainst", "singleWins", "singleDraws", "singleLosses",
       "singleTournamentsPlayed", "singleChampionships", "singleRunnerUps",
-      "tagTeamTournamentsPlayed", "tagTeamFinalWins", "tagTeamFinalLosses"];
+      "tagRegularTournamentsPlayed", "tagRegularChampionships", "tagRegularRunnerUps",
+      "tagMultiTournamentsPlayed", "tagMultiChampionships", "tagMultiRunnerUps",
+      "tagMultiMatchesPlayed", "tagMultiWins", "tagMultiLosses"];
     const resetFields = {};
     statFields.forEach(f => { resetFields[f] = 0; });
     const playersSnap = await getDocs(collection(db, "players"));
@@ -1329,21 +1343,18 @@
           <button class="option-btn" data-v="5">5</button>
         </div>
       </div>
-      <div id="timeStep" style="display:none;">
+      <div id="matchTimeStep" style="display:none;">
         <h3>3. Match time (minutes)</h3>
         <input type="number" id="timeInput" min="1">
-        <h3>Use penalty shootouts for tied knockout/final matches?</h3>
-        <div class="options" id="penaltyOptions">
-          <button class="option-btn selected" data-v="yes">Yes, use penalties</button>
-          <button class="option-btn" data-v="no">No, require a decisive score</button>
-        </div>
+      </div>
+      <div id="pointsSystemStep" style="display:none;">
         <h3>Group stage points system</h3>
         <div class="options" id="pointsSystemOptions">
-          <button class="option-btn selected" data-v="default">Default (2 win / 1 draw / 0 loss)</button>
+          <button class="option-btn selected" data-v="default">Default (3 win / 1 draw / 0 loss)</button>
           <button class="option-btn" data-v="custom">Set custom points</button>
         </div>
         <div id="customPointsRow" style="display:none; margin-top:8px;">
-          <label>Win</label><input type="number" id="pointsWinInput" value="2" style="width:70px;">
+          <label>Win</label><input type="number" id="pointsWinInput" value="3" style="width:70px;">
           <label>Draw</label><input type="number" id="pointsDrawInput" value="1" style="width:70px;">
           <label>Loss</label><input type="number" id="pointsLossInput" value="0" style="width:70px;">
         </div>
@@ -1361,15 +1372,9 @@
       document.getElementById("customPointsRow").style.display = e.target.dataset.v === "custom" ? "block" : "none";
     });
 
-    document.getElementById("penaltyOptions").addEventListener("click", (e) => {
-      if (!e.target.classList.contains("option-btn")) return;
-      sel.usePenalties = e.target.dataset.v === "yes";
-      markSelected("penaltyOptions", e.target);
-    });
-
     document.getElementById("formatOptions").addEventListener("click", (e) => {
       if (!e.target.classList.contains("option-btn")) return;
-      sel = { format: e.target.dataset.v, subMode: null, teamSize: null, time: null, usePenalties: sel.usePenalties };
+      sel = { format: e.target.dataset.v, subMode: null, teamSize: null, time: null, usePenalties: true };
       singleParticipants = []; regularTeams = [[], []]; multiTeamCount = 0; multiTeams = []; multiParticipants = [];
       markSelected("formatOptions", e.target);
       updateWizard();
@@ -1404,9 +1409,19 @@
   function updateWizard() {
     document.getElementById("subModeStep").style.display = sel.format === "tagteam" ? "block" : "none";
     document.getElementById("teamSizeStep").style.display = (sel.format === "tagteam" && sel.subMode === "regular") ? "block" : "none";
-    const showTime = sel.format === "single" || (sel.format === "tagteam" && sel.subMode === "multi") || (sel.format === "tagteam" && sel.subMode === "regular" && sel.teamSize);
-    document.getElementById("timeStep").style.display = showTime ? "block" : "none";
-    if (showTime && sel.time === null) { sel.time = defaultTime(); document.getElementById("timeInput").value = sel.time; }
+
+    const isRegular = sel.format === "tagteam" && sel.subMode === "regular";
+    const showTimeInput = isRegular && sel.teamSize;
+    const showPointsSystem = sel.format === "single" || (sel.format === "tagteam" && sel.subMode === "multi");
+    const needsTimeValue = sel.format === "single" || (sel.format === "tagteam" && sel.subMode === "multi") || showTimeInput;
+
+    document.getElementById("matchTimeStep").style.display = showTimeInput ? "block" : "none";
+    document.getElementById("pointsSystemStep").style.display = showPointsSystem ? "block" : "none";
+
+    if (needsTimeValue && sel.time === null) {
+      sel.time = defaultTime();
+      if (showTimeInput) document.getElementById("timeInput").value = sel.time;
+    }
     renderSelectionStep();
     updateSummary();
   }
@@ -1866,7 +1881,7 @@
     if (!sel.time) { statusEl.textContent = "Set a match time."; return; }
 
     const pointsMode = document.querySelector("#pointsSystemOptions .selected");
-    let pointsSystem = { win: 2, draw: 1, loss: 0 };
+    let pointsSystem = { win: 3, draw: 1, loss: 0 };
     if (pointsMode && pointsMode.dataset.v === "custom") {
       pointsSystem = {
         win: parseInt(document.getElementById("pointsWinInput").value, 10) || 0,
@@ -2067,6 +2082,8 @@
     });
   }
 
+  function tagPrefix(subMode) { return subMode === "regular" ? "tagRegular" : "tagMulti"; }
+
   async function finalizeTournament(tid, data, nameA, nameB, s1, s2, penaltyScores) {
     const wentToPenalties = s1 === s2 && penaltyScores;
     const winnerName = wentToPenalties ? (penaltyScores.p1 > penaltyScores.p2 ? nameA : nameB) : (s1 > s2 ? nameA : nameB);
@@ -2078,18 +2095,27 @@
       const aWon = winnerName === nameA, bWon = winnerName === nameB;
       if (refA && refA.type === "pool") await bump(refA.id, { singleMatchesPlayed: 1, singleGoalsFor: s1, singleGoalsAgainst: s2, singleWins: aWon ? 1 : 0, singleLosses: bWon ? 1 : 0 });
       if (refB && refB.type === "pool") await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: s2, singleGoalsAgainst: s1, singleWins: bWon ? 1 : 0, singleLosses: aWon ? 1 : 0 });
+    } else {
+      // For tag-team multi controller, a direct 2-team tournament's only match is also its final,
+      // so it counts toward per-match stats too (regular controller has no separate per-match stat).
+      if (data.subMode === "multi") {
+        const winnerMembersForMatch = sideRef(data, winnerName), loserMembersForMatch = sideRef(data, runnerUpName);
+        for (const m of winnerMembersForMatch) { if (m.type === "pool") await bump(m.id, { tagMultiMatchesPlayed: 1, tagMultiWins: 1 }); }
+        for (const m of loserMembersForMatch) { if (m.type === "pool") await bump(m.id, { tagMultiMatchesPlayed: 1, tagMultiLosses: 1 }); }
+      }
     }
 
     // tournament-level participation + champion/runner-up (this IS the final since only 2 sides)
     const allMembers = data.format === "single" ? data.participants : data.teams.flatMap(t => t.members);
+    const prefix = tagPrefix(data.subMode);
     for (const m of allMembers) {
       if (m.type !== "pool") continue;
       if (data.format === "single") await bump(m.id, { singleTournamentsPlayed: 1 });
-      else await bump(m.id, { tagTeamTournamentsPlayed: 1 });
+      else await bump(m.id, { [prefix + "TournamentsPlayed"]: 1 });
     }
     const winnerMembers = sideRef(data, winnerName), loserMembers = sideRef(data, runnerUpName);
-    for (const m of winnerMembers) { if (m.type !== "pool") continue; if (data.format === "single") await bump(m.id, { singleChampionships: 1 }); else await bump(m.id, { tagTeamFinalWins: 1 }); }
-    for (const m of loserMembers) { if (m.type !== "pool") continue; if (data.format === "single") await bump(m.id, { singleRunnerUps: 1 }); else await bump(m.id, { tagTeamFinalLosses: 1 }); }
+    for (const m of winnerMembers) { if (m.type !== "pool") continue; if (data.format === "single") await bump(m.id, { singleChampionships: 1 }); else await bump(m.id, { [prefix + "Championships"]: 1 }); }
+    for (const m of loserMembers) { if (m.type !== "pool") continue; if (data.format === "single") await bump(m.id, { singleRunnerUps: 1 }); else await bump(m.id, { [prefix + "RunnerUps"]: 1 }); }
 
     const finalScore = { side1: s1, side2: s2 };
     if (wentToPenalties) { finalScore.penalty1 = penaltyScores.p1; finalScore.penalty2 = penaltyScores.p2; }
@@ -2102,7 +2128,7 @@
   }
 
   function computeStandings(sideNames, matches, pointsSystem) {
-    const pts = pointsSystem || { win: 2, draw: 1, loss: 0 };
+    const pts = pointsSystem || { win: 3, draw: 1, loss: 0 };
     const stats = {};
     sideNames.forEach(n => { stats[n] = { name: n, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0 }; });
     matches.forEach(m => {
@@ -2293,11 +2319,19 @@
     data.matches[idx].scoreA = sA; data.matches[idx].scoreB = sB;
     try {
       await updateDoc(doc(db, "tournaments", tid), { matches: data.matches });
-      if (data.format === "single" && !wasAlreadyScored) {
-        const refA = sideRef(data, data.matches[idx].sideA)[0], refB = sideRef(data, data.matches[idx].sideB)[0];
-        if (refA && refA.type === "pool") await bump(refA.id, { singleMatchesPlayed: 1, singleGoalsFor: sA, singleGoalsAgainst: sB, singleWins: sA > sB ? 1 : 0, singleDraws: sA === sB ? 1 : 0, singleLosses: sA < sB ? 1 : 0 });
-        if (refB && refB.type === "pool") await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: sB, singleGoalsAgainst: sA, singleWins: sB > sA ? 1 : 0, singleDraws: sA === sB ? 1 : 0, singleLosses: sB < sA ? 1 : 0 });
-        await loadPool();
+      if (!wasAlreadyScored) {
+        if (data.format === "single") {
+          const refA = sideRef(data, data.matches[idx].sideA)[0], refB = sideRef(data, data.matches[idx].sideB)[0];
+          if (refA && refA.type === "pool") await bump(refA.id, { singleMatchesPlayed: 1, singleGoalsFor: sA, singleGoalsAgainst: sB, singleWins: sA > sB ? 1 : 0, singleDraws: sA === sB ? 1 : 0, singleLosses: sA < sB ? 1 : 0 });
+          if (refB && refB.type === "pool") await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: sB, singleGoalsAgainst: sA, singleWins: sB > sA ? 1 : 0, singleDraws: sA === sB ? 1 : 0, singleLosses: sB < sA ? 1 : 0 });
+          await loadPool();
+        } else if (data.format === "tagteam") {
+          // group/round-robin stage only ever exists for tag-team multi controller
+          const sideAMembers = sideRef(data, data.matches[idx].sideA), sideBMembers = sideRef(data, data.matches[idx].sideB);
+          for (const m of sideAMembers) { if (m.type === "pool") await bump(m.id, { tagMultiMatchesPlayed: 1, tagMultiWins: sA > sB ? 1 : 0, tagMultiLosses: sA < sB ? 1 : 0 }); }
+          for (const m of sideBMembers) { if (m.type === "pool") await bump(m.id, { tagMultiMatchesPlayed: 1, tagMultiWins: sB > sA ? 1 : 0, tagMultiLosses: sB < sA ? 1 : 0 }); }
+          await loadPool();
+        }
       }
       refreshTournamentCard(tid, container);
     } catch (e) {
@@ -2649,6 +2683,12 @@
         if (refA && refA.type === "pool") await bump(refA.id, { singleMatchesPlayed: 1, singleGoalsFor: sA, singleGoalsAgainst: sB, singleWins: aWon ? 1 : 0, singleLosses: bWon ? 1 : 0 });
         if (refB && refB.type === "pool") await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: sB, singleGoalsAgainst: sA, singleWins: bWon ? 1 : 0, singleLosses: aWon ? 1 : 0 });
         await loadPool();
+      } else if (data.format === "tagteam") {
+        // knockout stages only ever exist for tag-team multi controller
+        const aWon = winner === m.sideA, bWon = winner === m.sideB;
+        for (const mem of sideRef(data, m.sideA)) { if (mem.type === "pool") await bump(mem.id, { tagMultiMatchesPlayed: 1, tagMultiWins: aWon ? 1 : 0, tagMultiLosses: bWon ? 1 : 0 }); }
+        for (const mem of sideRef(data, m.sideB)) { if (mem.type === "pool") await bump(mem.id, { tagMultiMatchesPlayed: 1, tagMultiWins: bWon ? 1 : 0, tagMultiLosses: aWon ? 1 : 0 }); }
+        await loadPool();
       }
       justResolvedKnockoutKey = si + "_" + mi;
 
@@ -2676,14 +2716,15 @@
       if (isFinal) {
         const winnerName = winner, runnerUpName = winner === m.sideA ? m.sideB : m.sideA;
         const allMembers = data.format === "single" ? data.participants : data.teams.flatMap(t => t.members);
+        const prefix = tagPrefix(data.subMode);
         for (const mem of allMembers) {
           if (mem.type !== "pool") continue;
           if (data.format === "single") await bump(mem.id, { singleTournamentsPlayed: 1 });
-          else await bump(mem.id, { tagTeamTournamentsPlayed: 1 });
+          else await bump(mem.id, { [prefix + "TournamentsPlayed"]: 1 });
         }
         const winMembers = sideRef(data, winnerName), loseMembers = sideRef(data, runnerUpName);
-        for (const mem of winMembers) { if (mem.type !== "pool") continue; if (data.format === "single") await bump(mem.id, { singleChampionships: 1 }); else await bump(mem.id, { tagTeamFinalWins: 1 }); }
-        for (const mem of loseMembers) { if (mem.type !== "pool") continue; if (data.format === "single") await bump(mem.id, { singleRunnerUps: 1 }); else await bump(mem.id, { tagTeamFinalLosses: 1 }); }
+        for (const mem of winMembers) { if (mem.type !== "pool") continue; if (data.format === "single") await bump(mem.id, { singleChampionships: 1 }); else await bump(mem.id, { [prefix + "Championships"]: 1 }); }
+        for (const mem of loseMembers) { if (mem.type !== "pool") continue; if (data.format === "single") await bump(mem.id, { singleRunnerUps: 1 }); else await bump(mem.id, { [prefix + "RunnerUps"]: 1 }); }
 
         await updateDoc(doc(db, "tournaments", tid), { status: "completed", winner: winnerName, runnerUp: runnerUpName });
         await setDoc(doc(db, "champions", data.format + "_" + (data.subMode || "none")), { tournamentName: data.name, winner: winnerName, runnerUp: runnerUpName, updatedAt: Date.now() });
@@ -3154,6 +3195,13 @@
     if (!p) { body.innerHTML = "<p>Player not found.</p>"; return; }
     const matches = num(p.singleMatchesPlayed), wins = num(p.singleWins);
     const winPct = matches > 0 ? Math.round((wins / matches) * 100) : 0;
+
+    const multiMatches = num(p.tagMultiMatchesPlayed), multiWins = num(p.tagMultiWins);
+    const multiWinPct = multiMatches > 0 ? Math.round((multiWins / multiMatches) * 100) : 0;
+
+    const regMatches = num(p.tagRegularTournamentsPlayed), regWins = num(p.tagRegularChampionships);
+    const regWinPct = regMatches > 0 ? Math.round((regWins / regMatches) * 100) : 0;
+
     body.innerHTML = `
       <button id="backToPlayers">&larr; Back to players</button>
       <h2>${p.name}</h2>
@@ -3162,9 +3210,14 @@
       <h3>Tournament participation</h3>
       <div class="stat-grid">
         <div class="stat-card"><div class="label">Single player tournaments</div><div class="value">${num(p.singleTournamentsPlayed)}</div></div>
-        <div class="stat-card"><div class="label">Tag-team tournaments</div><div class="value">${num(p.tagTeamTournamentsPlayed)}</div></div>
         <div class="stat-card"><div class="label">Single player championships</div><div class="value">${num(p.singleChampionships)}</div></div>
         <div class="stat-card"><div class="label">Single player runner-ups</div><div class="value">${num(p.singleRunnerUps)}</div></div>
+        <div class="stat-card"><div class="label">Tag-team regular tournaments</div><div class="value">${num(p.tagRegularTournamentsPlayed)}</div></div>
+        <div class="stat-card"><div class="label">Tag-team regular championships</div><div class="value">${num(p.tagRegularChampionships)}</div></div>
+        <div class="stat-card"><div class="label">Tag-team regular runner-ups</div><div class="value">${num(p.tagRegularRunnerUps)}</div></div>
+        <div class="stat-card"><div class="label">Tag-team multi tournaments</div><div class="value">${num(p.tagMultiTournamentsPlayed)}</div></div>
+        <div class="stat-card"><div class="label">Tag-team multi championships</div><div class="value">${num(p.tagMultiChampionships)}</div></div>
+        <div class="stat-card"><div class="label">Tag-team multi runner-ups</div><div class="value">${num(p.tagMultiRunnerUps)}</div></div>
       </div>
       <h3>Single player match stats</h3>
       <div class="stat-grid">
@@ -3175,10 +3228,19 @@
         <div class="stat-card"><div class="label">Goals scored</div><div class="value">${num(p.singleGoalsFor)}</div></div>
         <div class="stat-card"><div class="label">Goals against</div><div class="value">${num(p.singleGoalsAgainst)}</div></div>
       </div>
-      <h3>Tag-team final results</h3>
+      <h3>Tag-team multi controller match stats</h3>
       <div class="stat-grid">
-        <div class="stat-card"><div class="label">Final wins</div><div class="value">${num(p.tagTeamFinalWins)}</div></div>
-        <div class="stat-card"><div class="label">Final losses</div><div class="value">${num(p.tagTeamFinalLosses)}</div></div>
+        <div class="stat-card"><div class="label">Matches played</div><div class="value">${multiMatches}</div></div>
+        <div class="stat-card"><div class="label">Win %</div><div class="value">${multiWinPct}%</div></div>
+        <div class="stat-card"><div class="label">Wins</div><div class="value">${num(p.tagMultiWins)}</div></div>
+        <div class="stat-card"><div class="label">Losses</div><div class="value">${num(p.tagMultiLosses)}</div></div>
+      </div>
+      <h3>Tag-team regular controller matches</h3>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="label">Matches played</div><div class="value">${regMatches}</div></div>
+        <div class="stat-card"><div class="label">Win %</div><div class="value">${regWinPct}%</div></div>
+        <div class="stat-card"><div class="label">Wins</div><div class="value">${num(p.tagRegularChampionships)}</div></div>
+        <div class="stat-card"><div class="label">Losses</div><div class="value">${num(p.tagRegularRunnerUps)}</div></div>
       </div>
     `;
     document.getElementById("backToPlayers").addEventListener("click", () => { viewingPlayerId = null; renderRecordsBody(); });
