@@ -2785,6 +2785,7 @@
       <div class="tab-row" id="rankingsTabs">
         <button data-t="wins">Wins only</button>
         <button data-t="weighted">Wins + Placement</button>
+        <button data-t="duos">Tag-team duos</button>
       </div>
       <div id="rankingsBodyWrap"></div>
     `;
@@ -2801,7 +2802,67 @@
     document.querySelectorAll("#rankingsTabs button").forEach(b => b.classList.toggle("active", b.dataset.t === rankingsTab));
     const wrap = document.getElementById("rankingsBodyWrap");
     if (rankingsTab === "wins") renderWinsOnlyRankings(wrap);
-    else renderWeightedRankings(wrap);
+    else if (rankingsTab === "weighted") renderWeightedRankings(wrap);
+    else renderDuoRankings(wrap);
+  }
+
+  function findTeamByName(data, name) {
+    return data.teams ? data.teams.find(t => t.teamName === name) : null;
+  }
+
+  async function computeDuoRankings() {
+    const tournamentsSnap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "tagteam"), where("subMode", "==", "multi"), where("status", "==", "completed")));
+    const duoStats = {}; // canonical sorted-name key -> { name, wins, losses }
+
+    tournamentsSnap.forEach(d => {
+      const data = d.data();
+      if (!data.teams) return;
+      let matchList = [];
+      if (data.finalScore) matchList.push({ sideA: data.teams[0].teamName, sideB: data.teams[1].teamName, scoreA: data.finalScore.side1, scoreB: data.finalScore.side2 });
+      if (data.matches) matchList = matchList.concat(data.matches.filter(m => m.scoreA !== null));
+      if (data.knockout) data.knockout.stages.forEach(stage => { matchList = matchList.concat(stage.matches.filter(m => m.scoreA !== null)); });
+
+      matchList.forEach(m => {
+        const winnerName = matchWinnerName(m);
+        if (!winnerName) return;
+        const loserName = winnerName === m.sideA ? m.sideB : m.sideA;
+        const winTeam = findTeamByName(data, winnerName), loseTeam = findTeamByName(data, loserName);
+        if (winTeam) {
+          const key = winTeam.members.map(x => x.name).slice().sort().join(" & ");
+          if (!duoStats[key]) duoStats[key] = { name: winTeam.teamName, wins: 0, losses: 0 };
+          duoStats[key].wins++;
+        }
+        if (loseTeam) {
+          const key = loseTeam.members.map(x => x.name).slice().sort().join(" & ");
+          if (!duoStats[key]) duoStats[key] = { name: loseTeam.teamName, wins: 0, losses: 0 };
+          duoStats[key].losses++;
+        }
+      });
+    });
+
+    return Object.values(duoStats)
+      .map(d => ({ ...d, matches: d.wins + d.losses, winPct: (d.wins + d.losses) > 0 ? Math.round((d.wins / (d.wins + d.losses)) * 100) : 0 }))
+      .sort((a, b) => b.wins - a.wins || b.winPct - a.winPct || b.matches - a.matches);
+  }
+
+  async function renderDuoRankings(wrap) {
+    wrap.innerHTML = "<p class='status-msg'>Calculating...</p>";
+    const duos = await computeDuoRankings();
+    wrap.innerHTML = `
+      <p style="font-size:12px;color:var(--text-muted);">Every duo's record across tag-team multiple controller matches only (group stage and knockout combined) — ranked by wins.</p>
+      <table>
+        <thead><tr><th>#</th><th>Duo</th><th>P</th><th>W</th><th>L</th><th>Win %</th></tr></thead>
+        <tbody id="duoRankingsBody"></tbody>
+      </table>
+    `;
+    const body = document.getElementById("duoRankingsBody");
+    if (duos.length === 0) {
+      body.innerHTML = "<tr><td colspan=6 style='text-align:center; padding:24px; color:var(--text-muted);'>&#127942; No tag-team multi controller matches recorded yet.</td></tr>";
+      return;
+    }
+    body.innerHTML = duos.map((d, i) =>
+      "<tr><td>" + (i + 1) + "</td><td>" + d.name + "</td><td>" + d.matches + "</td><td>" + d.wins + "</td><td>" + d.losses + "</td><td>" + d.winPct + "%</td></tr>"
+    ).join("");
   }
 
   function renderWinsOnlyRankings(wrap) {
