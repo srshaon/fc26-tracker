@@ -551,6 +551,28 @@
 
   function usernameToEmail(u) { return u.trim().toLowerCase() + "@fc26tracker.app"; }
 
+  // Google Drive "share" links point to a viewer page, not raw image bytes, so an
+  // <img> tag can't load them directly (that's the broken-image icon). This converts
+  // common Drive share-link formats into Drive's direct-thumbnail endpoint, which does
+  // serve the actual image. Requires the file to be shared as "Anyone with the link."
+  function convertImageUrl(url) {
+    if (!url) return url;
+    const trimmed = url.trim();
+    if (!trimmed.includes("drive.google.com")) return trimmed;
+    try {
+      let fileId = null;
+      const pathMatch = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (pathMatch) {
+        fileId = pathMatch[1];
+      } else {
+        const u = new URL(trimmed);
+        if (u.searchParams.get("id")) fileId = u.searchParams.get("id");
+      }
+      if (fileId) return "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w1000";
+    } catch (e) { /* not a parseable URL — leave it untouched */ }
+    return trimmed;
+  }
+
   function showToast(message, type) {
     const stack = document.getElementById("toastStack");
     if (!stack) { console.log(message); return; }
@@ -1183,6 +1205,7 @@
         <input type="text" id="newPlayerName">
         <label>Image URL (optional)</label>
         <input type="url" id="newPlayerImage">
+        <p style="font-size:11px; color:var(--text-muted); margin:4px 0 0;">Google Drive share links work too — just make sure the file is shared as "Anyone with the link."</p>
         <br><button class="primary" id="addPlayerBtn">Add player</button>
         <p class="status-msg" id="playerStatus"></p>
       </div>` : `<p class="status-msg">Log in as an admin to add or edit players.</p>`}
@@ -1192,7 +1215,7 @@
       document.getElementById("addPlayerBtn").addEventListener("click", async () => {
         const statusEl = document.getElementById("playerStatus");
         const name = document.getElementById("newPlayerName").value.trim();
-        const img = document.getElementById("newPlayerImage").value.trim();
+        const img = convertImageUrl(document.getElementById("newPlayerImage").value.trim());
         if (!name) { statusEl.textContent = "Name is required."; return; }
         try {
           await addDoc(collection(db, "players"), { name: name.toUpperCase(), imageUrl: img || null, createdAt: Date.now() });
@@ -1218,7 +1241,7 @@
   }
 
   function renderPlayerRow(row, p) {
-    const imgHtml = p.imageUrl ? "<img src='" + p.imageUrl + "' style='width:28px;height:28px;border-radius:50%;object-fit:cover;'>" : "";
+    const imgHtml = p.imageUrl ? "<img src='" + convertImageUrl(p.imageUrl) + "' style='width:28px;height:28px;border-radius:50%;object-fit:cover;'>" : "";
     row.innerHTML = "<td>" + imgHtml + "</td><td>" + p.name + "</td><td></td>";
     const actionsCell = row.children[2];
 
@@ -1263,7 +1286,8 @@
     saveBtn.addEventListener("click", async () => {
       const newName = nameInput.value.trim();
       if (!newName) { showToast("Name is required.", "error"); return; }
-      await updateDoc(doc(db, "players", p.id), { name: newName.toUpperCase(), imageUrl: imgInput.value.trim() || null });
+      const convertedImg = convertImageUrl(imgInput.value.trim());
+      await updateDoc(doc(db, "players", p.id), { name: newName.toUpperCase(), imageUrl: convertedImg || null });
       await loadPool();
       refreshPlayerTable();
     });
