@@ -1609,7 +1609,6 @@
     const usedIdx = new Set(multiTeams.flat().map(m => m._idx));
     document.querySelectorAll(".manualTeamSel").forEach(sel => {
       const t = parseInt(sel.dataset.t, 10);
-      const currentVal = sel.value;
       sel.innerHTML = '<option value="">-- add player --</option>' + multiParticipants.map((p, idx) => usedIdx.has(idx) ? "" : "<option value='" + idx + "'>" + p.name + (p.type === "guest" ? " (guest)" : "") + "</option>").join("");
       sel.value = "";
     });
@@ -1791,7 +1790,7 @@
   }
   function currentSideNames() {
     if (sel.format === "single") return singleParticipants.map(p => p.name);
-    return multiTeams.filter(t => t.length === 2).map(t => t.map(m => m.name).join(" & "));
+    return multiTeams.filter(t => t.length === 2).map(t => t.map(m => m.join ? t.map(m => m.name).join(" & ") : t.map(m => m.name).join(" & ")));
   }
 
   function maybeShowBracketConfig() {
@@ -2267,7 +2266,16 @@
     const qfOption = totalSideCount(data) >= 8 ? "<button class='option-btn' data-v='3'>Option 3: Quarterfinals, then semis, then final</button>" : "";
     const directCount = seedQualifiers(data, 1).direct.length;
     const eliminatorOption = directCount === 4 ? "<button class='option-btn' data-v='eliminator'>Elemmenator System (IPL-style)</button>" : "";
-    setup.innerHTML = (isChange ? "" : "<h3>Set up knockout stage</h3>") + "<div class='options'><button class='option-btn' data-v='1'>Option 1: top teams straight to semis</button><button class='option-btn' data-v='2'>Option 2: with pre-semifinal knockouts</button>" + qfOption + eliminatorOption + "</div><div id='eliminatorExplain'></div><p class='status-msg'></p>";
+    const top2FinalOption = "<button class='option-btn' data-v='final_only'>Top 2 straight to Final</button>";
+
+    setup.innerHTML = (isChange ? "" : "<h3>Set up knockout stage</h3>") + 
+      "<div class='options'>" +
+        "<button class='option-btn' data-v='1'>Option 1: top teams straight to semis</button>" +
+        "<button class='option-btn' data-v='2'>Option 2: with pre-semifinal knockouts</button>" +
+        qfOption + 
+        eliminatorOption + 
+        top2FinalOption +
+      "</div><div id='eliminatorExplain'></div><p class='status-msg'></p>";
     appendTo.appendChild(setup);
     setup.querySelector(".options").addEventListener("click", async (e) => {
       if (!e.target.classList.contains("option-btn")) return;
@@ -2302,7 +2310,9 @@
       if (isChange && data.knockout) {
         await updateDoc(doc(db, "tournaments", tid), { previousKnockout: data.knockout });
       }
-      await generateKnockout(tid, data, parseInt(e.target.dataset.v, 10));
+
+      const selectedOption = e.target.dataset.v === "final_only" ? "final_only" : parseInt(e.target.dataset.v, 10);
+      await generateKnockout(tid, data, selectedOption);
       refreshTournamentCard(tid, outerContainer || appendTo);
     });
   }
@@ -2415,6 +2425,38 @@
 
   async function generateKnockout(tid, data, option) {
     const stages = [];
+
+    // --- Option: Top 2 straight to Final ---
+    if (option === "final_only") {
+      let top2 = [];
+      if (data.groups) {
+        data.groups.forEach((g, gi) => {
+          const standings = computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi), data.pointsSystem);
+          if (standings.length > 0) top2.push(standings[0].name);
+        });
+        if (top2.length !== 2) {
+          const allNames = [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
+          top2 = computeStandings(allNames, data.matches, data.pointsSystem).slice(0, 2).map(r => r.name);
+        }
+      } else {
+        const allNames = [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
+        top2 = computeStandings(allNames, data.matches, data.pointsSystem).slice(0, 2).map(r => r.name);
+      }
+
+      if (top2.length < 2) {
+        showToast("Need at least 2 participants/teams in the standings to form a final.", "error");
+        return;
+      }
+
+      stages.push({
+        name: "Final",
+        matches: [{ id: "f0", sideA: top2[0], sideB: top2[1], scoreA: null, scoreB: null }]
+      });
+
+      await updateDoc(doc(db, "tournaments", tid), { knockout: { option: "final_only", stages } });
+      return;
+    }
+
     if (option === 3) {
       let qfMatches = [];
 
