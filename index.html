@@ -627,7 +627,7 @@
     Object.keys(fields).forEach(k => { if (fields[k]) updates[k] = increment(fields[k]); });
     if (Object.keys(updates).length === 0) return;
     try {
-      await updateDoc(doc(db, "players", playerId), updates);
+      await setDoc(doc(db, "players", playerId), updates, { merge: true });
     } catch (err) {
       console.warn("Could not update player stats for", playerId, err);
     }
@@ -651,7 +651,7 @@
     container.appendChild(banner);
   }
 // comment ==> 12. Utility Helpers & Drive Image Converter ends here
-
+ 
 // comment ==> 13. Player Avatar & Badge Component starts from here
   function getPlayerImageByName(name) {
     if (!name) return null;
@@ -2291,7 +2291,7 @@
     }
   }
 
-  async function saveGroupMatch(tid, data, idx, container, btn) {
+ async function saveGroupMatch(tid, data, idx, container, btn) {
     const inputA = container.querySelector('input[data-idx="' + idx + '"][data-side="A"]');
     const inputB = container.querySelector('input[data-idx="' + idx + '"][data-side="B"]');
     const sA = parseInt(inputA.value, 10), sB = parseInt(inputB.value, 10);
@@ -2299,31 +2299,42 @@
     const wasAlreadyScored = data.matches[idx].scoreA !== null;
     const prevA = data.matches[idx].scoreA, prevB = data.matches[idx].scoreB;
     data.matches[idx].scoreA = sA; data.matches[idx].scoreB = sB;
+
     try {
       await updateDoc(doc(db, "tournaments", tid), { matches: data.matches });
-      if (!wasAlreadyScored) {
+    } catch (saveErr) {
+      data.matches[idx].scoreA = prevA; data.matches[idx].scoreB = prevB;
+      if (btn) btn.disabled = false;
+      showToast("Couldn't save: " + (saveErr.message || "connection issue"), "error");
+      return;
+    }
+
+    if (!wasAlreadyScored) {
+      try {
         if (data.format === "single") {
           const refA = sideRef(data, data.matches[idx].sideA)[0], refB = sideRef(data, data.matches[idx].sideB)[0];
-          if (refA && refA.type === "pool") await bump(refA.id, { singleMatchesPlayed: 1, singleGoalsFor: sA, singleGoalsAgainst: sB, singleWins: sA > sB ? 1 : 0, singleDraws: sA === sB ? 1 : 0, singleLosses: sA < sB ? 1 : 0 });
-          if (refB && refB.type === "pool") await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: sB, singleGoalsAgainst: sA, singleWins: sB > sA ? 1 : 0, singleDraws: sA === sB ? 1 : 0, singleLosses: sB < sA ? 1 : 0 });
-          try { await loadPool(); } catch (e) {}
+          if (refA && refA.type === "pool" && refA.id) await bump(refA.id, { singleMatchesPlayed: 1, singleGoalsFor: sA, singleGoalsAgainst: sB, singleWins: sA > sB ? 1 : 0, singleDraws: sA === sB ? 1 : 0, singleLosses: sA < sB ? 1 : 0 });
+          if (refB && refB.type === "pool" && refB.id) await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: sB, singleGoalsAgainst: sA, singleWins: sB > sA ? 1 : 0, singleDraws: sA === sB ? 1 : 0, singleLosses: sB < sA ? 1 : 0 });
         } else if (data.format === "tagteam") {
           const sideAMembers = sideRef(data, data.matches[idx].sideA), sideBMembers = sideRef(data, data.matches[idx].sideB);
-          for (const m of sideAMembers) { if (m.type === "pool") await bump(m.id, { tagMultiMatchesPlayed: 1, tagMultiWins: sA > sB ? 1 : 0, tagMultiLosses: sA < sB ? 1 : 0 }); }
-          for (const m of sideBMembers) { if (m.type === "pool") await bump(m.id, { tagMultiMatchesPlayed: 1, tagMultiWins: sB > sA ? 1 : 0, tagMultiLosses: sB < sA ? 1 : 0 }); }
-          try { await loadPool(); } catch (e) {}
+          for (const m of sideAMembers) { if (m.type === "pool" && m.id) await bump(m.id, { tagMultiMatchesPlayed: 1, tagMultiWins: sA > sB ? 1 : 0, tagMultiLosses: sA < sB ? 1 : 0 }); }
+          for (const m of sideBMembers) { if (m.type === "pool" && m.id) await bump(m.id, { tagMultiMatchesPlayed: 1, tagMultiWins: sB > sA ? 1 : 0, tagMultiLosses: sB < sA ? 1 : 0 }); }
         }
+        await loadPool();
+      } catch (statsErr) {
+        console.warn("Stats background update skipped:", statsErr);
       }
-      showToast("Match saved!");
-      await refreshTournamentCard(tid, container);
-    } catch (e) {
-      console.error("Save match error:", e);
-      data.matches[idx].scoreA = prevA; data.matches[idx].scoreB = prevB;
-      if (btn) { btn.disabled = false; }
-      showToast("Couldn't save: " + (e.message || "connection issue"), "error");
     }
-  }
-  async function refreshTournamentCard(tid, container) {
+
+    showToast("Match saved!");
+    try {
+      await refreshTournamentCard(tid, container);
+    } catch (refErr) {
+      console.warn("Card auto-refresh error:", refErr);
+    }
+  } 
+ 
+ async function refreshTournamentCard(tid, container) {
     const snap = await getDoc(doc(db, "tournaments", tid));
     const fresh = snap.data();
     if (fresh.status === "completed") {
@@ -2756,21 +2767,27 @@
     try {
       if (wasAlreadyScored) {
         await updateDoc(doc(db, "tournaments", tid), { knockout: data.knockout });
-        refreshTournamentCard(tid, container);
+        showToast("Score updated!");
+        await refreshTournamentCard(tid, container);
         return;
       }
 
-      if (data.format === "single") {
-        const refA = sideRef(data, m.sideA)[0], refB = sideRef(data, m.sideB)[0];
-        const aWon = winner === m.sideA, bWon = winner === m.sideB;
-        if (refA && refA.type === "pool") await bump(refA.id, { singleMatchesPlayed: 1, singleGoalsFor: sA, singleGoalsAgainst: sB, singleWins: aWon ? 1 : 0, singleLosses: bWon ? 1 : 0 });
-        if (refB && refB.type === "pool") await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: sB, singleGoalsAgainst: sA, singleWins: bWon ? 1 : 0, singleLosses: aWon ? 1 : 0 });
-        await loadPool();
-      } else if (data.format === "tagteam") {
-        const aWon = winner === m.sideA, bWon = winner === m.sideB;
-        for (const mem of sideRef(data, m.sideA)) { if (mem.type === "pool") await bump(mem.id, { tagMultiMatchesPlayed: 1, tagMultiWins: aWon ? 1 : 0, tagMultiLosses: bWon ? 1 : 0 }); }
-        for (const mem of sideRef(data, m.sideB)) { if (mem.type === "pool") await bump(mem.id, { tagMultiMatchesPlayed: 1, tagMultiWins: bWon ? 1 : 0, tagMultiLosses: aWon ? 1 : 0 }); }
-        await loadPool();
+      if (!wasAlreadyScored) {
+        try {
+          if (data.format === "single") {
+            const refA = sideRef(data, m.sideA)[0], refB = sideRef(data, m.sideB)[0];
+            const aWon = winner === m.sideA, bWon = winner === m.sideB;
+            if (refA && refA.type === "pool" && refA.id) await bump(refA.id, { singleMatchesPlayed: 1, singleGoalsFor: sA, singleGoalsAgainst: sB, singleWins: aWon ? 1 : 0, singleLosses: bWon ? 1 : 0 });
+            if (refB && refB.type === "pool" && refB.id) await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: sB, singleGoalsAgainst: sA, singleWins: bWon ? 1 : 0, singleLosses: aWon ? 1 : 0 });
+          } else if (data.format === "tagteam") {
+            const aWon = winner === m.sideA, bWon = winner === m.sideB;
+            for (const mem of sideRef(data, m.sideA)) { if (mem.type === "pool" && mem.id) await bump(mem.id, { tagMultiMatchesPlayed: 1, tagMultiWins: aWon ? 1 : 0, tagMultiLosses: bWon ? 1 : 0 }); }
+            for (const mem of sideRef(data, m.sideB)) { if (mem.type === "pool" && mem.id) await bump(mem.id, { tagMultiMatchesPlayed: 1, tagMultiWins: bWon ? 1 : 0, tagMultiLosses: aWon ? 1 : 0 }); }
+          }
+          await loadPool();
+        } catch (statsErr) {
+          console.warn("Knockout stats update skipped:", statsErr);
+        }
       }
       justResolvedKnockoutKey = si + "_" + mi;
 
@@ -2795,35 +2812,40 @@
         const winnerName = winner, runnerUpName = winner === m.sideA ? m.sideB : m.sideA;
         const allMembers = data.format === "single" ? data.participants : data.teams.flatMap(t => t.members);
         const prefix = tagPrefix(data.subMode);
-        for (const mem of allMembers) {
-          if (mem.type !== "pool") continue;
-          if (data.format === "single") await bump(mem.id, { singleTournamentsPlayed: 1 });
-          else await bump(mem.id, { [prefix + "TournamentsPlayed"]: 1 });
+        try {
+          for (const mem of allMembers) {
+            if (mem.type !== "pool" || !mem.id) continue;
+            if (data.format === "single") await bump(mem.id, { singleTournamentsPlayed: 1 });
+            else await bump(mem.id, { [prefix + "TournamentsPlayed"]: 1 });
+          }
+          const winMembers = sideRef(data, winnerName), loseMembers = sideRef(data, runnerUpName);
+          for (const mem of winMembers) { if (mem.type !== "pool" || !mem.id) continue; if (data.format === "single") await bump(mem.id, { singleChampionships: 1 }); else await bump(mem.id, { [prefix + "Championships"]: 1 }); }
+          for (const mem of loseMembers) { if (mem.type !== "pool" || !mem.id) continue; if (data.format === "single") await bump(mem.id, { singleRunnerUps: 1 }); else await bump(mem.id, { [prefix + "RunnerUps"]: 1 }); }
+        } catch (fStatsErr) {
+          console.warn("Final stats bump skipped:", fStatsErr);
         }
-        const winMembers = sideRef(data, winnerName), loseMembers = sideRef(data, runnerUpName);
-        for (const mem of winMembers) { if (mem.type !== "pool") continue; if (data.format === "single") await bump(mem.id, { singleChampionships: 1 }); else await bump(mem.id, { [prefix + "Championships"]: 1 }); }
-        for (const mem of loseMembers) { if (mem.type !== "pool") continue; if (data.format === "single") await bump(mem.id, { singleRunnerUps: 1 }); else await bump(mem.id, { [prefix + "RunnerUps"]: 1 }); }
 
         await updateDoc(doc(db, "tournaments", tid), { status: "completed", winner: winnerName, runnerUp: runnerUpName });
         await setDoc(doc(db, "champions", data.format + "_" + (data.subMode || "none")), { tournamentName: data.name, winner: winnerName, runnerUp: runnerUpName, updatedAt: Date.now() });
         await setDoc(doc(db, "resultsTable", tid), { format: data.format, subMode: data.subMode || null, tournamentName: data.name, winner: winnerName, runnerUp: runnerUpName, completedAt: Date.now() });
-        await loadPool();
+        try { await loadPool(); } catch (e) {}
         tournamentRecordsCache = null;
         showWinnerBanner(container, winnerName);
         setTimeout(() => refreshTournamentCard(tid, container), 2200);
         return;
       }
 
-      refreshTournamentCard(tid, container);
+      showToast("Score saved!");
+      await refreshTournamentCard(tid, container);
     } catch (e) {
       m.scoreA = prevState.scoreA; m.scoreB = prevState.scoreB;
       m.penaltyA = prevState.penaltyA; m.penaltyB = prevState.penaltyB;
       btn.disabled = false;
-      showToast("Couldn't save (connection issue?). Your entered score is still in the box — just click Save/Update again to retry.", "error");
+      showToast("Couldn't save: " + (e.message || "connection error"), "error");
     }
   }
 // comment ==> 32. Knockout Match Score Saver ends here
-
+ 
 // comment ==> 33. Records Tabs & Routing starts from here
   let recordsTab = "players";
   let viewingPlayerId = null;
