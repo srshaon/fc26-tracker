@@ -609,6 +609,47 @@
       setTimeout(() => toast.remove(), 250);
     }, 3200);
   }
+
+  async function nextGuestLabel() {
+    const counterRef = doc(db, "counters", "guestPlayers");
+    const next = await runTransaction(db, async (tx) => {
+      const s = await tx.get(counterRef);
+      const cur = s.exists() ? s.data().count : 0;
+      tx.set(counterRef, { count: cur + 1 });
+      return cur + 1;
+    });
+    return "GUEST PLAYER " + String(next).padStart(2, "0");
+  }
+
+  async function bump(playerId, fields) {
+    if (!playerId) return;
+    const updates = {};
+    Object.keys(fields).forEach(k => { if (fields[k]) updates[k] = increment(fields[k]); });
+    if (Object.keys(updates).length === 0) return;
+    try {
+      await updateDoc(doc(db, "players", playerId), updates);
+    } catch (err) {
+      console.warn("Could not update player stats for", playerId, err);
+    }
+  }
+
+  function showWinnerBanner(container, winnerName) {
+    const banner = document.createElement("div");
+    banner.className = "win-banner";
+    const colors = ["#fff", "#ffe066", "#ff6b6b", "#4dd0e1", "#a3ff7a"];
+    let confetti = "";
+    for (let i = 0; i < 18; i++) {
+      const left = Math.random() * 100;
+      const delay = (Math.random() * 0.4).toFixed(2);
+      const color = colors[i % colors.length];
+      confetti += `<span class="confetti-piece" style="left:${left}%; background:${color}; animation-delay:${delay}s;"></span>`;
+    }
+    banner.innerHTML = confetti +
+      "<div class='trophy'>\u{1F3C6}</div>" +
+      "<div class='winSub'>Champion</div>" +
+      "<div class='winName'>" + winnerName + "</div>";
+    container.appendChild(banner);
+  }
 // comment ==> 12. Utility Helpers & Drive Image Converter ends here
 
 // comment ==> 13. Player Avatar & Badge Component starts from here
@@ -2265,22 +2306,23 @@
           const refA = sideRef(data, data.matches[idx].sideA)[0], refB = sideRef(data, data.matches[idx].sideB)[0];
           if (refA && refA.type === "pool") await bump(refA.id, { singleMatchesPlayed: 1, singleGoalsFor: sA, singleGoalsAgainst: sB, singleWins: sA > sB ? 1 : 0, singleDraws: sA === sB ? 1 : 0, singleLosses: sA < sB ? 1 : 0 });
           if (refB && refB.type === "pool") await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: sB, singleGoalsAgainst: sA, singleWins: sB > sA ? 1 : 0, singleDraws: sA === sB ? 1 : 0, singleLosses: sB < sA ? 1 : 0 });
-          await loadPool();
+          try { await loadPool(); } catch (e) {}
         } else if (data.format === "tagteam") {
           const sideAMembers = sideRef(data, data.matches[idx].sideA), sideBMembers = sideRef(data, data.matches[idx].sideB);
           for (const m of sideAMembers) { if (m.type === "pool") await bump(m.id, { tagMultiMatchesPlayed: 1, tagMultiWins: sA > sB ? 1 : 0, tagMultiLosses: sA < sB ? 1 : 0 }); }
           for (const m of sideBMembers) { if (m.type === "pool") await bump(m.id, { tagMultiMatchesPlayed: 1, tagMultiWins: sB > sA ? 1 : 0, tagMultiLosses: sB < sA ? 1 : 0 }); }
-          await loadPool();
+          try { await loadPool(); } catch (e) {}
         }
       }
-      refreshTournamentCard(tid, container);
+      showToast("Match saved!");
+      await refreshTournamentCard(tid, container);
     } catch (e) {
+      console.error("Save match error:", e);
       data.matches[idx].scoreA = prevA; data.matches[idx].scoreB = prevB;
       if (btn) { btn.disabled = false; }
-      showToast("Couldn't save (connection issue?). Your entered score is still in the box — just click Save/Update again to retry.", "error");
+      showToast("Couldn't save: " + (e.message || "connection issue"), "error");
     }
   }
-
   async function refreshTournamentCard(tid, container) {
     const snap = await getDoc(doc(db, "tournaments", tid));
     const fresh = snap.data();
