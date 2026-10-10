@@ -117,7 +117,7 @@
   th, td { text-align: left; padding: 6px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
   th { color: var(--text-secondary); font-weight: normal; }
   .match-row { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 8px 0; }
-  .match-row .name { font-size: 13px; font-weight: bold; width: 130px; text-align: center; font-family: var(--font-heading); color: var(--text-primary); }
+  .match-row .name { font-size: 13px; font-weight: bold; width: 140px; text-align: center; font-family: var(--font-heading); color: var(--text-primary); display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .match-row input { width: 46px; text-align: center; }
   .status-msg { font-size: 13px; color: var(--text-secondary); margin-top: 8px; }
   .warn { color: var(--danger-text); }
@@ -135,6 +135,64 @@
   .stat-card .value { font-size: 15px; font-weight: bold; color: var(--text-primary); }
   #winnerBanner { display: none; margin-top: 12px; padding: 12px; background: var(--success-bg); border-radius: 8px; font-weight: bold; color: var(--success-text); text-align: center; }
   .player-name-link { color: var(--accent); text-decoration: underline; cursor: pointer; background: none; border: none; font-size: 14px; padding: 0; font-family: var(--font-body); }
+
+  /* Circular Avatar Badge Over Player Name */
+  .player-badge-col {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    text-align: center;
+    vertical-align: middle;
+  }
+  .player-avatars-cluster {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  .player-avatar-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--accent);
+    background: var(--bg-surface-alt);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    display: block;
+    flex-shrink: 0;
+  }
+  .player-avatar-placeholder {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--bg-surface-alt);
+    border: 2px solid var(--border-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--text-secondary);
+    font-family: var(--font-heading);
+    flex-shrink: 0;
+  }
+  /* Proportional avatars inside bracket boxes and tables */
+  .bracket-match .player-avatar-circle,
+  .bracket-match .player-avatar-placeholder {
+    width: 26px;
+    height: 26px;
+    font-size: 11px;
+    border-width: 1.5px;
+  }
+  table td .player-avatar-circle,
+  table td .player-avatar-placeholder {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+    border-width: 1.5px;
+  }
 
   .win-banner {
     position: relative;
@@ -202,7 +260,7 @@
     flex-direction: column;
     justify-content: space-around;
     gap: 14px;
-    min-width: 150px;
+    min-width: 155px;
     flex-shrink: 0;
   }
   .bracket-col h4 {
@@ -226,7 +284,7 @@
     justify-content: space-between;
     align-items: center;
     gap: 6px;
-    padding: 2px 0;
+    padding: 3px 0;
   }
   .bracket-match .side.winner-side {
     font-weight: bold;
@@ -236,7 +294,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 90px;
+    max-width: 95px;
   }
   .bracket-match input[type=number] {
     width: 40px;
@@ -419,8 +477,6 @@
   .empty-state .icon { font-size: 30px; margin-bottom: 8px; opacity: 0.6; }
   .empty-state .msg { font-size: 13px; }
 
-  /* 3. Eliminated side fades */
-
   /* 4. Scoreboard flip reveal on a freshly-saved match */
   .bracket-match.flip-reveal { animation: flipReveal 0.5s ease; transform-origin: center; }
   @keyframes flipReveal {
@@ -494,7 +550,7 @@
     .champ-grid { grid-template-columns: 1fr; }
     .stat-grid { grid-template-columns: 1fr; }
     .match-row { flex-wrap: wrap; gap: 6px; }
-    .match-row .name { width: auto; flex-basis: 40%; }
+    .match-row .name { width: auto; flex-basis: 45%; }
     table { font-size: 12px; }
     th, td { padding: 5px 4px; }
     select, input[type=text], input[type=password], input[type=url], input[type=number] { width: 100%; }
@@ -551,10 +607,7 @@
 
   function usernameToEmail(u) { return u.trim().toLowerCase() + "@fc26tracker.app"; }
 
-  // Google Drive "share" links point to a viewer page, not raw image bytes, so an
-  // <img> tag can't load them directly (that's the broken-image icon). This converts
-  // common Drive share-link formats into Drive's direct-thumbnail endpoint, which does
-  // serve the actual image. Requires the file to be shared as "Anyone with the link."
+  // Google Drive "share" link thumbnail converter
   function convertImageUrl(url) {
     if (!url) return url;
     const trimmed = url.trim();
@@ -569,8 +622,45 @@
         if (u.searchParams.get("id")) fileId = u.searchParams.get("id");
       }
       if (fileId) return "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w1000";
-    } catch (e) { /* not a parseable URL — leave it untouched */ }
+    } catch (e) { /* not a parseable URL */ }
     return trimmed;
+  }
+
+  function getPlayerImageByName(name) {
+    if (!name) return null;
+    const clean = name.trim().toUpperCase();
+    const p = poolPlayers.find(x => (x.name || "").trim().toUpperCase() === clean);
+    return p && p.imageUrl ? convertImageUrl(p.imageUrl) : null;
+  }
+
+  function getSideVisuals(name) {
+    if (!name || name === "TBD" || name.toString().startsWith("TBD")) {
+      return [{ name: name || "TBD", img: null }];
+    }
+    const parts = name.toString().split(" & ").map(s => s.trim());
+    return parts.map(pName => ({
+      name: pName,
+      img: getPlayerImageByName(pName)
+    }));
+  }
+
+  // Renders circular headshots stacked cleanly OVER the player's name
+  function renderPlayerBadge(name, isClickable = false) {
+    if (!name) return "";
+    if (name === "TBD" || name.toString().startsWith("TBD")) {
+      return `<span>${name}</span>`;
+    }
+    const visuals = getSideVisuals(name);
+    const clickAttr = isClickable ? `class="side-name clickable" data-player-name="${name}"` : `class="side-name"`;
+
+    const avatarsHtml = `<div class="player-avatars-cluster">` + visuals.map(v => {
+      if (v.img) {
+        return `<img src="${v.img}" class="player-avatar-circle" alt="${v.name}" onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'player-avatar-placeholder',innerText:'${(v.name||'?').slice(0,1).toUpperCase()}'}));">`;
+      }
+      return `<div class="player-avatar-placeholder">${(v.name || "?").slice(0, 1).toUpperCase()}</div>`;
+    }).join("") + `</div>`;
+
+    return `<div class="player-badge-col">${avatarsHtml}<span ${clickAttr}>${name}</span></div>`;
   }
 
   function showToast(message, type) {
@@ -1003,8 +1093,6 @@
     await deleteDoc(doc(db, "tournaments", tid));
     try { await deleteDoc(doc(db, "resultsTable", tid)); } catch (e) { /* may not exist */ }
 
-    // If this tournament was the current "most recent champion" for its type,
-    // hand that title to whichever remaining completed tournament of that type is next-most-recent.
     const champKey = data.format + "_" + (data.subMode || "none");
     const champSnap = await getDoc(doc(db, "champions", champKey));
     if (champSnap.exists() && champSnap.data().tournamentName === data.name) {
@@ -1015,7 +1103,7 @@
       let latest = null;
       remainingSnap.forEach(d => {
         const r = d.data();
-        if (!data.subMode && r.subMode) return; // keep single vs tagteam-without-submode separated correctly
+        if (!data.subMode && r.subMode) return;
         if (!latest || (r.completedAt || 0) > (latest.completedAt || 0)) latest = r;
       });
       if (latest) {
@@ -1035,7 +1123,7 @@
       "tagRegularTournamentsPlayed", "tagRegularChampionships", "tagRegularRunnerUps",
       "tagMultiTournamentsPlayed", "tagMultiChampionships", "tagMultiRunnerUps",
       "tagMultiMatchesPlayed", "tagMultiWins", "tagMultiLosses"];
-    const deltas = {}; // playerId -> { field: total }
+    const deltas = {};
     function add(playerId, field, amount) {
       if (!playerId) return;
       if (!deltas[playerId]) deltas[playerId] = {};
@@ -1052,7 +1140,6 @@
       const participationField = data.format === "single" ? "singleTournamentsPlayed" : (prefix + "TournamentsPlayed");
       allMembers.forEach(m => { if (m.type === "pool") add(m.id, participationField, 1); });
 
-      // gather every scored match played across this tournament's life (simple final, group stage, knockout stages)
       let matchList = [];
       if (data.finalScore) {
         const nameA = data.teams ? data.teams[0].teamName : data.participants[0].name;
@@ -1075,7 +1162,6 @@
           }
         });
       } else if (data.subMode === "multi") {
-        // regular controller has no separate per-match stat (its 1 match IS the tournament result)
         matchList.forEach(m => {
           const winnerOfMatch = matchWinnerName(m);
           if (!winnerOfMatch) return;
@@ -1319,9 +1405,6 @@
 
   function todayNameFragment() {
     const now = new Date();
-    // Shift the true UTC instant forward by Bangladesh's fixed UTC+6 offset, then
-    // read the calendar fields back out using UTC getters/timeZone so the visitor's
-    // own device timezone never gets applied a second time on top of this.
     const bd = new Date(now.getTime() + 6 * 60 * 60 * 1000);
     const day = bd.getUTCDate();
     const month = bd.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
@@ -1528,8 +1611,6 @@
     }
   }
 
-  // Renders a scrollable checkbox list of pool players (excluding already-used ones) plus
-  // an "Add selected" button, so several players can be added to a selection in one go.
   function renderPoolCheckboxPicker(containerEl, excludeIds, onAdd) {
     const available = poolPlayers.filter(p => !excludeIds.includes(p.id));
     if (available.length === 0) {
@@ -1651,7 +1732,7 @@
   }
 
   async function computePlayerRating(participant) {
-    if (participant.type !== "pool") return 50; // no history for guests — neutral rating
+    if (participant.type !== "pool") return 50;
     const p = poolPlayers.find(x => x.id === participant.id);
     if (!p) return 50;
     const matches = num2(p.singleMatchesPlayed);
@@ -1670,7 +1751,7 @@
       const rating = await computePlayerRating(p);
       rated.push({ ...p, rating });
     }
-    rated.sort((a, b) => b.rating - a.rating); // strongest first
+    rated.sort((a, b) => b.rating - a.rating);
     const pairs = [];
     let i = 0, j = rated.length - 1;
     while (i < j) { pairs.push([rated[i], rated[j]]); i++; j--; }
@@ -1715,8 +1796,6 @@
     document.getElementById("switchManualBtnRandom").addEventListener("click", buildManualMultiTeams);
     maybeShowBracketConfig();
   }
-
-
 
   function renderSingleChips() {
     const list = document.getElementById("singleChips");
@@ -1790,7 +1869,7 @@
   }
   function currentSideNames() {
     if (sel.format === "single") return singleParticipants.map(p => p.name);
-    return multiTeams.filter(t => t.length === 2).map(t => t.map(m => m.join ? t.map(m => m.name).join(" & ") : t.map(m => m.name).join(" & ")));
+    return multiTeams.filter(t => t.length === 2).map(t => t.map(m => m.name).join(" & "));
   }
 
   function maybeShowBracketConfig() {
@@ -2042,9 +2121,9 @@
     if (!currentAdmin) {
       container.innerHTML = `
         <div class="match-row">
-          <span class="name">${nameA}</span>
+          <span class="name">${renderPlayerBadge(nameA)}</span>
           <span>vs</span>
-          <span class="name">${nameB}</span>
+          <span class="name">${renderPlayerBadge(nameB)}</span>
         </div>
         <p class="status-msg">Match not played yet.</p>
       `;
@@ -2053,11 +2132,11 @@
 
     container.innerHTML = `
       <div class="match-row">
-        <span class="name">${nameA}</span>
+        <span class="name">${renderPlayerBadge(nameA)}</span>
         <input type="number" min="0" id="s1_${tid}" value="0">
         <span>-</span>
         <input type="number" min="0" id="s2_${tid}" value="0">
-        <span class="name">${nameB}</span>
+        <span class="name">${renderPlayerBadge(nameB)}</span>
       </div>
       <div class="match-row" id="pens_${tid}" style="display:none;">
         <span class="name">Penalties</span>
@@ -2112,15 +2191,12 @@
     const winnerName = wentToPenalties ? (penaltyScores.p1 > penaltyScores.p2 ? nameA : nameB) : (s1 > s2 ? nameA : nameB);
     const runnerUpName = winnerName === nameA ? nameB : nameA;
 
-    // per-match single-player stats (based on regulation score; penalty goals never count as stat goals)
     if (data.format === "single") {
       const refA = sideRef(data, nameA)[0], refB = sideRef(data, nameB)[0];
       const aWon = winnerName === nameA, bWon = winnerName === nameB;
       if (refA && refA.type === "pool") await bump(refA.id, { singleMatchesPlayed: 1, singleGoalsFor: s1, singleGoalsAgainst: s2, singleWins: aWon ? 1 : 0, singleLosses: bWon ? 1 : 0 });
       if (refB && refB.type === "pool") await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: s2, singleGoalsAgainst: s1, singleWins: bWon ? 1 : 0, singleLosses: aWon ? 1 : 0 });
     } else {
-      // For tag-team multi controller, a direct 2-team tournament's only match is also its final,
-      // so it counts toward per-match stats too (regular controller has no separate per-match stat).
       if (data.subMode === "multi") {
         const winnerMembersForMatch = sideRef(data, winnerName), loserMembersForMatch = sideRef(data, runnerUpName);
         for (const m of winnerMembersForMatch) { if (m.type === "pool") await bump(m.id, { tagMultiMatchesPlayed: 1, tagMultiWins: 1 }); }
@@ -2128,7 +2204,6 @@
       }
     }
 
-    // tournament-level participation + champion/runner-up (this IS the final since only 2 sides)
     const allMembers = data.format === "single" ? data.participants : data.teams.flatMap(t => t.members);
     const prefix = tagPrefix(data.subMode);
     for (const m of allMembers) {
@@ -2170,7 +2245,6 @@
   function renderBracketBody(container, tid, data) {
     container.innerHTML = "";
 
-    // Standings table(s) — always visible by default
     const standingsDiv = document.createElement("div");
     if (data.groups) {
       data.groups.forEach((g, gi) => standingsDiv.appendChild(standingsTable("Group " + (gi + 1), computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi), data.pointsSystem))));
@@ -2180,7 +2254,6 @@
     }
     container.appendChild(standingsDiv);
 
-    // Individual group/round-robin matches — hidden behind a toggle
     const matchesDiv = document.createElement("div");
     matchesDiv.style.display = "none";
     matchesDiv.innerHTML = "<h3>Group / round-robin matches</h3>";
@@ -2191,9 +2264,9 @@
       const canEdit = !currentAdmin ? false : (alreadyScored ? currentAdmin.isMaster : true);
       if (!canEdit) {
         const scoreText = alreadyScored ? (m.scoreA + " - " + m.scoreB) : "vs";
-        row.innerHTML = `<span class="name">${m.sideA}</span><span>${scoreText}</span><span class="name">${m.sideB}</span>`;
+        row.innerHTML = `<span class="name">${renderPlayerBadge(m.sideA)}</span><span>${scoreText}</span><span class="name">${renderPlayerBadge(m.sideB)}</span>`;
       } else {
-        row.innerHTML = `<span class="name">${m.sideA}</span><input type="number" min="0" value="${m.scoreA ?? ""}" data-idx="${idx}" data-side="A"><span>-</span><input type="number" min="0" value="${m.scoreB ?? ""}" data-idx="${idx}" data-side="B"><span class="name">${m.sideB}</span>`;
+        row.innerHTML = `<span class="name">${renderPlayerBadge(m.sideA)}</span><input type="number" min="0" value="${m.scoreA ?? ""}" data-idx="${idx}" data-side="A"><span>-</span><input type="number" min="0" value="${m.scoreB ?? ""}" data-idx="${idx}" data-side="B"><span class="name">${renderPlayerBadge(m.sideB)}</span>`;
         const btn = document.createElement("button");
         btn.textContent = m.scoreA !== null ? "Update" : "Save";
         btn.addEventListener("click", () => {
@@ -2337,7 +2410,7 @@
     const tbody = wrap.querySelector("tbody");
     rows.forEach((r, i) => {
       const tr = document.createElement("tr");
-      tr.innerHTML = "<td>" + (i + 1) + "</td><td>" + r.name + "</td><td>" + r.played + "</td><td>" + r.wins + "</td><td>" + (r.draws || 0) + "</td><td>" + r.losses + "</td><td>" + r.gf + "</td><td>" + r.ga + "</td><td>" + (r.gf - r.ga) + "</td><td><strong>" + (r.points ?? "-") + "</strong></td>";
+      tr.innerHTML = "<td>" + (i + 1) + "</td><td>" + renderPlayerBadge(r.name) + "</td><td>" + r.played + "</td><td>" + r.wins + "</td><td>" + (r.draws || 0) + "</td><td>" + r.losses + "</td><td>" + r.gf + "</td><td>" + r.ga + "</td><td>" + (r.gf - r.ga) + "</td><td><strong>" + (r.points ?? "-") + "</strong></td>";
       tbody.appendChild(tr);
     });
     return wrap;
@@ -2360,7 +2433,6 @@
           if (refB && refB.type === "pool") await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: sB, singleGoalsAgainst: sA, singleWins: sB > sA ? 1 : 0, singleDraws: sA === sB ? 1 : 0, singleLosses: sB < sA ? 1 : 0 });
           await loadPool();
         } else if (data.format === "tagteam") {
-          // group/round-robin stage only ever exists for tag-team multi controller
           const sideAMembers = sideRef(data, data.matches[idx].sideA), sideBMembers = sideRef(data, data.matches[idx].sideB);
           for (const m of sideAMembers) { if (m.type === "pool") await bump(m.id, { tagMultiMatchesPlayed: 1, tagMultiWins: sA > sB ? 1 : 0, tagMultiLosses: sA < sB ? 1 : 0 }); }
           for (const m of sideBMembers) { if (m.type === "pool") await bump(m.id, { tagMultiMatchesPlayed: 1, tagMultiWins: sB > sA ? 1 : 0, tagMultiLosses: sB < sA ? 1 : 0 }); }
@@ -2460,8 +2532,6 @@
     if (option === 3) {
       let qfMatches = [];
 
-      // Most common shape for a QF field: exactly 2 groups of 4 each. Everyone
-      // from both groups advances, cross-seeded 1st vs 4th, 2nd vs 3rd across groups.
       if (data.groups && data.groups.length === 2 && data.groups[0].members.length >= 4 && data.groups[1].members.length >= 4) {
         const A = computeStandings(data.groups[0].members, data.matches.filter(m => m.groupIndex === 0), data.pointsSystem).map(r => r.name).slice(0, 4);
         const B = computeStandings(data.groups[1].members, data.matches.filter(m => m.groupIndex === 1), data.pointsSystem).map(r => r.name).slice(0, 4);
@@ -2472,8 +2542,6 @@
           { id: "q3", sideA: A[3], sideB: B[0], scoreA: null, scoreB: null }
         ];
       } else if (data.groups && data.groups.length === 3 && data.groups.every(g => g.members.length >= 4)) {
-        // 3 groups of 4+: top 2 from each group (6) plus the 2 best 3rd-place teams (ranked
-        // by wins, then goal difference, then goals scored) fill out the 8 quarterfinalists.
         const groupStandings = data.groups.map((g, gi) => computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi), data.pointsSystem));
         const withGroup = (r, gi) => ({ name: r.name, group: gi, wins: r.wins, gd: r.gf - r.ga, gf: r.gf });
         const rankTier = (arr) => arr.slice().sort((a, b) => b.wins - a.wins || b.gd - a.gd || b.gf - a.gf);
@@ -2482,19 +2550,16 @@
         const runnersUp = rankTier(groupStandings.map((s, gi) => withGroup(s[1], gi)));
         const thirds = rankTier(groupStandings.map((s, gi) => withGroup(s[2], gi))).slice(0, 2);
 
-        let seeds = [...winners, ...runnersUp, ...thirds]; // 3 + 3 + 2 = 8, strongest to weakest
+        let seeds = [...winners, ...runnersUp, ...thirds];
         const pairIdx = [[0, 7], [1, 6], [2, 5], [3, 4]];
         const hasClash = (arr) => pairIdx.some(([i, j]) => arr[i].group === arr[j].group);
         if (hasClash(seeds)) {
           const swapped = seeds.slice();
           [swapped[6], swapped[7]] = [swapped[7], swapped[6]];
           if (!hasClash(swapped)) seeds = swapped;
-          // if a clash still remains, proceed anyway — with only 3 groups, a same-group
-          // quarterfinal rematch can occasionally be unavoidable, same as real tournaments.
         }
         qfMatches = pairIdx.map(([i, j], idx) => ({ id: "q" + idx, sideA: seeds[i].name, sideB: seeds[j].name, scoreA: null, scoreB: null }));
       } else {
-        // Fallback: 4 groups of top-2, or round-robin top 8, seeded 1v8, 4v5, 2v7, 3v6
         const q = seedQuarterfinalists(data);
         if (q.length !== 8) {
           showToast("Quarterfinals need exactly 8 qualifying participants/teams (2 groups of 4, 4 groups of top-2, or 8 in round-robin) — current setup gives " + q.length + ".", "error");
@@ -2596,7 +2661,6 @@
     columns.className = "bracket-columns";
     const penaltiesEnabled = data.usePenalties !== false;
 
-    // find the single "next match up" across the whole bracket, if any
     let awaitingKey = null;
     for (let si = 0; si < data.knockout.stages.length && !awaitingKey; si++) {
       const stage = data.knockout.stages[si];
@@ -2639,14 +2703,14 @@
         if (!canEdit) {
           const penText = wentToPens ? " (" + m.penaltyA + "-" + m.penaltyB + " pens)" : "";
           box.innerHTML = crownHtml +
-            `<div class="side${aWon ? " winner-side" : ""}"><span class="side-name clickable" data-player-name="${m.sideA}">${m.sideA}</span><span>${decided ? m.scoreA : ""}</span></div>` +
-            `<div class="side${bWon ? " winner-side" : ""}"><span class="side-name clickable" data-player-name="${m.sideB}">${m.sideB}</span><span>${decided ? m.scoreB : ""}</span></div>` +
+            `<div class="side${aWon ? " winner-side" : ""}">${renderPlayerBadge(m.sideA, true)}<span>${decided ? m.scoreA : ""}</span></div>` +
+            `<div class="side${bWon ? " winner-side" : ""}">${renderPlayerBadge(m.sideB, true)}<span>${decided ? m.scoreB : ""}</span></div>` +
             (penText ? `<div style="font-size:10px; text-align:center; color:var(--text-muted);">${penText.trim()}</div>` : "");
         } else {
           const pensId = "kopens_" + si + "_" + mi;
           box.innerHTML = crownHtml +
-            `<div class="side${aWon ? " winner-side" : ""}"><span class="side-name clickable" data-player-name="${m.sideA}">${m.sideA}</span><input type="number" min="0" value="${m.scoreA ?? ""}" data-stage="${si}" data-match="${mi}" data-side="A"></div>` +
-            `<div class="side${bWon ? " winner-side" : ""}"><span class="side-name clickable" data-player-name="${m.sideB}">${m.sideB}</span><input type="number" min="0" value="${m.scoreB ?? ""}" data-stage="${si}" data-match="${mi}" data-side="B"></div>` +
+            `<div class="side${aWon ? " winner-side" : ""}">${renderPlayerBadge(m.sideA, true)}<input type="number" min="0" value="${m.scoreA ?? ""}" data-stage="${si}" data-match="${mi}" data-side="A"></div>` +
+            `<div class="side${bWon ? " winner-side" : ""}">${renderPlayerBadge(m.sideB, true)}<input type="number" min="0" value="${m.scoreB ?? ""}" data-stage="${si}" data-match="${mi}" data-side="B"></div>` +
             `<div id="${pensId}" style="display:none; margin-top:4px;">
                <div class="side"><span class="side-name">Pens</span><input type="number" min="0" data-stage="${si}" data-match="${mi}" data-pen="A"></div>
                <div class="side"><span class="side-name">Pens</span><input type="number" min="0" data-stage="${si}" data-match="${mi}" data-pen="B"></div>
@@ -2736,8 +2800,6 @@
 
     try {
       if (wasAlreadyScored) {
-        // Score is being corrected, not entered for the first time — update the number
-        // only, since stats/champion/participation were already applied the first time.
         await updateDoc(doc(db, "tournaments", tid), { knockout: data.knockout });
         refreshTournamentCard(tid, container);
         return;
@@ -2750,7 +2812,6 @@
         if (refB && refB.type === "pool") await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: sB, singleGoalsAgainst: sA, singleWins: bWon ? 1 : 0, singleLosses: aWon ? 1 : 0 });
         await loadPool();
       } else if (data.format === "tagteam") {
-        // knockout stages only ever exist for tag-team multi controller
         const aWon = winner === m.sideA, bWon = winner === m.sideB;
         for (const mem of sideRef(data, m.sideA)) { if (mem.type === "pool") await bump(mem.id, { tagMultiMatchesPlayed: 1, tagMultiWins: aWon ? 1 : 0, tagMultiLosses: bWon ? 1 : 0 }); }
         for (const mem of sideRef(data, m.sideB)) { if (mem.type === "pool") await bump(mem.id, { tagMultiMatchesPlayed: 1, tagMultiWins: bWon ? 1 : 0, tagMultiLosses: aWon ? 1 : 0 }); }
@@ -2758,9 +2819,6 @@
       }
       justResolvedKnockoutKey = si + "_" + mi;
 
-      // advance winner (and, for the Elemmenator System's Match 1, the loser too) into their next slot.
-      // Exception: Quarterfinal winners are NOT auto-advanced — the semifinal pairing is decided
-      // explicitly by the admin once all 4 quarterfinals are done (international rules or random).
       const isQuarterfinalStage = si === 0 && data.knockout.stages[0].name === "Quarterfinal";
       if (data.knockout.option === "eliminator" && si === 0) {
         const loserName = winner === m.sideA ? m.sideB : m.sideA;
@@ -2769,7 +2827,7 @@
         const match2 = data.knockout.stages[1].matches[0];
         if (match2.sideA.toString().startsWith("TBD")) match2.sideA = loserName; else match2.sideB = loserName;
       } else if (isQuarterfinalStage) {
-        // leave the semifinal untouched — filled in later via the pairing-choice prompt
+        // Semifinals paired via prompt
       } else if (si + 1 < data.knockout.stages.length) {
         const nextStage = data.knockout.stages[si + 1];
         const slot = nextStage.matches.find(nm => nm.sideA.toString().startsWith("TBD") || nm.sideB.toString().startsWith("TBD"));
@@ -2878,7 +2936,7 @@
 
   async function computeDuoRankings() {
     const tournamentsSnap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "tagteam"), where("subMode", "==", "multi"), where("status", "==", "completed")));
-    const duoStats = {}; // canonical sorted-name key -> { name, wins, draws, losses, champs, runnerUps }
+    const duoStats = {};
 
     function getEntry(team) {
       const key = team.members.map(x => x.name).slice().sort().join(" & ");
@@ -2890,8 +2948,6 @@
       const data = d.data();
       if (!data.teams) return;
 
-      // Gather every scored match across this tournament's life: simple direct final,
-      // group/round-robin stage, and every knockout stage (quarterfinal through final).
       let matchList = [];
       if (data.finalScore) matchList.push({ sideA: data.teams[0].teamName, sideB: data.teams[1].teamName, scoreA: data.finalScore.side1, scoreB: data.finalScore.side2, penaltyA: data.finalScore.penalty1, penaltyB: data.finalScore.penalty2 });
       if (Array.isArray(data.matches)) matchList = matchList.concat(data.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
@@ -2906,7 +2962,6 @@
         if (!teamA || !teamB) return;
         const winnerName = matchWinnerName(m);
         if (!winnerName) {
-          // a drawn group-stage match — counts as a match played for both, no win/loss either way
           getEntry(teamA).draws++;
           getEntry(teamB).draws++;
           return;
@@ -2975,7 +3030,7 @@
       return;
     }
     body.innerHTML = ranked.map((r, i) =>
-      "<tr><td>" + (i + 1) + "</td><td>" + r.name + "</td><td>" + r.played + "</td><td>" + r.wins + "</td><td>" + r.draws + "</td><td>" + r.losses + "</td><td>" + r.gf + "</td><td>" + r.ga + "</td><td>" + (r.gf - r.ga) + "</td></tr>"
+      "<tr><td>" + (i + 1) + "</td><td>" + renderPlayerBadge(r.name) + "</td><td>" + r.played + "</td><td>" + r.wins + "</td><td>" + r.draws + "</td><td>" + r.losses + "</td><td>" + r.gf + "</td><td>" + r.ga + "</td><td>" + (r.gf - r.ga) + "</td></tr>"
     ).join("");
   }
 
@@ -2991,7 +3046,7 @@
 
   async function computePlacementCounts() {
     const tournamentsSnap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "single"), where("status", "==", "completed")));
-    const counts = {}; // playerId -> { champion, runnerUp, semifinalist, quarterfinalist }
+    const counts = {};
     function bump(id, tier) {
       if (!id) return;
       if (!counts[id]) counts[id] = { champion: 0, runnerUp: 0, semifinalist: 0, quarterfinalist: 0 };
@@ -3008,7 +3063,7 @@
       if (data.knockout) {
         const stages = data.knockout.stages;
         stages.forEach((stage, si) => {
-          if (si === stages.length - 1) return; // final already handled via winner/runnerUp above
+          if (si === stages.length - 1) return;
           const tier = si === stages.length - 2 ? "semifinalist" : "quarterfinalist";
           stage.matches.forEach(m => {
             if (m.scoreA === null || m.scoreB === null) return;
@@ -3050,7 +3105,7 @@
       return;
     }
     body.innerHTML = ranked.map((r, i) =>
-      "<tr><td>" + (i + 1) + "</td><td>" + r.name + "</td><td>" + r.wins + "</td><td>" + r.champion + "</td><td>" + r.runnerUp + "</td><td>" + r.semifinalist + "</td><td>" + r.quarterfinalist + "</td><td><strong>" + r.score + "</strong></td></tr>"
+      "<tr><td>" + (i + 1) + "</td><td>" + renderPlayerBadge(r.name) + "</td><td>" + r.wins + "</td><td>" + r.champion + "</td><td>" + r.runnerUp + "</td><td>" + r.semifinalist + "</td><td>" + r.quarterfinalist + "</td><td><strong>" + r.score + "</strong></td></tr>"
     ).join("");
   }
 
@@ -3081,7 +3136,6 @@
 
     const entries = Object.entries(stats).map(([name, s]) => ({ name, goals: s.goals, matches: s.matches, gd: s.gf - s.ga }));
     if (entries.length === 0 || entries.every(e => e.goals === 0)) return null;
-    // Most goals; tie-break: fewest matches played (more efficient), then best goal difference.
     entries.sort((a, b) => b.goals - a.goals || a.matches - b.matches || b.gd - a.gd);
     return entries[0];
   }
@@ -3170,7 +3224,7 @@
         const row = document.createElement("div");
         row.className = "match-row";
         const scoreText = (m.scoreA !== null && m.scoreB !== null) ? (m.scoreA + " - " + m.scoreB) : "vs";
-        row.innerHTML = `<span class="name">${m.sideA}</span><span>${scoreText}</span><span class="name">${m.sideB}</span>`;
+        row.innerHTML = `<span class="name">${renderPlayerBadge(m.sideA)}</span><span>${scoreText}</span><span class="name">${renderPlayerBadge(m.sideB)}</span>`;
         matchListDiv.appendChild(row);
       });
 
@@ -3194,7 +3248,7 @@
       const box = document.createElement("div");
       box.className = "match-row";
       const penText = data.finalScore.penalty1 !== undefined ? " (" + data.finalScore.penalty1 + "-" + data.finalScore.penalty2 + " pens)" : "";
-      box.innerHTML = `<span class="name">${nameA}</span><span>${data.finalScore.side1} - ${data.finalScore.side2}${penText}</span><span class="name">${nameB}</span>`;
+      box.innerHTML = `<span class="name">${renderPlayerBadge(nameA)}</span><span>${data.finalScore.side1} - ${data.finalScore.side2}${penText}</span><span class="name">${renderPlayerBadge(nameB)}</span>`;
       contentDiv.appendChild(box);
     }
   }
@@ -3235,8 +3289,8 @@
         box.dataset.sideA = m.sideA; box.dataset.sideB = m.sideB;
         box.innerHTML =
           (isChampionBox ? `<div class="champion-crown">&#128081;</div>` : "") +
-          `<div class="side${aWon ? " winner-side" : ""}"><span class="side-name clickable" data-player-name="${m.sideA}">${m.sideA}</span><span class="count-up" data-final="${decided ? m.scoreA : ""}">${decided ? "" : ""}</span></div>` +
-          `<div class="side${bWon ? " winner-side" : ""}"><span class="side-name clickable" data-player-name="${m.sideB}">${m.sideB}</span><span class="count-up" data-final="${decided ? m.scoreB : ""}">${decided ? "" : ""}</span></div>` +
+          `<div class="side${aWon ? " winner-side" : ""}">${renderPlayerBadge(m.sideA, true)}<span class="count-up" data-final="${decided ? m.scoreA : ""}">${decided ? "" : ""}</span></div>` +
+          `<div class="side${bWon ? " winner-side" : ""}">${renderPlayerBadge(m.sideB, true)}<span class="count-up" data-final="${decided ? m.scoreB : ""}">${decided ? "" : ""}</span></div>` +
           (wentToPens ? `<div style="font-size:10px; text-align:center; color:var(--text-muted);">${m.penaltyA}-${m.penaltyB} pens</div>` : "");
         col.appendChild(box);
         if (decided) {
@@ -3292,8 +3346,6 @@
   }
 
   async function computeHeadToHead(idA, idB) {
-    // Uses the exact same source list as Records -> Tournaments -> Single player,
-    // so head-to-head always matches what's shown there instead of a fixed date.
     const resultsSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "single")));
     const stats = { matches: 0, winsA: 0, winsB: 0, goalsA: 0, goalsB: 0 };
 
@@ -3328,10 +3380,20 @@
     poolPlayers.forEach(p => {
       const row = document.createElement("div");
       row.style.padding = "6px 0";
+      row.style.display = "flex";
+      row.style.alignItems = "center";
+      row.style.gap = "8px";
+
+      const imgHtml = p.imageUrl
+        ? `<img src="${convertImageUrl(p.imageUrl)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid var(--accent);">`
+        : `<div style="width:28px;height:28px;border-radius:50%;background:var(--bg-surface-alt);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;">${p.name.slice(0, 1)}</div>`;
+
       const btn = document.createElement("button");
       btn.className = "player-name-link";
       btn.textContent = p.name;
       btn.addEventListener("click", () => { viewingPlayerId = p.id; renderRecordsBody(); });
+
+      row.innerHTML = imgHtml;
       row.appendChild(btn);
       inner.appendChild(row);
     });
@@ -3349,9 +3411,16 @@
     const regMatches = num(p.tagRegularTournamentsPlayed), regWins = num(p.tagRegularChampionships);
     const regWinPct = regMatches > 0 ? Math.round((regWins / regMatches) * 100) : 0;
 
+    const headerAvatar = p.imageUrl
+      ? `<img src="${convertImageUrl(p.imageUrl)}" style="width:68px;height:68px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);box-shadow:0 3px 10px rgba(0,0,0,0.2);margin-bottom:8px;">`
+      : `<div style="width:68px;height:68px;border-radius:50%;background:var(--bg-surface-alt);border:2px solid var(--border-strong);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:bold;margin-bottom:8px;">${p.name.slice(0,1)}</div>`;
+
     body.innerHTML = `
       <button id="backToPlayers">&larr; Back to players</button>
-      <h2>${p.name}</h2>
+      <div style="display:flex; flex-direction:column; align-items:center; margin-top:10px;">
+        ${headerAvatar}
+        <h2 style="margin-top:2px;">${p.name}</h2>
+      </div>
       <h3>Recent form</h3>
       <div id="recentFormRow" style="display:flex; gap:6px;"><span class="status-msg">Loading...</span></div>
       <h3>Tournament participation</h3>
@@ -3399,13 +3468,10 @@
     const tournamentsSnap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "single"), where("status", "==", "completed")));
     const tournaments = [];
     tournamentsSnap.forEach(d => tournaments.push(d.data()));
-    tournaments.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)); // oldest tournament first
+    tournaments.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
 
     const results = [];
     tournaments.forEach(data => {
-      // Matches don't have their own timestamps, only the tournament does — so within
-      // one tournament we rely on natural play order instead: group stage first, then
-      // knockout stages in sequence (quarterfinal, semifinal, final).
       let matchList = [];
       if (data.finalScore) matchList.push({ sideA: data.participants[0].name, sideB: data.participants[1].name, scoreA: data.finalScore.side1, scoreB: data.finalScore.side2 });
       if (data.matches) matchList = matchList.concat(data.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
@@ -3420,7 +3486,7 @@
         results.push({ result });
       });
     });
-    const last5 = results.slice(-5); // already oldest-to-newest, so the tail is the most recent
+    const last5 = results.slice(-5);
     if (!row) return;
     if (last5.length === 0) { row.innerHTML = "<span class='status-msg'>No single player matches yet.</span>"; return; }
     const colors = { W: "#2ecc71", L: "#e74c3c", D: "#999" };
@@ -3528,7 +3594,7 @@
   }
 
   function renderTournamentRecordsHtml(body, c) {
-    const rowHtml = (r) => "<tr data-tid='" + r.id + "'><td>" + r.tournamentName + "</td><td>" + r.winner + "</td><td>" + r.runnerUp + "</td><td><button class='detailsBtn' data-tid='" + r.id + "'>Details</button></td></tr>";
+    const rowHtml = (r) => "<tr data-tid='" + r.id + "'><td>" + r.tournamentName + "</td><td>" + renderPlayerBadge(r.winner) + "</td><td>" + renderPlayerBadge(r.runnerUp) + "</td><td><button class='detailsBtn' data-tid='" + r.id + "'>Details</button></td></tr>";
     body.innerHTML = `
       <button id="recordsRefreshBtn" style="float:right;">Refresh</button>
       <h3>Single player</h3>
