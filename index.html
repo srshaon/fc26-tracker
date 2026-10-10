@@ -503,21 +503,131 @@
 
 /* comment ==> 08. CSS Responsive Media Queries starts from here */
   @media (max-width: 520px) {
-    body { margin: 12px auto; padding: 0 12px; }
+    body { margin: 12px auto; padding: 0 10px; }
     h1 { font-size: 19px; }
     nav { gap: 5px; }
     nav button { padding: 7px 9px; font-size: 12px; }
     .teams-grid { grid-template-columns: 1fr; }
     .champ-grid { grid-template-columns: 1fr; }
     .stat-grid { grid-template-columns: 1fr; }
-    .match-row { flex-wrap: wrap; gap: 8px; }
-    .match-row .name { width: auto; flex-basis: 45%; }
-    table { font-size: 12px; }
-    th, td { padding: 5px 4px; }
-    select, input[type=text], input[type=password], input[type=url], input[type=number] { width: 100%; }
-    input[type=number] { width: 70px; }
+
+    /* Standings table mobile polish */
+    table { font-size: 11px; }
+    th, td { padding: 5px 2px; text-align: center; }
+    th:nth-child(2), td:nth-child(2) { text-align: left; }
+    table td .player-badge-col {
+      flex-direction: row;
+      gap: 5px;
+      text-align: left;
+    }
+    table td .player-avatar-circle,
+    table td .player-avatar-placeholder {
+      width: 24px;
+      height: 24px;
+      font-size: 10px;
+      border-width: 1.5px;
+    }
+
+    /* Match card row */
+    .match-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 8px;
+      margin: 8px 0;
+      background: var(--bg-surface-alt);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      gap: 6px 4px;
+    }
+
+    /* Side A (Left) - Avatar then Name */
+    .match-row .name:first-child {
+      flex: 1;
+      min-width: 0;
+      width: auto;
+      text-align: left;
+      align-items: flex-start;
+    }
+    .match-row .name:first-child .player-badge-col {
+      flex-direction: row;
+      align-items: center;
+      gap: 6px;
+      text-align: left;
+    }
+
+    /* Side B (Right) - Name then Avatar (mirrored) */
+    .match-row .name:nth-of-type(2) {
+      flex: 1;
+      min-width: 0;
+      width: auto;
+      text-align: right;
+      align-items: flex-end;
+    }
+    .match-row .name:nth-of-type(2) .player-badge-col {
+      flex-direction: row-reverse;
+      align-items: center;
+      gap: 6px;
+      text-align: right;
+    }
+
+    /* Scaled circular avatar for mobile */
+    .match-row .player-avatar-circle,
+    .match-row .player-avatar-placeholder {
+      width: 38px;
+      height: 38px;
+      font-size: 14px;
+      border-width: 2px;
+      flex-shrink: 0;
+    }
+
+    /* Name text truncation to prevent overflow */
+    .match-row .side-name {
+      font-size: 11px;
+      font-weight: bold;
+      line-height: 1.2;
+      max-width: 78px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Score input boxes centered */
+    .match-row input[type=number] {
+      width: 36px !important;
+      height: 34px;
+      padding: 2px;
+      font-size: 15px;
+      font-weight: bold;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .match-row span {
+      flex-shrink: 0;
+      font-size: 13px;
+      font-weight: bold;
+      color: var(--text-secondary);
+    }
+
+    /* Save button on the next line (centered under scores) */
+    .match-row button {
+      flex-basis: 100%;
+      max-width: 100px;
+      margin: 6px auto 0 auto;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: var(--radius-card);
+    }
+
+    /* Standard form inputs */
+    select, input[type=text], input[type=password], input[type=url] {
+      width: 100%;
+    }
   }
 /* comment ==> 08. CSS Responsive Media Queries ends here */
+
 </style>
 </head>
 
