@@ -1,3 +1,4 @@
+<!-- comment ==> 01. Head & Meta Tags starts from here -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,7 +15,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+<!-- comment ==> 01. Head & Meta Tags ends here -->
+
 <style>
+/* comment ==> 02. CSS Theme Variables starts from here */
   * { box-sizing: border-box; }
 
   :root, [data-theme="matchday"] {
@@ -82,7 +86,9 @@
     --heading-transform: uppercase;
     --heading-letter-spacing: 1px;
   }
+/* comment ==> 02. CSS Theme Variables ends here */
 
+/* comment ==> 03. CSS Base Layout & Typography starts from here */
   body {
     font-family: var(--font-body);
     max-width: 700px;
@@ -98,6 +104,9 @@
   nav { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
   nav button { padding: 8px 12px; border: 1px solid var(--border-strong); background: var(--bg-surface); color: var(--text-primary); border-radius: var(--radius-card); cursor: pointer; font-size: 13px; font-family: var(--font-body); }
   nav button.active { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); font-weight: bold; }
+/* comment ==> 03. CSS Base Layout & Typography ends here */
+
+/* comment ==> 04. CSS Components (Cards, Buttons, Inputs, Tables) starts from here */
   .card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 14px; margin-top: 12px; }
   .option-btn { padding: 9px 13px; font-size: 14px; cursor: pointer; border: 1px solid var(--border-strong); background: var(--bg-surface); color: var(--text-primary); border-radius: var(--radius-card); }
   .option-btn.selected { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
@@ -116,7 +125,7 @@
   table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
   th, td { text-align: left; padding: 6px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
   th { color: var(--text-secondary); font-weight: normal; }
-  .match-row { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 8px 0; }
+  .match-row { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 12px 0; }
   .match-row .name { font-size: 13px; font-weight: bold; width: 140px; text-align: center; font-family: var(--font-heading); color: var(--text-primary); display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .match-row input { width: 46px; text-align: center; }
   .status-msg { font-size: 13px; color: var(--text-secondary); margin-top: 8px; }
@@ -135,14 +144,15 @@
   .stat-card .value { font-size: 15px; font-weight: bold; color: var(--text-primary); }
   #winnerBanner { display: none; margin-top: 12px; padding: 12px; background: var(--success-bg); border-radius: 8px; font-weight: bold; color: var(--success-text); text-align: center; }
   .player-name-link { color: var(--accent); text-decoration: underline; cursor: pointer; background: none; border: none; font-size: 14px; padding: 0; font-family: var(--font-body); }
+/* comment ==> 04. CSS Components (Cards, Buttons, Inputs, Tables) ends here */
 
-  /* Circular Avatar Badge Over Player Name */
+/* comment ==> 05. CSS Player Avatar & Badge System starts from here */
   .player-badge-col {
     display: inline-flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 6px;
     text-align: center;
     vertical-align: middle;
   }
@@ -151,49 +161,52 @@
     align-items: center;
     justify-content: center;
     gap: 4px;
+    flex-wrap: wrap;
   }
   .player-avatar-circle {
-    width: 36px;
-    height: 36px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid var(--accent);
+    object-position: center 20%;
+    border: 3px solid var(--accent);
     background: var(--bg-surface-alt);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    display: block;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
     flex-shrink: 0;
   }
   .player-avatar-placeholder {
-    width: 36px;
-    height: 36px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
-    background: var(--bg-surface-alt);
-    border: 2px solid var(--border-strong);
+    background: linear-gradient(135deg, var(--bg-surface-alt) 0%, var(--accent) 150%);
+    border: 3px solid var(--border-strong);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
-    font-weight: bold;
-    color: var(--text-secondary);
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--accent-contrast);
     font-family: var(--font-heading);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
     flex-shrink: 0;
   }
-  /* Proportional avatars inside bracket boxes and tables */
   .bracket-match .player-avatar-circle,
   .bracket-match .player-avatar-placeholder {
-    width: 26px;
-    height: 26px;
-    font-size: 11px;
-    border-width: 1.5px;
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+    border-width: 2px;
   }
   table td .player-avatar-circle,
   table td .player-avatar-placeholder {
-    width: 24px;
-    height: 24px;
-    font-size: 10px;
-    border-width: 1.5px;
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+    border-width: 2px;
   }
+/* comment ==> 05. CSS Player Avatar & Badge System ends here */
 
+/* comment ==> 06. CSS Animations & Visual Effects starts from here */
   .win-banner {
     position: relative;
     margin-top: 16px;
@@ -248,68 +261,6 @@
     100% { transform: translateY(160px) rotate(540deg); opacity: 0; }
   }
 
-  .bracket-columns {
-    display: flex;
-    gap: 18px;
-    overflow-x: auto;
-    padding: 8px 2px 14px;
-    margin-top: 6px;
-  }
-  .bracket-col {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    gap: 14px;
-    min-width: 155px;
-    flex-shrink: 0;
-  }
-  .bracket-col h4 {
-    font-size: 11px;
-    text-transform: var(--heading-transform);
-    letter-spacing: 0.5px;
-    color: var(--text-muted);
-    font-family: var(--font-heading);
-    margin: 0 0 6px;
-    text-align: center;
-  }
-  .bracket-match {
-    border: 1px solid var(--border-strong);
-    border-radius: 8px;
-    background: var(--bg-surface-alt);
-    padding: 8px;
-    font-size: 12px;
-  }
-  .bracket-match .side {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 6px;
-    padding: 3px 0;
-  }
-  .bracket-match .side.winner-side {
-    font-weight: bold;
-    color: var(--accent);
-  }
-  .bracket-match .side-name {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 95px;
-  }
-  .bracket-match input[type=number] {
-    width: 40px;
-    padding: 3px;
-    font-size: 12px;
-  }
-  .bracket-match button {
-    margin-top: 4px;
-    width: 100%;
-    font-size: 11px;
-    padding: 4px;
-    cursor: pointer;
-  }
-  .bracket-final .bracket-match { border-color: var(--accent); }
-
   .music-toggle {
     position: fixed;
     bottom: 18px;
@@ -340,7 +291,6 @@
     border-radius: 3px;
   }
 
-  /* Trophy foil sweep on the winner banner */
   .win-banner::before {
     content: "";
     position: absolute;
@@ -355,7 +305,6 @@
     to { left: 140%; }
   }
 
-  /* Standings rows sliding in on render */
   .stat-card, table tbody tr { animation: rowSlideIn 0.35s ease both; }
   table tbody tr:nth-child(1) { animation-delay: 0.02s; }
   table tbody tr:nth-child(2) { animation-delay: 0.06s; }
@@ -368,7 +317,6 @@
     to { opacity: 1; transform: translateX(0); }
   }
 
-  /* Live pulse ring for in-progress tournaments */
   .live-dot {
     position: relative;
     display: inline-block;
@@ -390,10 +338,8 @@
     100% { transform: scale(3.2); opacity: 0; }
   }
 
-  /* Score count-up */
   .count-up { display: inline-block; }
 
-  /* Theme-specific flourishes */
   [data-theme="matchday"] .option-btn:hover,
   [data-theme="matchday"] nav button:hover {
     background: linear-gradient(100deg, transparent 40%, rgba(242,201,76,0.5) 50%, transparent 60%);
@@ -419,21 +365,6 @@
     0% { transform: scale(1) rotate(0deg); }
     40% { transform: scale(1.08) rotate(-2deg); }
     100% { transform: scale(1) rotate(0deg); }
-  }
-
-  /* Bracket connector lines drawing in */
-  .bracket-col:not(:first-child)::before {
-    content: "";
-    display: block;
-    height: 2px;
-    background: var(--border-strong);
-    margin-bottom: 8px;
-    animation: lineDraw 0.5s ease both;
-    transform-origin: left;
-  }
-  @keyframes lineDraw {
-    from { transform: scaleX(0); }
-    to { transform: scaleX(1); }
   }
 
   .toast-stack {
@@ -476,34 +407,64 @@
   }
   .empty-state .icon { font-size: 30px; margin-bottom: 8px; opacity: 0.6; }
   .empty-state .msg { font-size: 13px; }
+/* comment ==> 06. CSS Animations & Visual Effects ends here */
 
-  /* 4. Scoreboard flip reveal on a freshly-saved match */
+/* comment ==> 07. CSS Bracket Layout starts from here */
+  .bracket-columns {
+    display: flex;
+    gap: 18px;
+    overflow-x: auto;
+    padding: 8px 2px 14px;
+    margin-top: 6px;
+  }
+  .bracket-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    gap: 14px;
+    min-width: 155px;
+    flex-shrink: 0;
+  }
+  .bracket-col:not(:first-child)::before {
+    content: "";
+    display: block;
+    height: 2px;
+    background: var(--border-strong);
+    margin-bottom: 8px;
+    animation: lineDraw 0.5s ease both;
+    transform-origin: left;
+  }
+  @keyframes lineDraw {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+  .bracket-col h4 {
+    font-size: 11px;
+    text-transform: var(--heading-transform);
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    font-family: var(--font-heading);
+    margin: 0 0 6px;
+    text-align: center;
+  }
   .bracket-match.flip-reveal { animation: flipReveal 0.5s ease; transform-origin: center; }
   @keyframes flipReveal {
     0% { transform: scaleY(0.15); opacity: 0.3; }
     60% { transform: scaleY(1.08); }
     100% { transform: scaleY(1); opacity: 1; }
   }
-
-  /* 5. Pulsing glow on the match currently awaiting a result */
   .bracket-match.awaiting { border-color: var(--accent); animation: awaitPulse 1.6s ease-in-out infinite; }
   @keyframes awaitPulse {
     0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); }
     50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 0%, transparent); }
   }
-
-  /* 2. Connector lines light up once the previous stage is fully decided */
   .bracket-col.connector-lit::before { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
-
-  /* 7. Extra fanfare on the champion's box in the Final */
   .bracket-match.champion-box { position: relative; border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--bg-surface-alt)); }
   .champion-crown { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 20px; animation: crownDrop 0.6s ease; }
   @keyframes crownDrop {
     from { transform: translate(-50%, -18px); opacity: 0; }
     to { transform: translate(-50%, 0); opacity: 1; }
   }
-
-  /* 11. Stage breadcrumb stepper */
   .stage-breadcrumb { display: flex; gap: 6px; margin: 6px 0 10px; flex-wrap: wrap; }
   .stage-breadcrumb .step {
     padding: 4px 10px; border-radius: 12px; font-size: 11px;
@@ -512,8 +473,6 @@
   }
   .stage-breadcrumb .step.current { background: var(--accent); color: var(--accent-contrast); font-weight: bold; }
   .stage-breadcrumb .step.done { color: var(--text-secondary); }
-
-  /* 9. Path highlighting for a player's route through the bracket */
   .bracket-match.path-highlight { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
   .side-name.clickable { cursor: pointer; text-decoration: underline dotted; }
 
@@ -540,7 +499,9 @@
     font-size: 13px;
     cursor: pointer;
   }
+/* comment ==> 07. CSS Bracket Layout ends here */
 
+/* comment ==> 08. CSS Responsive Media Queries starts from here */
   @media (max-width: 520px) {
     body { margin: 12px auto; padding: 0 12px; }
     h1 { font-size: 19px; }
@@ -549,15 +510,18 @@
     .teams-grid { grid-template-columns: 1fr; }
     .champ-grid { grid-template-columns: 1fr; }
     .stat-grid { grid-template-columns: 1fr; }
-    .match-row { flex-wrap: wrap; gap: 6px; }
+    .match-row { flex-wrap: wrap; gap: 8px; }
     .match-row .name { width: auto; flex-basis: 45%; }
     table { font-size: 12px; }
     th, td { padding: 5px 4px; }
     select, input[type=text], input[type=password], input[type=url], input[type=number] { width: 100%; }
     input[type=number] { width: 70px; }
   }
+/* comment ==> 08. CSS Responsive Media Queries ends here */
 </style>
 </head>
+
+<!-- comment ==> 09. HTML Body Shell starts from here -->
 <body>
 
 <h1>FC26 tracker</h1>
@@ -570,8 +534,10 @@
 <audio id="bgMusic" loop></audio>
 <button id="musicToggle" class="music-toggle" title="Play/pause music">&#9835;</button>
 <div id="toastStack" class="toast-stack"></div>
+<!-- comment ==> 09. HTML Body Shell ends here -->
 
 <script type="module">
+// comment ==> 10. Firebase Configuration & Init starts from here
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
     getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
@@ -595,9 +561,11 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+// comment ==> 10. Firebase Configuration & Init ends here
 
+// comment ==> 11. Global State Variables starts from here
   let currentUser = null;
-  let currentAdmin = null; // { username, active, isMaster }
+  let currentAdmin = null;
   let currentView = "home";
   let poolPlayers = [];
 
@@ -606,8 +574,11 @@
   const viewArea = document.getElementById("viewArea");
 
   function usernameToEmail(u) { return u.trim().toLowerCase() + "@fc26tracker.app"; }
+  function num(v) { return v || 0; }
+  function num2(v) { return v || 0; }
+// comment ==> 11. Global State Variables ends here
 
-  // Google Drive "share" link thumbnail converter
+// comment ==> 12. Utility Helpers & Drive Image Converter starts from here
   function convertImageUrl(url) {
     if (!url) return url;
     const trimmed = url.trim();
@@ -622,10 +593,25 @@
         if (u.searchParams.get("id")) fileId = u.searchParams.get("id");
       }
       if (fileId) return "https://drive.google.com/thumbnail?id=" + fileId + "&sz=w1000";
-    } catch (e) { /* not a parseable URL */ }
+    } catch (e) {}
     return trimmed;
   }
 
+  function showToast(message, type) {
+    const stack = document.getElementById("toastStack");
+    if (!stack) { console.log(message); return; }
+    const toast = document.createElement("div");
+    toast.className = "toast" + (type === "error" ? " toast-error" : "");
+    toast.textContent = message;
+    stack.appendChild(toast);
+    setTimeout(() => {
+      toast.classList.add("toast-out");
+      setTimeout(() => toast.remove(), 250);
+    }, 3200);
+  }
+// comment ==> 12. Utility Helpers & Drive Image Converter ends here
+
+// comment ==> 13. Player Avatar & Badge Component starts from here
   function getPlayerImageByName(name) {
     if (!name) return null;
     const clean = name.trim().toUpperCase();
@@ -644,7 +630,6 @@
     }));
   }
 
-  // Renders circular headshots stacked cleanly OVER the player's name
   function renderPlayerBadge(name, isClickable = false) {
     if (!name) return "";
     if (name === "TBD" || name.toString().startsWith("TBD")) {
@@ -662,21 +647,9 @@
 
     return `<div class="player-badge-col">${avatarsHtml}<span ${clickAttr}>${name}</span></div>`;
   }
+// comment ==> 13. Player Avatar & Badge Component ends here
 
-  function showToast(message, type) {
-    const stack = document.getElementById("toastStack");
-    if (!stack) { console.log(message); return; }
-    const toast = document.createElement("div");
-    toast.className = "toast" + (type === "error" ? " toast-error" : "");
-    toast.textContent = message;
-    stack.appendChild(toast);
-    setTimeout(() => {
-      toast.classList.add("toast-out");
-      setTimeout(() => toast.remove(), 250);
-    }, 3200);
-  }
-  function num(v) { return v || 0; }
-
+// comment ==> 14. Theme Handler starts from here
   const THEMES = [
     { key: "matchday", label: "Matchday broadcast" },
     { key: "pitch", label: "Pitch programme" },
@@ -694,12 +667,32 @@
   }
   loadTheme();
 
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("sw.js").catch(() => {});
+  async function renderThemePicker() {
+    const area = document.getElementById("themeOptions");
+    const current = document.documentElement.getAttribute("data-theme") || "matchday";
+    area.innerHTML = "";
+    THEMES.forEach(t => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn" + (t.key === current ? " selected" : "");
+      btn.textContent = t.label;
+      btn.addEventListener("click", async () => {
+        const statusEl = document.getElementById("themeStatus");
+        try {
+          await setDoc(doc(db, "settings", "theme"), { current: t.key, updatedAt: Date.now() });
+          document.documentElement.setAttribute("data-theme", t.key);
+          [...area.children].forEach(b => b.classList.remove("selected"));
+          btn.classList.add("selected");
+          statusEl.textContent = t.label + " is now live for everyone.";
+        } catch (e) {
+          statusEl.textContent = "Failed: " + e.message;
+        }
+      });
+      area.appendChild(btn);
     });
   }
+// comment ==> 14. Theme Handler ends here
 
+// comment ==> 15. Background Music Handler starts from here
   const bgMusic = document.getElementById("bgMusic");
   const musicToggle = document.getElementById("musicToggle");
   let musicPlaying = false;
@@ -730,7 +723,27 @@
     musicPlaying = !musicPlaying;
   });
 
-  // ---------- Auth ----------
+  async function renderMusicSetting() {
+    const input = document.getElementById("musicUrlInput");
+    try {
+      const snap = await getDoc(doc(db, "settings", "music"));
+      if (snap.exists() && snap.data().url) input.value = snap.data().url;
+    } catch (e) {}
+    document.getElementById("saveMusicBtn").addEventListener("click", async () => {
+      const statusEl = document.getElementById("musicSettingStatus");
+      const url = input.value.trim();
+      try {
+        await setDoc(doc(db, "settings", "music"), { url: url || null, updatedAt: Date.now() });
+        await loadMusic();
+        statusEl.textContent = url ? "Music saved and live for everyone." : "Music removed.";
+      } catch (e) {
+        statusEl.textContent = "Failed: " + e.message;
+      }
+    });
+  }
+// comment ==> 15. Background Music Handler ends here
+
+// comment ==> 16. Auth & Role Gatekeeping starts from here
   onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     if (user) {
@@ -762,52 +775,25 @@
     renderView();
   });
 
-  async function loadPool() {
-    const snap = await getDocs(collection(db, "players"));
-    poolPlayers = [];
-    snap.forEach(d => poolPlayers.push({ id: d.id, ...d.data() }));
-    poolPlayers.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+  function requireAdmin() {
+    if (!currentAdmin) { viewArea.innerHTML = "<p class='warn'>You must be logged in as an admin to view this.</p>"; return false; }
+    return true;
   }
-
-  async function nextGuestLabel() {
-    const counterRef = doc(db, "counters", "guestPlayers");
-    const next = await runTransaction(db, async (tx) => {
-      const s = await tx.get(counterRef);
-      const cur = s.exists() ? s.data().count : 0;
-      tx.set(counterRef, { count: cur + 1 });
-      return cur + 1;
-    });
-    return "GUEST PLAYER " + String(next).padStart(2, "0");
+  function requireMaster() {
+    if (!currentAdmin || !currentAdmin.isMaster) { viewArea.innerHTML = "<p class='warn'>Only the master admin can view this.</p>"; return false; }
+    return true;
   }
+// comment ==> 16. Auth & Role Gatekeeping ends here
 
-  async function bump(playerId, fields) {
-    const updates = {};
-    Object.keys(fields).forEach(k => { if (fields[k]) updates[k] = increment(fields[k]); });
-    if (Object.keys(updates).length === 0) return;
-    await updateDoc(doc(db, "players", playerId), updates);
-  }
-
-  function showWinnerBanner(container, winnerName) {
-    const banner = document.createElement("div");
-    banner.className = "win-banner";
-    const colors = ["#fff", "#ffe066", "#ff6b6b", "#4dd0e1", "#a3ff7a"];
-    let confetti = "";
-    for (let i = 0; i < 18; i++) {
-      const left = Math.random() * 100;
-      const delay = (Math.random() * 0.4).toFixed(2);
-      const color = colors[i % colors.length];
-      confetti += `<span class="confetti-piece" style="left:${left}%; background:${color}; animation-delay:${delay}s;"></span>`;
-    }
-    banner.innerHTML = confetti +
-      "<div class='trophy'>\u{1F3C6}</div>" +
-      "<div class='winSub'>Champion</div>" +
-      "<div class='winName'>" + winnerName + "</div>";
-    container.appendChild(banner);
-  }
-
-  // ---------- Nav ----------
+// comment ==> 17. Navigation & PWA Engine starts from here
   let deferredInstallPrompt = null;
   let isStandaloneMode = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
 
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
@@ -866,16 +852,9 @@
       mainNav.appendChild(installBtn);
     }
   }
+// comment ==> 17. Navigation & PWA Engine ends here
 
-  function requireAdmin() {
-    if (!currentAdmin) { viewArea.innerHTML = "<p class='warn'>You must be logged in as an admin to view this.</p>"; return false; }
-    return true;
-  }
-  function requireMaster() {
-    if (!currentAdmin || !currentAdmin.isMaster) { viewArea.innerHTML = "<p class='warn'>Only the master admin can view this.</p>"; return false; }
-    return true;
-  }
-
+// comment ==> 18. View Router (renderView) starts from here
   function renderView() {
     if (currentView === "home") return renderHome();
     if (currentView === "records") return renderRecords();
@@ -887,8 +866,9 @@
     if (currentView === "liveTournaments") return renderLiveTournaments();
     if (currentView === "playerPool") return renderPlayerPool();
   }
+// comment ==> 18. View Router (renderView) ends here
 
-  // ================= HOME =================
+// comment ==> 19. Home View & Champions Box starts from here
   async function renderHome() {
     viewArea.innerHTML = "<h2>Recent champions</h2><div class='champ-grid' id='champGrid'>Loading...</div>";
     const types = [
@@ -906,8 +886,9 @@
       grid.appendChild(card);
     }
   }
+// comment ==> 19. Home View & Champions Box ends here
 
-  // ================= LOGIN =================
+// comment ==> 20. Admin Login & Create Admin Views starts from here
   function renderLogin() {
     viewArea.innerHTML = `
       <h2>Admin login</h2>
@@ -940,7 +921,6 @@
     });
   }
 
-  // ================= CREATE ADMIN =================
   function renderCreateAdmin() {
     viewArea.innerHTML = `
       <h2>Create a new admin</h2>
@@ -971,8 +951,28 @@
       }
     });
   }
+// comment ==> 20. Admin Login & Create Admin Views ends here
 
-  // ================= ADMIN LIST =================
+// comment ==> 21. Admin Management & Reset Records starts from here
+  async function refreshAdminList() {
+    const snap = await getDocs(collection(db, "admins"));
+    const body = document.getElementById("adminBody");
+    body.innerHTML = "";
+    snap.forEach(d => {
+      const a = d.data();
+      const active = a.active !== false;
+      const row = document.createElement("tr");
+      row.innerHTML = "<td>" + a.username + (a.isMaster ? " (master)" : "") + "</td><td>" + (active ? "Active" : "Deleted") + "</td><td></td>";
+      if (!a.isMaster) {
+        const btn = document.createElement("button");
+        btn.textContent = active ? "Delete" : "Restore";
+        btn.addEventListener("click", async () => { await updateDoc(doc(db, "admins", d.id), { active: !active }); refreshAdminList(); });
+        row.children[2].appendChild(btn);
+      }
+      body.appendChild(row);
+    });
+  }
+
   async function renderAdminList() {
     viewArea.innerHTML = `
       <h2>All admins</h2>
@@ -1044,77 +1044,6 @@
         statusEl.textContent = "Failed: " + e.message;
       }
     });
-  }
-
-  async function renderMusicSetting() {
-    const input = document.getElementById("musicUrlInput");
-    try {
-      const snap = await getDoc(doc(db, "settings", "music"));
-      if (snap.exists() && snap.data().url) input.value = snap.data().url;
-    } catch (e) { /* ignore */ }
-    document.getElementById("saveMusicBtn").addEventListener("click", async () => {
-      const statusEl = document.getElementById("musicSettingStatus");
-      const url = input.value.trim();
-      try {
-        await setDoc(doc(db, "settings", "music"), { url: url || null, updatedAt: Date.now() });
-        await loadMusic();
-        statusEl.textContent = url ? "Music saved and live for everyone." : "Music removed.";
-      } catch (e) {
-        statusEl.textContent = "Failed: " + e.message;
-      }
-    });
-  }
-
-  async function renderThemePicker() {
-    const area = document.getElementById("themeOptions");
-    const current = document.documentElement.getAttribute("data-theme") || "matchday";
-    area.innerHTML = "";
-    THEMES.forEach(t => {
-      const btn = document.createElement("button");
-      btn.className = "option-btn" + (t.key === current ? " selected" : "");
-      btn.textContent = t.label;
-      btn.addEventListener("click", async () => {
-        const statusEl = document.getElementById("themeStatus");
-        try {
-          await setDoc(doc(db, "settings", "theme"), { current: t.key, updatedAt: Date.now() });
-          document.documentElement.setAttribute("data-theme", t.key);
-          [...area.children].forEach(b => b.classList.remove("selected"));
-          btn.classList.add("selected");
-          statusEl.textContent = t.label + " is now live for everyone.";
-        } catch (e) {
-          statusEl.textContent = "Failed: " + e.message;
-        }
-      });
-      area.appendChild(btn);
-    });
-  }
-
-  async function deleteCompletedTournament(tid, data) {
-    await deleteDoc(doc(db, "tournaments", tid));
-    try { await deleteDoc(doc(db, "resultsTable", tid)); } catch (e) { /* may not exist */ }
-
-    const champKey = data.format + "_" + (data.subMode || "none");
-    const champSnap = await getDoc(doc(db, "champions", champKey));
-    if (champSnap.exists() && champSnap.data().tournamentName === data.name) {
-      const remainingQuery = data.subMode
-        ? query(collection(db, "resultsTable"), where("format", "==", data.format), where("subMode", "==", data.subMode))
-        : query(collection(db, "resultsTable"), where("format", "==", data.format));
-      const remainingSnap = await getDocs(remainingQuery);
-      let latest = null;
-      remainingSnap.forEach(d => {
-        const r = d.data();
-        if (!data.subMode && r.subMode) return;
-        if (!latest || (r.completedAt || 0) > (latest.completedAt || 0)) latest = r;
-      });
-      if (latest) {
-        await setDoc(doc(db, "champions", champKey), { tournamentName: latest.tournamentName, winner: latest.winner, runnerUp: latest.runnerUp, updatedAt: Date.now() });
-      } else {
-        try { await deleteDoc(doc(db, "champions", champKey)); } catch (e) { /* may not exist */ }
-      }
-    }
-
-    await recalculateAllStats();
-    tournamentRecordsCache = null;
   }
 
   async function recalculateAllStats() {
@@ -1262,26 +1191,16 @@
     await loadPool();
     tournamentRecordsCache = null;
   }
-  async function refreshAdminList() {
-    const snap = await getDocs(collection(db, "admins"));
-    const body = document.getElementById("adminBody");
-    body.innerHTML = "";
-    snap.forEach(d => {
-      const a = d.data();
-      const active = a.active !== false;
-      const row = document.createElement("tr");
-      row.innerHTML = "<td>" + a.username + (a.isMaster ? " (master)" : "") + "</td><td>" + (active ? "Active" : "Deleted") + "</td><td></td>";
-      if (!a.isMaster) {
-        const btn = document.createElement("button");
-        btn.textContent = active ? "Delete" : "Restore";
-        btn.addEventListener("click", async () => { await updateDoc(doc(db, "admins", d.id), { active: !active }); refreshAdminList(); });
-        row.children[2].appendChild(btn);
-      }
-      body.appendChild(row);
-    });
+// comment ==> 21. Admin Management & Reset Records ends here
+
+// comment ==> 22. Player Pool Management starts from here
+  async function loadPool() {
+    const snap = await getDocs(collection(db, "players"));
+    poolPlayers = [];
+    snap.forEach(d => poolPlayers.push({ id: d.id, ...d.data() }));
+    poolPlayers.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   }
 
-  // ================= PLAYER POOL =================
   function renderPlayerPool() {
     viewArea.innerHTML = `
       <h2>Player pool</h2>
@@ -1315,6 +1234,7 @@
     }
     refreshPlayerTable();
   }
+
   function refreshPlayerTable() {
     const body = document.getElementById("playerBody");
     body.innerHTML = "";
@@ -1385,8 +1305,9 @@
     actionsCell.appendChild(saveBtn);
     actionsCell.appendChild(cancelBtn);
   }
+// comment ==> 22. Player Pool Management ends here
 
-  // ================= CREATE TOURNAMENT =================
+// comment ==> 23. Tournament Creation Wizard starts from here
   let sel = { format: null, subMode: null, teamSize: null, time: null, usePenalties: true };
   let singleParticipants = [];
   let regularTeams = [[], []];
@@ -1706,97 +1627,6 @@
     });
   }
 
-  function num2(v) { return v || 0; }
-
-  async function getRecentFormResults(playerId) {
-    const tournamentsSnap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "single"), where("status", "==", "completed")));
-    const tournaments = [];
-    tournamentsSnap.forEach(d => tournaments.push(d.data()));
-    tournaments.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-    const results = [];
-    tournaments.forEach(data => {
-      let matchList = [];
-      if (data.finalScore) matchList.push({ sideA: data.participants[0].name, sideB: data.participants[1].name, scoreA: data.finalScore.side1, scoreB: data.finalScore.side2 });
-      if (data.matches) matchList = matchList.concat(data.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
-      if (data.knockout) data.knockout.stages.forEach(stage => { matchList = matchList.concat(stage.matches.filter(m => m.scoreA !== null && m.scoreB !== null)); });
-      matchList.forEach(m => {
-        const refA = sideRef(data, m.sideA)[0], refB = sideRef(data, m.sideB)[0];
-        let mine = null, opp = null;
-        if (refA && refA.id === playerId) { mine = m.scoreA; opp = m.scoreB; }
-        else if (refB && refB.id === playerId) { mine = m.scoreB; opp = m.scoreA; }
-        else return;
-        results.push(mine > opp ? "W" : mine < opp ? "L" : "D");
-      });
-    });
-    return results.slice(-5);
-  }
-
-  async function computePlayerRating(participant) {
-    if (participant.type !== "pool") return 50;
-    const p = poolPlayers.find(x => x.id === participant.id);
-    if (!p) return 50;
-    const matches = num2(p.singleMatchesPlayed);
-    const winRate = matches > 0 ? num2(p.singleWins) / matches : 0.5;
-    const goalDiffPerMatch = matches > 0 ? (num2(p.singleGoalsFor) - num2(p.singleGoalsAgainst)) / matches : 0;
-    const tagMatches = num2(p.tagTeamFinalWins) + num2(p.tagTeamFinalLosses);
-    const tagWinRate = tagMatches > 0 ? num2(p.tagTeamFinalWins) / tagMatches : 0.5;
-    const form = await getRecentFormResults(p.id);
-    const formScore = form.reduce((sum, r) => sum + (r === "W" ? 2 : r === "L" ? -1 : 0), 0);
-    return winRate * 60 + goalDiffPerMatch * 5 + tagWinRate * 25 + formScore * 3;
-  }
-
-  async function autoBalanceTeams(participants) {
-    const rated = [];
-    for (const p of participants) {
-      const rating = await computePlayerRating(p);
-      rated.push({ ...p, rating });
-    }
-    rated.sort((a, b) => b.rating - a.rating);
-    const pairs = [];
-    let i = 0, j = rated.length - 1;
-    while (i < j) { pairs.push([rated[i], rated[j]]); i++; j--; }
-    return pairs.map(pair => ({ members: pair.map(m => ({ type: m.type, id: m.id, name: m.name })), teamName: pair.map(m => m.name).join(" & ") }));
-  }
-
-  async function runAutoBalance() {
-    const resultDiv = document.getElementById("multiTeamsResult");
-    resultDiv.innerHTML = "<p class='status-msg'>Calculating balanced teams from stats and recent form...</p>";
-    const teams = await autoBalanceTeams(multiParticipants);
-    multiTeams = teams.map(t => t.members);
-    resultDiv.innerHTML = `<p style="font-size:12px;color:var(--text-muted);">Paired strongest with weakest by a rating based on win rate, goal difference, tag-team record, and recent form — so total strength is spread evenly across teams.</p><div class="teams-grid" id="autoTeamsPreview"></div><button id="switchManualBtn" style="margin-top:8px;">Switch to manual instead</button>`;
-    const grid = document.getElementById("autoTeamsPreview");
-    teams.forEach((t, i) => {
-      const box = document.createElement("div"); box.className = "card";
-      box.innerHTML = "<h3>Team " + (i + 1) + "</h3>" + t.members.map(m => m.name + (m.type === "guest" ? " (guest)" : "")).join("<br>");
-      grid.appendChild(box);
-    });
-    document.getElementById("switchManualBtn").addEventListener("click", buildManualMultiTeams);
-    maybeShowBracketConfig();
-  }
-
-  function randomAssignTeams(participants) {
-    const shuffled = fairShuffle(participants);
-    const pairs = [];
-    for (let i = 0; i < shuffled.length; i += 2) pairs.push([shuffled[i], shuffled[i + 1]]);
-    return pairs.map(pair => ({ members: pair.map(m => ({ type: m.type, id: m.id, name: m.name })), teamName: pair.map(m => m.name).join(" & ") }));
-  }
-
-  function runRandomAssign() {
-    const resultDiv = document.getElementById("multiTeamsResult");
-    const teams = randomAssignTeams(multiParticipants);
-    multiTeams = teams.map(t => t.members);
-    resultDiv.innerHTML = `<p style="font-size:12px;color:var(--text-muted);">Pure luck of the draw — shuffled and paired with no regard to stats or form, like a lucky draw.</p><div class="teams-grid" id="randomTeamsPreview"></div><button id="reshuffleRandomBtn" style="margin-top:8px;">Shuffle again</button> <button id="switchManualBtnRandom" style="margin-top:8px;">Switch to manual instead</button>`;
-    const grid = document.getElementById("randomTeamsPreview");
-    teams.forEach((t, i) => {
-      const box = document.createElement("div"); box.className = "card";
-      box.innerHTML = "<h3>Team " + (i + 1) + "</h3>" + t.members.map(m => m.name + (m.type === "guest" ? " (guest)" : "")).join("<br>");
-      grid.appendChild(box);
-    });
-    document.getElementById("reshuffleRandomBtn").addEventListener("click", runRandomAssign);
-    document.getElementById("switchManualBtnRandom").addEventListener("click", buildManualMultiTeams);
-    maybeShowBracketConfig();
-  }
-
   function renderSingleChips() {
     const list = document.getElementById("singleChips");
     if (!list) return;
@@ -1871,7 +1701,77 @@
     if (sel.format === "single") return singleParticipants.map(p => p.name);
     return multiTeams.filter(t => t.length === 2).map(t => t.map(m => m.name).join(" & "));
   }
+// comment ==> 23. Tournament Creation Wizard ends here
 
+// comment ==> 24. Team Balancing & Random Shuffle Algorithms starts from here
+  async function computePlayerRating(participant) {
+    if (participant.type !== "pool") return 50;
+    const p = poolPlayers.find(x => x.id === participant.id);
+    if (!p) return 50;
+    const matches = num2(p.singleMatchesPlayed);
+    const winRate = matches > 0 ? num2(p.singleWins) / matches : 0.5;
+    const goalDiffPerMatch = matches > 0 ? (num2(p.singleGoalsFor) - num2(p.singleGoalsAgainst)) / matches : 0;
+    const tagMatches = num2(p.tagTeamFinalWins) + num2(p.tagTeamFinalLosses);
+    const tagWinRate = tagMatches > 0 ? num2(p.tagTeamFinalWins) / tagMatches : 0.5;
+    const form = await getRecentFormResults(p.id);
+    const formScore = form.reduce((sum, r) => sum + (r === "W" ? 2 : r === "L" ? -1 : 0), 0);
+    return winRate * 60 + goalDiffPerMatch * 5 + tagWinRate * 25 + formScore * 3;
+  }
+
+  async function autoBalanceTeams(participants) {
+    const rated = [];
+    for (const p of participants) {
+      const rating = await computePlayerRating(p);
+      rated.push({ ...p, rating });
+    }
+    rated.sort((a, b) => b.rating - a.rating);
+    const pairs = [];
+    let i = 0, j = rated.length - 1;
+    while (i < j) { pairs.push([rated[i], rated[j]]); i++; j--; }
+    return pairs.map(pair => ({ members: pair.map(m => ({ type: m.type, id: m.id, name: m.name })), teamName: pair.map(m => m.name).join(" & ") }));
+  }
+
+  async function runAutoBalance() {
+    const resultDiv = document.getElementById("multiTeamsResult");
+    resultDiv.innerHTML = "<p class='status-msg'>Calculating balanced teams from stats and recent form...</p>";
+    const teams = await autoBalanceTeams(multiParticipants);
+    multiTeams = teams.map(t => t.members);
+    resultDiv.innerHTML = `<p style="font-size:12px;color:var(--text-muted);">Paired strongest with weakest by a rating based on win rate, goal difference, tag-team record, and recent form — so total strength is spread evenly across teams.</p><div class="teams-grid" id="autoTeamsPreview"></div><button id="switchManualBtn" style="margin-top:8px;">Switch to manual instead</button>`;
+    const grid = document.getElementById("autoTeamsPreview");
+    teams.forEach((t, i) => {
+      const box = document.createElement("div"); box.className = "card";
+      box.innerHTML = "<h3>Team " + (i + 1) + "</h3>" + t.members.map(m => m.name + (m.type === "guest" ? " (guest)" : "")).join("<br>");
+      grid.appendChild(box);
+    });
+    document.getElementById("switchManualBtn").addEventListener("click", buildManualMultiTeams);
+    maybeShowBracketConfig();
+  }
+
+  function randomAssignTeams(participants) {
+    const shuffled = fairShuffle(participants);
+    const pairs = [];
+    for (let i = 0; i < shuffled.length; i += 2) pairs.push([shuffled[i], shuffled[i + 1]]);
+    return pairs.map(pair => ({ members: pair.map(m => ({ type: m.type, id: m.id, name: m.name })), teamName: pair.map(m => m.name).join(" & ") }));
+  }
+
+  function runRandomAssign() {
+    const resultDiv = document.getElementById("multiTeamsResult");
+    const teams = randomAssignTeams(multiParticipants);
+    multiTeams = teams.map(t => t.members);
+    resultDiv.innerHTML = `<p style="font-size:12px;color:var(--text-muted);">Pure luck of the draw — shuffled and paired with no regard to stats or form, like a lucky draw.</p><div class="teams-grid" id="randomTeamsPreview"></div><button id="reshuffleRandomBtn" style="margin-top:8px;">Shuffle again</button> <button id="switchManualBtnRandom" style="margin-top:8px;">Switch to manual instead</button>`;
+    const grid = document.getElementById("randomTeamsPreview");
+    teams.forEach((t, i) => {
+      const box = document.createElement("div"); box.className = "card";
+      box.innerHTML = "<h3>Team " + (i + 1) + "</h3>" + t.members.map(m => m.name + (m.type === "guest" ? " (guest)" : "")).join("<br>");
+      grid.appendChild(box);
+    });
+    document.getElementById("reshuffleRandomBtn").addEventListener("click", runRandomAssign);
+    document.getElementById("switchManualBtnRandom").addEventListener("click", buildManualMultiTeams);
+    maybeShowBracketConfig();
+  }
+// comment ==> 24. Team Balancing & Random Shuffle Algorithms ends here
+
+// comment ==> 25. Group Stage Config & Tournament Saving starts from here
   function maybeShowBracketConfig() {
     const bracketEl = document.getElementById("bracketConfigStep");
     const count = currentSideCount();
@@ -2032,8 +1932,9 @@
     await addDoc(collection(db, "tournaments"), { ...base, ...extra, bracketStyle, groups: groupsData, matches, status: "in-progress" });
     statusEl.textContent = "Tournament and matches created. Go to Live tournaments to enter scores.";
   }
+// comment ==> 25. Group Stage Config & Tournament Saving ends here
 
-  // ================= LIVE TOURNAMENTS =================
+// comment ==> 26. Live Tournaments Overview starts from here
   async function renderLiveTournaments() {
     viewArea.innerHTML = "<h2>Live tournaments</h2><div id='liveList'>Loading...</div>";
     const list = document.getElementById("liveList");
@@ -2113,7 +2014,9 @@
     if (data.teams) { const t = data.teams.find(x => x.teamName === name); return t ? t.members.map(m => ({ id: m.id, type: m.type })) : []; }
     return [];
   }
+// comment ==> 26. Live Tournaments Overview ends here
 
+// comment ==> 27. Single Match Engine & Result Finalization starts from here
   function renderSimpleMatch(container, tid, data) {
     const nameA = data.teams ? data.teams[0].teamName : data.participants[0].name;
     const nameB = data.teams ? data.teams[1].teamName : data.participants[1].name;
@@ -2224,7 +2127,9 @@
     await loadPool();
     tournamentRecordsCache = null;
   }
+// comment ==> 27. Single Match Engine & Result Finalization ends here
 
+// comment ==> 28. Standings & Group Matches Engine starts from here
   function computeStandings(sideNames, matches, pointsSystem) {
     const pts = pointsSystem || { win: 3, draw: 1, loss: 0 };
     const stats = {};
@@ -2240,6 +2145,18 @@
     });
     Object.values(stats).forEach(s => { s.points = s.wins * pts.win + s.draws * pts.draw + s.losses * pts.loss; });
     return Object.values(stats).sort((a, b) => b.points - a.points || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf);
+  }
+
+  function standingsTable(title, rows) {
+    const wrap = document.createElement("div");
+    wrap.innerHTML = "<h3>" + title + "</h3><table><thead><tr><th>#</th><th>Name</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody></tbody></table>";
+    const tbody = wrap.querySelector("tbody");
+    rows.forEach((r, i) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = "<td>" + (i + 1) + "</td><td>" + renderPlayerBadge(r.name) + "</td><td>" + r.played + "</td><td>" + r.wins + "</td><td>" + (r.draws || 0) + "</td><td>" + r.losses + "</td><td>" + r.gf + "</td><td>" + r.ga + "</td><td>" + (r.gf - r.ga) + "</td><td><strong>" + (r.points ?? "-") + "</strong></td>";
+      tbody.appendChild(tr);
+    });
+    return wrap;
   }
 
   function renderBracketBody(container, tid, data) {
@@ -2333,6 +2250,49 @@
     }
   }
 
+  async function saveGroupMatch(tid, data, idx, container, btn) {
+    const inputA = container.querySelector('input[data-idx="' + idx + '"][data-side="A"]');
+    const inputB = container.querySelector('input[data-idx="' + idx + '"][data-side="B"]');
+    const sA = parseInt(inputA.value, 10), sB = parseInt(inputB.value, 10);
+    if (isNaN(sA) || isNaN(sB) || sA < 0 || sB < 0) { showToast("Enter valid scores.", "error"); if (btn) btn.disabled = false; return; }
+    const wasAlreadyScored = data.matches[idx].scoreA !== null;
+    const prevA = data.matches[idx].scoreA, prevB = data.matches[idx].scoreB;
+    data.matches[idx].scoreA = sA; data.matches[idx].scoreB = sB;
+    try {
+      await updateDoc(doc(db, "tournaments", tid), { matches: data.matches });
+      if (!wasAlreadyScored) {
+        if (data.format === "single") {
+          const refA = sideRef(data, data.matches[idx].sideA)[0], refB = sideRef(data, data.matches[idx].sideB)[0];
+          if (refA && refA.type === "pool") await bump(refA.id, { singleMatchesPlayed: 1, singleGoalsFor: sA, singleGoalsAgainst: sB, singleWins: sA > sB ? 1 : 0, singleDraws: sA === sB ? 1 : 0, singleLosses: sA < sB ? 1 : 0 });
+          if (refB && refB.type === "pool") await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: sB, singleGoalsAgainst: sA, singleWins: sB > sA ? 1 : 0, singleDraws: sA === sB ? 1 : 0, singleLosses: sB < sA ? 1 : 0 });
+          await loadPool();
+        } else if (data.format === "tagteam") {
+          const sideAMembers = sideRef(data, data.matches[idx].sideA), sideBMembers = sideRef(data, data.matches[idx].sideB);
+          for (const m of sideAMembers) { if (m.type === "pool") await bump(m.id, { tagMultiMatchesPlayed: 1, tagMultiWins: sA > sB ? 1 : 0, tagMultiLosses: sA < sB ? 1 : 0 }); }
+          for (const m of sideBMembers) { if (m.type === "pool") await bump(m.id, { tagMultiMatchesPlayed: 1, tagMultiWins: sB > sA ? 1 : 0, tagMultiLosses: sB < sA ? 1 : 0 }); }
+          await loadPool();
+        }
+      }
+      refreshTournamentCard(tid, container);
+    } catch (e) {
+      data.matches[idx].scoreA = prevA; data.matches[idx].scoreB = prevB;
+      if (btn) { btn.disabled = false; }
+      showToast("Couldn't save (connection issue?). Your entered score is still in the box — just click Save/Update again to retry.", "error");
+    }
+  }
+
+  async function refreshTournamentCard(tid, container) {
+    const snap = await getDoc(doc(db, "tournaments", tid));
+    const fresh = snap.data();
+    if (fresh.status === "completed") {
+      container.innerHTML = "<p class='status-msg'>Completed. Winner: <strong>" + fresh.winner + "</strong></p>";
+    } else {
+      renderTournamentBody(container, tid, fresh);
+    }
+  }
+// comment ==> 28. Standings & Group Matches Engine ends here
+
+// comment ==> 29. Knockout Setup Buttons (Top 2 to Final Option) starts from here
   function renderKnockoutSetupButtons(appendTo, tid, data, isChange, outerContainer) {
     const setup = document.createElement("div");
     if (!isChange) setup.className = "card";
@@ -2403,60 +2363,9 @@
     ];
     await updateDoc(doc(db, "tournaments", tid), { knockout: { option: "eliminator", stages } });
   }
+// comment ==> 29. Knockout Setup Buttons (Top 2 to Final Option) ends here
 
-  function standingsTable(title, rows) {
-    const wrap = document.createElement("div");
-    wrap.innerHTML = "<h3>" + title + "</h3><table><thead><tr><th>#</th><th>Name</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody></tbody></table>";
-    const tbody = wrap.querySelector("tbody");
-    rows.forEach((r, i) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = "<td>" + (i + 1) + "</td><td>" + renderPlayerBadge(r.name) + "</td><td>" + r.played + "</td><td>" + r.wins + "</td><td>" + (r.draws || 0) + "</td><td>" + r.losses + "</td><td>" + r.gf + "</td><td>" + r.ga + "</td><td>" + (r.gf - r.ga) + "</td><td><strong>" + (r.points ?? "-") + "</strong></td>";
-      tbody.appendChild(tr);
-    });
-    return wrap;
-  }
-
-  async function saveGroupMatch(tid, data, idx, container, btn) {
-    const inputA = container.querySelector('input[data-idx="' + idx + '"][data-side="A"]');
-    const inputB = container.querySelector('input[data-idx="' + idx + '"][data-side="B"]');
-    const sA = parseInt(inputA.value, 10), sB = parseInt(inputB.value, 10);
-    if (isNaN(sA) || isNaN(sB) || sA < 0 || sB < 0) { showToast("Enter valid scores.", "error"); if (btn) btn.disabled = false; return; }
-    const wasAlreadyScored = data.matches[idx].scoreA !== null;
-    const prevA = data.matches[idx].scoreA, prevB = data.matches[idx].scoreB;
-    data.matches[idx].scoreA = sA; data.matches[idx].scoreB = sB;
-    try {
-      await updateDoc(doc(db, "tournaments", tid), { matches: data.matches });
-      if (!wasAlreadyScored) {
-        if (data.format === "single") {
-          const refA = sideRef(data, data.matches[idx].sideA)[0], refB = sideRef(data, data.matches[idx].sideB)[0];
-          if (refA && refA.type === "pool") await bump(refA.id, { singleMatchesPlayed: 1, singleGoalsFor: sA, singleGoalsAgainst: sB, singleWins: sA > sB ? 1 : 0, singleDraws: sA === sB ? 1 : 0, singleLosses: sA < sB ? 1 : 0 });
-          if (refB && refB.type === "pool") await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: sB, singleGoalsAgainst: sA, singleWins: sB > sA ? 1 : 0, singleDraws: sA === sB ? 1 : 0, singleLosses: sB < sA ? 1 : 0 });
-          await loadPool();
-        } else if (data.format === "tagteam") {
-          const sideAMembers = sideRef(data, data.matches[idx].sideA), sideBMembers = sideRef(data, data.matches[idx].sideB);
-          for (const m of sideAMembers) { if (m.type === "pool") await bump(m.id, { tagMultiMatchesPlayed: 1, tagMultiWins: sA > sB ? 1 : 0, tagMultiLosses: sA < sB ? 1 : 0 }); }
-          for (const m of sideBMembers) { if (m.type === "pool") await bump(m.id, { tagMultiMatchesPlayed: 1, tagMultiWins: sB > sA ? 1 : 0, tagMultiLosses: sB < sA ? 1 : 0 }); }
-          await loadPool();
-        }
-      }
-      refreshTournamentCard(tid, container);
-    } catch (e) {
-      data.matches[idx].scoreA = prevA; data.matches[idx].scoreB = prevB;
-      if (btn) { btn.disabled = false; }
-      showToast("Couldn't save (connection issue?). Your entered score is still in the box — just click Save/Update again to retry.", "error");
-    }
-  }
-
-  async function refreshTournamentCard(tid, container) {
-    const snap = await getDoc(doc(db, "tournaments", tid));
-    const fresh = snap.data();
-    if (fresh.status === "completed") {
-      container.innerHTML = "<p class='status-msg'>Completed. Winner: <strong>" + fresh.winner + "</strong></p>";
-    } else {
-      renderTournamentBody(container, tid, fresh);
-    }
-  }
-
+// comment ==> 30. Knockout Bracket Generation Logic starts from here
   function seedQualifiers(data, option) {
     const grouped = !!data.groups;
     let direct = [], nextTier = [];
@@ -2605,7 +2514,9 @@
     stages.push({ name: "Final", matches: [ { id: "f0", sideA: "TBD", sideB: "TBD", scoreA: null, scoreB: null } ] });
     await updateDoc(doc(db, "tournaments", tid), { knockout: { option, stages } });
   }
+// comment ==> 30. Knockout Bracket Generation Logic ends here
 
+// comment ==> 31. Interactive Knockout Bracket Renderer starts from here
   let justResolvedKnockoutKey = null;
 
   function buildBreadcrumb(stages) {
@@ -2767,7 +2678,9 @@
     panBracketOnce(columns);
     justResolvedKnockoutKey = null;
   }
+// comment ==> 31. Interactive Knockout Bracket Renderer ends here
 
+// comment ==> 32. Knockout Match Score Saver starts from here
   async function saveKnockoutMatch(tid, data, si, mi, container, btn, pensId, penaltiesEnabled) {
     const inputA = container.querySelector('input[data-stage="' + si + '"][data-match="' + mi + '"][data-side="A"]');
     const inputB = container.querySelector('input[data-stage="' + si + '"][data-match="' + mi + '"][data-side="B"]');
@@ -2827,7 +2740,6 @@
         const match2 = data.knockout.stages[1].matches[0];
         if (match2.sideA.toString().startsWith("TBD")) match2.sideA = loserName; else match2.sideB = loserName;
       } else if (isQuarterfinalStage) {
-        // Semifinals paired via prompt
       } else if (si + 1 < data.knockout.stages.length) {
         const nextStage = data.knockout.stages[si + 1];
         const slot = nextStage.matches.find(nm => nm.sideA.toString().startsWith("TBD") || nm.sideB.toString().startsWith("TBD"));
@@ -2868,8 +2780,9 @@
       showToast("Couldn't save (connection issue?). Your entered score is still in the box — just click Save/Update again to retry.", "error");
     }
   }
+// comment ==> 32. Knockout Match Score Saver ends here
 
-  // ================= RECORDS =================
+// comment ==> 33. Records Tabs & Routing starts from here
   let recordsTab = "players";
   let viewingPlayerId = null;
   let viewingTournamentId = null;
@@ -2900,7 +2813,566 @@
     document.querySelectorAll("#recordsTabs button").forEach(b => b.classList.toggle("active", b.dataset.t === recordsTab));
   }
 
-  // ================= RANKINGS (public) =================
+  async function renderRecordsBody() {
+    updateTabHighlight();
+    const body = document.getElementById("recordsBody");
+    if (viewingPlayerId) return renderPlayerProfile(body, viewingPlayerId);
+    if (viewingTournamentId) return renderTournamentDetail(body, viewingTournamentId);
+    if (recordsTab === "players") return renderPlayersList(body);
+    if (recordsTab === "h2h") return renderHeadToHead(body);
+    return renderTournamentRecords(body);
+  }
+// comment ==> 33. Records Tabs & Routing ends here
+
+// comment ==> 34. Tournament Detail View starts from here
+  function computeGoldenBoot(data) {
+    if (data.format !== "single" || !data.participants) return null;
+    const stats = {};
+    data.participants.forEach(p => { stats[p.name] = { goals: 0, matches: 0, gf: 0, ga: 0 }; });
+
+    let matchList = [];
+    if (data.finalScore) matchList.push({ sideA: data.participants[0].name, sideB: data.participants[1].name, scoreA: data.finalScore.side1, scoreB: data.finalScore.side2 });
+    if (data.matches) matchList = matchList.concat(data.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
+    if (data.knockout) data.knockout.stages.forEach(stage => { matchList = matchList.concat(stage.matches.filter(m => m.scoreA !== null && m.scoreB !== null)); });
+
+    matchList.forEach(m => {
+      if (stats[m.sideA]) { stats[m.sideA].goals += m.scoreA; stats[m.sideA].matches++; stats[m.sideA].gf += m.scoreA; stats[m.sideA].ga += m.scoreB; }
+      if (stats[m.sideB]) { stats[m.sideB].goals += m.scoreB; stats[m.sideB].matches++; stats[m.sideB].gf += m.scoreB; stats[m.sideB].ga += m.scoreA; }
+    });
+
+    const entries = Object.entries(stats).map(([name, s]) => ({ name, goals: s.goals, matches: s.matches, gd: s.gf - s.ga }));
+    if (entries.length === 0 || entries.every(e => e.goals === 0)) return null;
+    entries.sort((a, b) => b.goals - a.goals || a.matches - b.matches || b.gd - a.gd);
+    return entries[0];
+  }
+
+  async function renderTournamentDetail(body, tid) {
+    body.innerHTML = "<p>Loading...</p>";
+    const snap = await getDoc(doc(db, "tournaments", tid));
+    if (!snap.exists()) { body.innerHTML = "<button id='backToTournaments'>&larr; Back</button><p>Tournament not found.</p>"; document.getElementById("backToTournaments").addEventListener("click", () => { viewingTournamentId = null; renderRecordsBody(); }); return; }
+    const data = snap.data();
+
+    let html = "<button id='backToTournaments'>&larr; Back to tournaments</button><h2>" + data.name + "</h2>";
+    if (data.winner) html += "<p class='status-msg'>Champion: <strong style='color:var(--accent);'>" + data.winner + "</strong> &middot; Runner-up: " + data.runnerUp + "</p>";
+    const goldenBoot = computeGoldenBoot(data);
+    if (goldenBoot) html += "<p class='status-msg'>&#9917; Golden Boot: <strong style='color:var(--accent);'>" + goldenBoot.name + "</strong> (" + goldenBoot.goals + " goal" + (goldenBoot.goals === 1 ? "" : "s") + ")</p>";
+    if (currentAdmin && currentAdmin.isMaster) {
+      html += `
+        <div class="card">
+          <label>Tournament name</label>
+          <input type="text" id="renameInput" value="${data.name}">
+          <br><button class="primary" id="renameBtn">Save name</button>
+          <p class="status-msg" id="renameStatus"></p>
+        </div>
+        <div class="card" style="border:1px solid #e0a0a0;">
+          <h3 class="warn">Delete this tournament</h3>
+          <p style="font-size:12px;color:var(--text-muted);">Permanently removes this tournament and its results, and recalculates every player's stats so nothing it contributed (goals, wins, championships, tag-team results) is left behind. This cannot be undone.</p>
+          <button id="deleteTournamentBtn" style="background:#a33; color:white; border-color:#a33;">Delete tournament</button>
+          <p class="status-msg" id="deleteTournamentStatus"></p>
+        </div>
+      `;
+    }
+    body.innerHTML = html;
+    document.getElementById("backToTournaments").addEventListener("click", () => { viewingTournamentId = null; renderRecordsBody(); });
+
+    if (currentAdmin && currentAdmin.isMaster) {
+      document.getElementById("renameBtn").addEventListener("click", async () => {
+        const statusEl = document.getElementById("renameStatus");
+        const newName = document.getElementById("renameInput").value.trim();
+        if (!newName) { statusEl.textContent = "Name can't be empty."; return; }
+        try {
+          await updateDoc(doc(db, "tournaments", tid), { name: newName });
+          await updateDoc(doc(db, "resultsTable", tid), { tournamentName: newName });
+          const champKey = data.format + "_" + (data.subMode || "none");
+          const champSnap = await getDoc(doc(db, "champions", champKey));
+          if (champSnap.exists() && champSnap.data().tournamentName === data.name) {
+            await updateDoc(doc(db, "champions", champKey), { tournamentName: newName });
+          }
+          statusEl.textContent = "Renamed.";
+          tournamentRecordsCache = null;
+          renderTournamentDetail(body, tid);
+        } catch (e) {
+          statusEl.textContent = "Failed: " + e.message;
+        }
+      });
+
+      document.getElementById("deleteTournamentBtn").addEventListener("click", async () => {
+        const statusEl = document.getElementById("deleteTournamentStatus");
+        if (!confirm("Permanently delete \"" + data.name + "\"? All its stats (goals, wins, championships, etc.) will be removed from every player. This cannot be undone.")) return;
+        statusEl.textContent = "Deleting and recalculating stats...";
+        try {
+          await deleteCompletedTournament(tid, data);
+          statusEl.textContent = "Deleted.";
+          viewingTournamentId = null;
+          renderRecordsBody();
+        } catch (e) {
+          statusEl.textContent = "Failed: " + e.message;
+        }
+      });
+    }
+
+    const contentDiv = document.createElement("div");
+    body.appendChild(contentDiv);
+
+    const hasGroupInfo = !!(data.groups || data.matches);
+    if (hasGroupInfo) {
+      if (data.groups) {
+        data.groups.forEach((g, gi) => contentDiv.appendChild(standingsTable("Group " + (gi + 1), computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi), data.pointsSystem))));
+      } else if (data.matches) {
+        const allNames = [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
+        contentDiv.appendChild(standingsTable("Standings", computeStandings(allNames, data.matches, data.pointsSystem)));
+      }
+
+      const matchListDiv = document.createElement("div");
+      matchListDiv.style.display = "none";
+      matchListDiv.innerHTML = "<h3>Group / round-robin matches</h3>";
+      data.matches.forEach(m => {
+        const row = document.createElement("div");
+        row.className = "match-row";
+        const scoreText = (m.scoreA !== null && m.scoreB !== null) ? (m.scoreA + " - " + m.scoreB) : "vs";
+        row.innerHTML = `<span class="name">${renderPlayerBadge(m.sideA)}</span><span>${scoreText}</span><span class="name">${renderPlayerBadge(m.sideB)}</span>`;
+        matchListDiv.appendChild(row);
+      });
+
+      const toggleBtn = document.createElement("button");
+      toggleBtn.textContent = "Show group stage matches";
+      toggleBtn.style.marginTop = "6px";
+      toggleBtn.addEventListener("click", () => {
+        const showing = matchListDiv.style.display !== "none";
+        matchListDiv.style.display = showing ? "none" : "block";
+        toggleBtn.textContent = showing ? "Show group stage matches" : "Hide group stage matches";
+      });
+      contentDiv.appendChild(toggleBtn);
+      contentDiv.appendChild(matchListDiv);
+    }
+
+    if (data.knockout) {
+      renderKnockoutReadOnly(contentDiv, data);
+    } else if (data.finalScore) {
+      const nameA = data.teams ? data.teams[0].teamName : data.participants[0].name;
+      const nameB = data.teams ? data.teams[1].teamName : data.participants[1].name;
+      const box = document.createElement("div");
+      box.className = "match-row";
+      const penText = data.finalScore.penalty1 !== undefined ? " (" + data.finalScore.penalty1 + "-" + data.finalScore.penalty2 + " pens)" : "";
+      box.innerHTML = `<span class="name">${renderPlayerBadge(nameA)}</span><span>${data.finalScore.side1} - ${data.finalScore.side2}${penText}</span><span class="name">${renderPlayerBadge(nameB)}</span>`;
+      contentDiv.appendChild(box);
+    }
+  }
+
+  function animateNumber(el, to, duration) {
+    if (!el) return;
+    duration = duration || 600;
+    const start = performance.now();
+    function step(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      el.textContent = Math.round(progress * to);
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function renderKnockoutReadOnly(container, data) {
+    const wrap = document.createElement("div");
+    wrap.innerHTML = "<h3>Knockout stage</h3>";
+    wrap.appendChild(buildBreadcrumb(data.knockout.stages));
+    const columns = document.createElement("div");
+    columns.className = "bracket-columns";
+    data.knockout.stages.forEach((stage, si) => {
+      const isFinalStage = si === data.knockout.stages.length - 1;
+      const col = document.createElement("div");
+      col.className = "bracket-col" + (isFinalStage ? " bracket-final" : "");
+      const prevStageDone = si === 0 || data.knockout.stages[si - 1].matches.every(m => m.scoreA !== null);
+      if (si > 0 && prevStageDone) col.classList.add("connector-lit");
+      col.innerHTML = "<h4>" + stage.name + "</h4>";
+      stage.matches.forEach(m => {
+        const decided = m.scoreA !== null && m.scoreB !== null;
+        const wentToPens = decided && m.scoreA === m.scoreB;
+        const aWon = decided && (wentToPens ? m.penaltyA > m.penaltyB : m.scoreA > m.scoreB);
+        const bWon = decided && (wentToPens ? m.penaltyB > m.penaltyA : m.scoreB > m.scoreA);
+        const isChampionBox = isFinalStage && decided;
+        const box = document.createElement("div");
+        box.className = "bracket-match" + (isChampionBox ? " champion-box" : "");
+        box.dataset.sideA = m.sideA; box.dataset.sideB = m.sideB;
+        box.innerHTML =
+          (isChampionBox ? `<div class="champion-crown">&#128081;</div>` : "") +
+          `<div class="side${aWon ? " winner-side" : ""}">${renderPlayerBadge(m.sideA, true)}<span class="count-up" data-final="${decided ? m.scoreA : ""}">${decided ? "" : ""}</span></div>` +
+          `<div class="side${bWon ? " winner-side" : ""}">${renderPlayerBadge(m.sideB, true)}<span class="count-up" data-final="${decided ? m.scoreB : ""}">${decided ? "" : ""}</span></div>` +
+          (wentToPens ? `<div style="font-size:10px; text-align:center; color:var(--text-muted);">${m.penaltyA}-${m.penaltyB} pens</div>` : "");
+        col.appendChild(box);
+        if (decided) {
+          box.querySelectorAll(".count-up").forEach(el => animateNumber(el, parseInt(el.dataset.final, 10)));
+        }
+      });
+      columns.appendChild(col);
+    });
+    wrap.appendChild(columns);
+    container.appendChild(wrap);
+    attachNameClickHandlers(wrap);
+    panBracketOnce(columns);
+  }
+
+  async function deleteCompletedTournament(tid, data) {
+    await deleteDoc(doc(db, "tournaments", tid));
+    try { await deleteDoc(doc(db, "resultsTable", tid)); } catch (e) {}
+
+    const champKey = data.format + "_" + (data.subMode || "none");
+    const champSnap = await getDoc(doc(db, "champions", champKey));
+    if (champSnap.exists() && champSnap.data().tournamentName === data.name) {
+      const remainingQuery = data.subMode
+        ? query(collection(db, "resultsTable"), where("format", "==", data.format), where("subMode", "==", data.subMode))
+        : query(collection(db, "resultsTable"), where("format", "==", data.format));
+      const remainingSnap = await getDocs(remainingQuery);
+      let latest = null;
+      remainingSnap.forEach(d => {
+        const r = d.data();
+        if (!data.subMode && r.subMode) return;
+        if (!latest || (r.completedAt || 0) > (latest.completedAt || 0)) latest = r;
+      });
+      if (latest) {
+        await setDoc(doc(db, "champions", champKey), { tournamentName: latest.tournamentName, winner: latest.winner, runnerUp: latest.runnerUp, updatedAt: Date.now() });
+      } else {
+        try { await deleteDoc(doc(db, "champions", champKey)); } catch (e) {}
+      }
+    }
+
+    await recalculateAllStats();
+    tournamentRecordsCache = null;
+  }
+// comment ==> 34. Tournament Detail View ends here
+
+// comment ==> 35. Head-to-Head Comparison Engine starts from here
+  function renderHeadToHead(body) {
+    body.innerHTML = `
+      <p style="font-size:12px;color:var(--text-muted);">Counts every single player tournament that appears in the Tournaments tab.</p>
+      <label>Player A</label>
+      <select id="h2hPlayerA"><option value="">-- choose --</option></select>
+      <label>Player B</label>
+      <select id="h2hPlayerB"><option value="">-- choose --</option></select>
+      <button class="primary" id="h2hCompareBtn">Compare</button>
+      <div id="h2hResult"></div>
+    `;
+    const selA = document.getElementById("h2hPlayerA");
+    const selB = document.getElementById("h2hPlayerB");
+    poolPlayers.forEach(p => {
+      selA.innerHTML += "<option value='" + p.id + "'>" + p.name + "</option>";
+      selB.innerHTML += "<option value='" + p.id + "'>" + p.name + "</option>";
+    });
+    document.getElementById("h2hCompareBtn").addEventListener("click", async () => {
+      const idA = selA.value, idB = selB.value;
+      const resultDiv = document.getElementById("h2hResult");
+      if (!idA || !idB || idA === idB) { resultDiv.innerHTML = "<p class='status-msg'>Pick two different players.</p>"; return; }
+      resultDiv.innerHTML = "<p class='status-msg'>Loading...</p>";
+      const stats = await computeHeadToHead(idA, idB);
+      const nameA = poolPlayers.find(p => p.id === idA).name;
+      const nameB = poolPlayers.find(p => p.id === idB).name;
+      if (stats.matches === 0) {
+        resultDiv.innerHTML = "<p class='status-msg'>" + nameA + " and " + nameB + " haven't played each other yet.</p>";
+        return;
+      }
+      resultDiv.innerHTML = `
+        <div class="stat-grid">
+          <div class="stat-card"><div class="label">Matches played</div><div class="value">${stats.matches}</div></div>
+          <div class="stat-card"><div class="label">${nameA} wins</div><div class="value">${stats.winsA}</div></div>
+          <div class="stat-card"><div class="label">${nameB} wins</div><div class="value">${stats.winsB}</div></div>
+          <div class="stat-card"><div class="label">Goals ${nameA} scored</div><div class="value">${stats.goalsA}</div></div>
+          <div class="stat-card"><div class="label">Goals ${nameB} scored</div><div class="value">${stats.goalsB}</div></div>
+        </div>
+      `;
+    });
+  }
+
+  async function computeHeadToHead(idA, idB) {
+    const resultsSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "single")));
+    const stats = { matches: 0, winsA: 0, winsB: 0, goalsA: 0, goalsB: 0 };
+
+    for (const resultDoc of resultsSnap.docs) {
+      const tSnap = await getDoc(doc(db, "tournaments", resultDoc.id));
+      if (!tSnap.exists()) continue;
+      const data = tSnap.data();
+
+      let matchList = [];
+      if (data.finalScore) matchList.push({ sideA: data.participants[0].name, sideB: data.participants[1].name, scoreA: data.finalScore.side1, scoreB: data.finalScore.side2 });
+      if (data.matches) matchList = matchList.concat(data.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
+      if (data.knockout) data.knockout.stages.forEach(stage => { matchList = matchList.concat(stage.matches.filter(m => m.scoreA !== null && m.scoreB !== null)); });
+
+      matchList.forEach(m => {
+        const refA = sideRef(data, m.sideA)[0], refB = sideRef(data, m.sideB)[0];
+        if (!refA || !refB) return;
+        let sA, sB;
+        if (refA.id === idA && refB.id === idB) { sA = m.scoreA; sB = m.scoreB; }
+        else if (refA.id === idB && refB.id === idA) { sA = m.scoreB; sB = m.scoreA; }
+        else return;
+        stats.matches++;
+        stats.goalsA += sA; stats.goalsB += sB;
+        if (sA > sB) stats.winsA++; else if (sB > sA) stats.winsB++;
+      });
+    }
+    return stats;
+  }
+// comment ==> 35. Head-to-Head Comparison Engine ends here
+
+// comment ==> 36. Player Profile & Recent Form starts from here
+  function renderPlayersList(body) {
+    body.innerHTML = "<div id='playersListInner'></div>";
+    const inner = document.getElementById("playersListInner");
+    poolPlayers.forEach(p => {
+      const row = document.createElement("div");
+      row.style.padding = "6px 0";
+      row.style.display = "flex";
+      row.style.alignItems = "center";
+      row.style.gap = "8px";
+
+      const imgHtml = p.imageUrl
+        ? `<img src="${convertImageUrl(p.imageUrl)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid var(--accent);">`
+        : `<div style="width:28px;height:28px;border-radius:50%;background:var(--bg-surface-alt);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;">${p.name.slice(0, 1)}</div>`;
+
+      const btn = document.createElement("button");
+      btn.className = "player-name-link";
+      btn.textContent = p.name;
+      btn.addEventListener("click", () => { viewingPlayerId = p.id; renderRecordsBody(); });
+
+      row.innerHTML = imgHtml;
+      row.appendChild(btn);
+      inner.appendChild(row);
+    });
+  }
+
+  function renderPlayerProfile(body, playerId) {
+    const p = poolPlayers.find(x => x.id === playerId);
+    if (!p) { body.innerHTML = "<p>Player not found.</p>"; return; }
+    const matches = num(p.singleMatchesPlayed), wins = num(p.singleWins);
+    const winPct = matches > 0 ? Math.round((wins / matches) * 100) : 0;
+
+    const multiMatches = num(p.tagMultiMatchesPlayed), multiWins = num(p.tagMultiWins);
+    const multiWinPct = multiMatches > 0 ? Math.round((multiWins / multiMatches) * 100) : 0;
+
+    const regMatches = num(p.tagRegularTournamentsPlayed), regWins = num(p.tagRegularChampionships);
+    const regWinPct = regMatches > 0 ? Math.round((regWins / regMatches) * 100) : 0;
+
+    const headerAvatar = p.imageUrl
+      ? `<img src="${convertImageUrl(p.imageUrl)}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);box-shadow:0 3px 10px rgba(0,0,0,0.25);margin-bottom:8px;">`
+      : `<div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg, var(--bg-surface-alt), var(--accent));border:2px solid var(--border-strong);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:bold;color:var(--accent-contrast);margin-bottom:8px;">${p.name.slice(0,1)}</div>`;
+
+    body.innerHTML = `
+      <button id="backToPlayers">&larr; Back to players</button>
+      <div style="display:flex; flex-direction:column; align-items:center; margin-top:10px;">
+        ${headerAvatar}
+        <h2 style="margin-top:2px;">${p.name}</h2>
+      </div>
+      <h3>Recent form</h3>
+      <div id="recentFormRow" style="display:flex; gap:6px;"><span class="status-msg">Loading...</span></div>
+      <h3>Tournament participation</h3>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="label">Single player tournaments</div><div class="value">${num(p.singleTournamentsPlayed)}</div></div>
+        <div class="stat-card"><div class="label">Single player championships</div><div class="value">${num(p.singleChampionships)}</div></div>
+        <div class="stat-card"><div class="label">Single player runner-ups</div><div class="value">${num(p.singleRunnerUps)}</div></div>
+        <div class="stat-card"><div class="label">Tag-team regular tournaments</div><div class="value">${num(p.tagRegularTournamentsPlayed)}</div></div>
+        <div class="stat-card"><div class="label">Tag-team regular championships</div><div class="value">${num(p.tagRegularChampionships)}</div></div>
+        <div class="stat-card"><div class="label">Tag-team regular runner-ups</div><div class="value">${num(p.tagRegularRunnerUps)}</div></div>
+        <div class="stat-card"><div class="label">Tag-team multi tournaments</div><div class="value">${num(p.tagMultiTournamentsPlayed)}</div></div>
+        <div class="stat-card"><div class="label">Tag-team multi championships</div><div class="value">${num(p.tagMultiChampionships)}</div></div>
+        <div class="stat-card"><div class="label">Tag-team multi runner-ups</div><div class="value">${num(p.tagMultiRunnerUps)}</div></div>
+      </div>
+      <h3>Single player match stats</h3>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="label">Matches played</div><div class="value">${matches}</div></div>
+        <div class="stat-card"><div class="label">Win %</div><div class="value">${winPct}%</div></div>
+        <div class="stat-card"><div class="label">Wins</div><div class="value">${num(p.singleWins)}</div></div>
+        <div class="stat-card"><div class="label">Losses</div><div class="value">${num(p.singleLosses)}</div></div>
+        <div class="stat-card"><div class="label">Goals scored</div><div class="value">${num(p.singleGoalsFor)}</div></div>
+        <div class="stat-card"><div class="label">Goals against</div><div class="value">${num(p.singleGoalsAgainst)}</div></div>
+      </div>
+      <h3>Tag-team multi controller match stats</h3>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="label">Matches played</div><div class="value">${multiMatches}</div></div>
+        <div class="stat-card"><div class="label">Win %</div><div class="value">${multiWinPct}%</div></div>
+        <div class="stat-card"><div class="label">Wins</div><div class="value">${num(p.tagMultiWins)}</div></div>
+        <div class="stat-card"><div class="label">Losses</div><div class="value">${num(p.tagMultiLosses)}</div></div>
+      </div>
+      <h3>Tag-team regular controller matches</h3>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="label">Matches played</div><div class="value">${regMatches}</div></div>
+        <div class="stat-card"><div class="label">Win %</div><div class="value">${regWinPct}%</div></div>
+        <div class="stat-card"><div class="label">Wins</div><div class="value">${num(p.tagRegularChampionships)}</div></div>
+        <div class="stat-card"><div class="label">Losses</div><div class="value">${num(p.tagRegularRunnerUps)}</div></div>
+      </div>
+    `;
+    document.getElementById("backToPlayers").addEventListener("click", () => { viewingPlayerId = null; renderRecordsBody(); });
+    loadRecentForm(playerId);
+  }
+
+  async function loadRecentForm(playerId) {
+    const row = document.getElementById("recentFormRow");
+    const tournamentsSnap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "single"), where("status", "==", "completed")));
+    const tournaments = [];
+    tournamentsSnap.forEach(d => tournaments.push(d.data()));
+    tournaments.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+    const results = [];
+    tournaments.forEach(data => {
+      let matchList = [];
+      if (data.finalScore) matchList.push({ sideA: data.participants[0].name, sideB: data.participants[1].name, scoreA: data.finalScore.side1, scoreB: data.finalScore.side2 });
+      if (data.matches) matchList = matchList.concat(data.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
+      if (data.knockout) data.knockout.stages.forEach(stage => { matchList = matchList.concat(stage.matches.filter(m => m.scoreA !== null && m.scoreB !== null)); });
+      matchList.forEach(m => {
+        const refA = sideRef(data, m.sideA)[0], refB = sideRef(data, m.sideB)[0];
+        let mine = null, opp = null;
+        if (refA && refA.id === playerId) { mine = m.scoreA; opp = m.scoreB; }
+        else if (refB && refB.id === playerId) { mine = m.scoreB; opp = m.scoreA; }
+        else return;
+        const result = mine > opp ? "W" : mine < opp ? "L" : "D";
+        results.push({ result });
+      });
+    });
+    const last5 = results.slice(-5);
+    if (!row) return;
+    if (last5.length === 0) { row.innerHTML = "<span class='status-msg'>No single player matches yet.</span>"; return; }
+    const colors = { W: "#2ecc71", L: "#e74c3c", D: "#999" };
+    row.innerHTML = last5.map(r => `<span style="width:26px; height:26px; border-radius:50%; background:${colors[r.result]}; color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold;">${r.result}</span>`).join("");
+  }
+// comment ==> 36. Player Profile & Recent Form ends here
+
+// comment ==> 37. Fun Records & Tournament Archive Cache starts from here
+  async function computeDuoStats() {
+    const tournamentsSnap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "tagteam"), where("status", "==", "completed")));
+    const stats = {};
+    tournamentsSnap.forEach(d => {
+      const data = d.data();
+      if (!data.teams || !data.winner || !data.runnerUp) return;
+      const winTeam = data.teams.find(t => t.teamName === data.winner);
+      const loseTeam = data.teams.find(t => t.teamName === data.runnerUp);
+      if (winTeam && winTeam.members.length === 2) {
+        stats[winTeam.teamName] = stats[winTeam.teamName] || { name: winTeam.teamName, wins: 0, losses: 0 };
+        stats[winTeam.teamName].wins++;
+      }
+      if (loseTeam && loseTeam.members.length === 2) {
+        stats[loseTeam.teamName] = stats[loseTeam.teamName] || { name: loseTeam.teamName, wins: 0, losses: 0 };
+        stats[loseTeam.teamName].losses++;
+      }
+    });
+    let best = null;
+    Object.values(stats).forEach(s => { if (!best || s.wins > best.wins) best = s; });
+    return { best };
+  }
+
+  async function computeFunRecords() {
+    const tournamentsSnap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "single"), where("status", "==", "completed")));
+    let biggestScoring = null, biggestMargin = null;
+    const cleanSheetCounts = {};
+    const goldenBootCounts = {};
+
+    tournamentsSnap.forEach(d => {
+      const data = d.data();
+      let matchList = [];
+      if (data.finalScore) matchList.push({ sideA: data.participants[0].name, sideB: data.participants[1].name, scoreA: data.finalScore.side1, scoreB: data.finalScore.side2 });
+      if (data.matches) matchList = matchList.concat(data.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
+      if (data.knockout) data.knockout.stages.forEach(stage => { matchList = matchList.concat(stage.matches.filter(m => m.scoreA !== null && m.scoreB !== null)); });
+
+      matchList.forEach(m => {
+        const total = m.scoreA + m.scoreB;
+        const margin = Math.abs(m.scoreA - m.scoreB);
+        const entry = { sideA: m.sideA, sideB: m.sideB, scoreA: m.scoreA, scoreB: m.scoreB, tournamentName: data.name };
+        if (!biggestScoring || total > biggestScoring.total) biggestScoring = { ...entry, total };
+        if (margin > 0 && (!biggestMargin || margin > biggestMargin.margin)) biggestMargin = { ...entry, margin };
+        if (m.scoreB === 0) cleanSheetCounts[m.sideA] = (cleanSheetCounts[m.sideA] || 0) + 1;
+        if (m.scoreA === 0) cleanSheetCounts[m.sideB] = (cleanSheetCounts[m.sideB] || 0) + 1;
+      });
+
+      const gb = computeGoldenBoot(data);
+      if (gb) goldenBootCounts[gb.name] = (goldenBootCounts[gb.name] || 0) + 1;
+    });
+
+    let mostCleanSheets = null;
+    Object.entries(cleanSheetCounts).forEach(([name, count]) => {
+      if (!mostCleanSheets || count > mostCleanSheets.count) mostCleanSheets = { name, count };
+    });
+
+    let mostGoldenBoots = null;
+    Object.entries(goldenBootCounts).forEach(([name, count]) => {
+      if (!mostGoldenBoots || count > mostGoldenBoots.count) mostGoldenBoots = { name, count };
+    });
+
+    return { biggestScoring, biggestMargin, mostCleanSheets, mostGoldenBoots };
+  }
+
+  let tournamentRecordsCache = null;
+
+  async function renderTournamentRecords(body, forceRefresh) {
+    if (tournamentRecordsCache && !forceRefresh) {
+      renderTournamentRecordsHtml(body, tournamentRecordsCache);
+      return;
+    }
+    body.innerHTML = "<p>Loading...</p>";
+    try {
+      const resultsSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "single")));
+      let topChampion = null, topRunnerUp = null, topScorer = null, topConceder = null;
+      poolPlayers.forEach(p => {
+        if (!topChampion || num(p.singleChampionships) > num(topChampion.singleChampionships)) topChampion = p;
+        if (!topRunnerUp || num(p.singleRunnerUps) > num(topRunnerUp.singleRunnerUps)) topRunnerUp = p;
+        if (!topScorer || num(p.singleGoalsFor) > num(topScorer.singleGoalsFor)) topScorer = p;
+        if (!topConceder || num(p.singleGoalsAgainst) > num(topConceder.singleGoalsAgainst)) topConceder = p;
+      });
+      const { biggestScoring, biggestMargin, mostCleanSheets, mostGoldenBoots } = await computeFunRecords();
+      const duoStats = await computeDuoStats();
+      const singleList = [];
+      resultsSnap.forEach(d => singleList.push({ id: d.id, ...d.data() }));
+      singleList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
+
+      const regularSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "tagteam"), where("subMode", "==", "regular")));
+      const regularList = []; regularSnap.forEach(d => regularList.push({ id: d.id, ...d.data() }));
+      regularList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
+
+      const multiSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "tagteam"), where("subMode", "==", "multi")));
+      const multiList = []; multiSnap.forEach(d => multiList.push({ id: d.id, ...d.data() }));
+      multiList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
+
+      tournamentRecordsCache = { total: resultsSnap.size, topChampion, topRunnerUp, topScorer, topConceder, biggestScoring, biggestMargin, mostCleanSheets, mostGoldenBoots, duoStats, singleList, regularList, multiList };
+      renderTournamentRecordsHtml(body, tournamentRecordsCache);
+    } catch (e) {
+      body.innerHTML = "<p class='warn'>Failed to load tournament records: " + e.message + "</p>";
+    }
+  }
+
+  function renderTournamentRecordsHtml(body, c) {
+    const rowHtml = (r) => "<tr data-tid='" + r.id + "'><td>" + r.tournamentName + "</td><td>" + renderPlayerBadge(r.winner) + "</td><td>" + renderPlayerBadge(r.runnerUp) + "</td><td><button class='detailsBtn' data-tid='" + r.id + "'>Details</button></td></tr>";
+    body.innerHTML = `
+      <button id="recordsRefreshBtn" style="float:right;">Refresh</button>
+      <h3>Single player</h3>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="label">Total tournaments played</div><div class="value">${c.total}</div></div>
+        <div class="stat-card"><div class="label">Most-time champion</div><div class="value">${c.topChampion && num(c.topChampion.singleChampionships) > 0 ? c.topChampion.name + " (" + c.topChampion.singleChampionships + ")" : "-"}</div></div>
+        <div class="stat-card"><div class="label">Most-time runner-up</div><div class="value">${c.topRunnerUp && num(c.topRunnerUp.singleRunnerUps) > 0 ? c.topRunnerUp.name + " (" + c.topRunnerUp.singleRunnerUps + ")" : "-"}</div></div>
+        <div class="stat-card"><div class="label">Most goals scored</div><div class="value">${c.topScorer && num(c.topScorer.singleGoalsFor) > 0 ? c.topScorer.name + " (" + c.topScorer.singleGoalsFor + ")" : "-"}</div></div>
+        <div class="stat-card"><div class="label">Most goals conceded</div><div class="value">${c.topConceder && num(c.topConceder.singleGoalsAgainst) > 0 ? c.topConceder.name + " (" + c.topConceder.singleGoalsAgainst + ")" : "-"}</div></div>
+        <div class="stat-card"><div class="label">Biggest scoring match</div><div class="value">${c.biggestScoring ? c.biggestScoring.sideA + " " + c.biggestScoring.scoreA + "-" + c.biggestScoring.scoreB + " " + c.biggestScoring.sideB + " (" + c.biggestScoring.total + " goals)" : "-"}</div></div>
+        <div class="stat-card"><div class="label">Biggest win margin</div><div class="value">${c.biggestMargin ? c.biggestMargin.sideA + " " + c.biggestMargin.scoreA + "-" + c.biggestMargin.scoreB + " " + c.biggestMargin.sideB + " (" + c.biggestMargin.margin + ")" : "-"}</div></div>
+        <div class="stat-card"><div class="label">Most clean sheets</div><div class="value">${c.mostCleanSheets ? c.mostCleanSheets.name + " (" + c.mostCleanSheets.count + ")" : "-"}</div></div>
+        <div class="stat-card"><div class="label">Most Golden Boots</div><div class="value">${c.mostGoldenBoots ? c.mostGoldenBoots.name + " (" + c.mostGoldenBoots.count + ")" : "-"}</div></div>
+      </div>
+      <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th><th></th></tr></thead><tbody>${c.singleList.map(rowHtml).join("") || "<tr><td colspan=4>None yet.</td></tr>"}</tbody></table>
+
+      <h3>Tag-team regular controller</h3>
+      <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th><th></th></tr></thead><tbody>${c.regularList.map(rowHtml).join("") || "<tr><td colspan=4>None yet.</td></tr>"}</tbody></table>
+
+      <h3>Tag-team multiple controller</h3>
+      <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th><th></th></tr></thead><tbody>${c.multiList.map(rowHtml).join("") || "<tr><td colspan=4>None yet.</td></tr>"}</tbody></table>
+
+      <h3>Tag-team duos</h3>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="label">Most successful duo</div><div class="value">${c.duoStats.best ? c.duoStats.best.name + " (" + c.duoStats.best.wins + "-time champions)" : "-"}</div></div>
+      </div>
+    `;
+    document.getElementById("recordsRefreshBtn").addEventListener("click", () => { tournamentRecordsCache = null; renderTournamentRecords(body, true); });
+    body.querySelectorAll(".detailsBtn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        viewingTournamentId = btn.dataset.tid;
+        renderRecordsBody();
+      });
+    });
+  }
+// comment ==> 37. Fun Records & Tournament Archive Cache ends here
+
+// comment ==> 38. Rankings & Duo Leaderboard starts from here
   let rankingsTab = "wins";
 
   function renderRankings() {
@@ -3108,528 +3580,7 @@
       "<tr><td>" + (i + 1) + "</td><td>" + renderPlayerBadge(r.name) + "</td><td>" + r.wins + "</td><td>" + r.champion + "</td><td>" + r.runnerUp + "</td><td>" + r.semifinalist + "</td><td>" + r.quarterfinalist + "</td><td><strong>" + r.score + "</strong></td></tr>"
     ).join("");
   }
-
-  async function renderRecordsBody() {
-    updateTabHighlight();
-    const body = document.getElementById("recordsBody");
-    if (viewingPlayerId) return renderPlayerProfile(body, viewingPlayerId);
-    if (viewingTournamentId) return renderTournamentDetail(body, viewingTournamentId);
-    if (recordsTab === "players") return renderPlayersList(body);
-    if (recordsTab === "h2h") return renderHeadToHead(body);
-    return renderTournamentRecords(body);
-  }
-
-  function computeGoldenBoot(data) {
-    if (data.format !== "single" || !data.participants) return null;
-    const stats = {};
-    data.participants.forEach(p => { stats[p.name] = { goals: 0, matches: 0, gf: 0, ga: 0 }; });
-
-    let matchList = [];
-    if (data.finalScore) matchList.push({ sideA: data.participants[0].name, sideB: data.participants[1].name, scoreA: data.finalScore.side1, scoreB: data.finalScore.side2 });
-    if (data.matches) matchList = matchList.concat(data.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
-    if (data.knockout) data.knockout.stages.forEach(stage => { matchList = matchList.concat(stage.matches.filter(m => m.scoreA !== null && m.scoreB !== null)); });
-
-    matchList.forEach(m => {
-      if (stats[m.sideA]) { stats[m.sideA].goals += m.scoreA; stats[m.sideA].matches++; stats[m.sideA].gf += m.scoreA; stats[m.sideA].ga += m.scoreB; }
-      if (stats[m.sideB]) { stats[m.sideB].goals += m.scoreB; stats[m.sideB].matches++; stats[m.sideB].gf += m.scoreB; stats[m.sideB].ga += m.scoreA; }
-    });
-
-    const entries = Object.entries(stats).map(([name, s]) => ({ name, goals: s.goals, matches: s.matches, gd: s.gf - s.ga }));
-    if (entries.length === 0 || entries.every(e => e.goals === 0)) return null;
-    entries.sort((a, b) => b.goals - a.goals || a.matches - b.matches || b.gd - a.gd);
-    return entries[0];
-  }
-
-  async function renderTournamentDetail(body, tid) {
-    body.innerHTML = "<p>Loading...</p>";
-    const snap = await getDoc(doc(db, "tournaments", tid));
-    if (!snap.exists()) { body.innerHTML = "<button id='backToTournaments'>&larr; Back</button><p>Tournament not found.</p>"; document.getElementById("backToTournaments").addEventListener("click", () => { viewingTournamentId = null; renderRecordsBody(); }); return; }
-    const data = snap.data();
-
-    let html = "<button id='backToTournaments'>&larr; Back to tournaments</button><h2>" + data.name + "</h2>";
-    if (data.winner) html += "<p class='status-msg'>Champion: <strong style='color:var(--accent);'>" + data.winner + "</strong> &middot; Runner-up: " + data.runnerUp + "</p>";
-    const goldenBoot = computeGoldenBoot(data);
-    if (goldenBoot) html += "<p class='status-msg'>&#9917; Golden Boot: <strong style='color:var(--accent);'>" + goldenBoot.name + "</strong> (" + goldenBoot.goals + " goal" + (goldenBoot.goals === 1 ? "" : "s") + ")</p>";
-    if (currentAdmin && currentAdmin.isMaster) {
-      html += `
-        <div class="card">
-          <label>Tournament name</label>
-          <input type="text" id="renameInput" value="${data.name}">
-          <br><button class="primary" id="renameBtn">Save name</button>
-          <p class="status-msg" id="renameStatus"></p>
-        </div>
-        <div class="card" style="border:1px solid #e0a0a0;">
-          <h3 class="warn">Delete this tournament</h3>
-          <p style="font-size:12px;color:var(--text-muted);">Permanently removes this tournament and its results, and recalculates every player's stats so nothing it contributed (goals, wins, championships, tag-team results) is left behind. This cannot be undone.</p>
-          <button id="deleteTournamentBtn" style="background:#a33; color:white; border-color:#a33;">Delete tournament</button>
-          <p class="status-msg" id="deleteTournamentStatus"></p>
-        </div>
-      `;
-    }
-    body.innerHTML = html;
-    document.getElementById("backToTournaments").addEventListener("click", () => { viewingTournamentId = null; renderRecordsBody(); });
-
-    if (currentAdmin && currentAdmin.isMaster) {
-      document.getElementById("renameBtn").addEventListener("click", async () => {
-        const statusEl = document.getElementById("renameStatus");
-        const newName = document.getElementById("renameInput").value.trim();
-        if (!newName) { statusEl.textContent = "Name can't be empty."; return; }
-        try {
-          await updateDoc(doc(db, "tournaments", tid), { name: newName });
-          await updateDoc(doc(db, "resultsTable", tid), { tournamentName: newName });
-          const champKey = data.format + "_" + (data.subMode || "none");
-          const champSnap = await getDoc(doc(db, "champions", champKey));
-          if (champSnap.exists() && champSnap.data().tournamentName === data.name) {
-            await updateDoc(doc(db, "champions", champKey), { tournamentName: newName });
-          }
-          statusEl.textContent = "Renamed.";
-          tournamentRecordsCache = null;
-          renderTournamentDetail(body, tid);
-        } catch (e) {
-          statusEl.textContent = "Failed: " + e.message;
-        }
-      });
-
-      document.getElementById("deleteTournamentBtn").addEventListener("click", async () => {
-        const statusEl = document.getElementById("deleteTournamentStatus");
-        if (!confirm("Permanently delete \"" + data.name + "\"? All its stats (goals, wins, championships, etc.) will be removed from every player. This cannot be undone.")) return;
-        statusEl.textContent = "Deleting and recalculating stats...";
-        try {
-          await deleteCompletedTournament(tid, data);
-          statusEl.textContent = "Deleted.";
-          viewingTournamentId = null;
-          renderRecordsBody();
-        } catch (e) {
-          statusEl.textContent = "Failed: " + e.message;
-        }
-      });
-    }
-
-    const contentDiv = document.createElement("div");
-    body.appendChild(contentDiv);
-
-    const hasGroupInfo = !!(data.groups || data.matches);
-    if (hasGroupInfo) {
-      if (data.groups) {
-        data.groups.forEach((g, gi) => contentDiv.appendChild(standingsTable("Group " + (gi + 1), computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi), data.pointsSystem))));
-      } else if (data.matches) {
-        const allNames = [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
-        contentDiv.appendChild(standingsTable("Standings", computeStandings(allNames, data.matches, data.pointsSystem)));
-      }
-
-      const matchListDiv = document.createElement("div");
-      matchListDiv.style.display = "none";
-      matchListDiv.innerHTML = "<h3>Group / round-robin matches</h3>";
-      data.matches.forEach(m => {
-        const row = document.createElement("div");
-        row.className = "match-row";
-        const scoreText = (m.scoreA !== null && m.scoreB !== null) ? (m.scoreA + " - " + m.scoreB) : "vs";
-        row.innerHTML = `<span class="name">${renderPlayerBadge(m.sideA)}</span><span>${scoreText}</span><span class="name">${renderPlayerBadge(m.sideB)}</span>`;
-        matchListDiv.appendChild(row);
-      });
-
-      const toggleBtn = document.createElement("button");
-      toggleBtn.textContent = "Show group stage matches";
-      toggleBtn.style.marginTop = "6px";
-      toggleBtn.addEventListener("click", () => {
-        const showing = matchListDiv.style.display !== "none";
-        matchListDiv.style.display = showing ? "none" : "block";
-        toggleBtn.textContent = showing ? "Show group stage matches" : "Hide group stage matches";
-      });
-      contentDiv.appendChild(toggleBtn);
-      contentDiv.appendChild(matchListDiv);
-    }
-
-    if (data.knockout) {
-      renderKnockoutReadOnly(contentDiv, data);
-    } else if (data.finalScore) {
-      const nameA = data.teams ? data.teams[0].teamName : data.participants[0].name;
-      const nameB = data.teams ? data.teams[1].teamName : data.participants[1].name;
-      const box = document.createElement("div");
-      box.className = "match-row";
-      const penText = data.finalScore.penalty1 !== undefined ? " (" + data.finalScore.penalty1 + "-" + data.finalScore.penalty2 + " pens)" : "";
-      box.innerHTML = `<span class="name">${renderPlayerBadge(nameA)}</span><span>${data.finalScore.side1} - ${data.finalScore.side2}${penText}</span><span class="name">${renderPlayerBadge(nameB)}</span>`;
-      contentDiv.appendChild(box);
-    }
-  }
-
-  function animateNumber(el, to, duration) {
-    if (!el) return;
-    duration = duration || 600;
-    const start = performance.now();
-    function step(now) {
-      const progress = Math.min((now - start) / duration, 1);
-      el.textContent = Math.round(progress * to);
-      if (progress < 1) requestAnimationFrame(step);
-    }
-    requestAnimationFrame(step);
-  }
-
-  function renderKnockoutReadOnly(container, data) {
-    const wrap = document.createElement("div");
-    wrap.innerHTML = "<h3>Knockout stage</h3>";
-    wrap.appendChild(buildBreadcrumb(data.knockout.stages));
-    const columns = document.createElement("div");
-    columns.className = "bracket-columns";
-    data.knockout.stages.forEach((stage, si) => {
-      const isFinalStage = si === data.knockout.stages.length - 1;
-      const col = document.createElement("div");
-      col.className = "bracket-col" + (isFinalStage ? " bracket-final" : "");
-      const prevStageDone = si === 0 || data.knockout.stages[si - 1].matches.every(m => m.scoreA !== null);
-      if (si > 0 && prevStageDone) col.classList.add("connector-lit");
-      col.innerHTML = "<h4>" + stage.name + "</h4>";
-      stage.matches.forEach(m => {
-        const decided = m.scoreA !== null && m.scoreB !== null;
-        const wentToPens = decided && m.scoreA === m.scoreB;
-        const aWon = decided && (wentToPens ? m.penaltyA > m.penaltyB : m.scoreA > m.scoreB);
-        const bWon = decided && (wentToPens ? m.penaltyB > m.penaltyA : m.scoreB > m.scoreA);
-        const isChampionBox = isFinalStage && decided;
-        const box = document.createElement("div");
-        box.className = "bracket-match" + (isChampionBox ? " champion-box" : "");
-        box.dataset.sideA = m.sideA; box.dataset.sideB = m.sideB;
-        box.innerHTML =
-          (isChampionBox ? `<div class="champion-crown">&#128081;</div>` : "") +
-          `<div class="side${aWon ? " winner-side" : ""}">${renderPlayerBadge(m.sideA, true)}<span class="count-up" data-final="${decided ? m.scoreA : ""}">${decided ? "" : ""}</span></div>` +
-          `<div class="side${bWon ? " winner-side" : ""}">${renderPlayerBadge(m.sideB, true)}<span class="count-up" data-final="${decided ? m.scoreB : ""}">${decided ? "" : ""}</span></div>` +
-          (wentToPens ? `<div style="font-size:10px; text-align:center; color:var(--text-muted);">${m.penaltyA}-${m.penaltyB} pens</div>` : "");
-        col.appendChild(box);
-        if (decided) {
-          box.querySelectorAll(".count-up").forEach(el => animateNumber(el, parseInt(el.dataset.final, 10)));
-        }
-      });
-      columns.appendChild(col);
-    });
-    wrap.appendChild(columns);
-    container.appendChild(wrap);
-    attachNameClickHandlers(wrap);
-    panBracketOnce(columns);
-  }
-
-  function renderHeadToHead(body) {
-    body.innerHTML = `
-      <p style="font-size:12px;color:var(--text-muted);">Counts every single player tournament that appears in the Tournaments tab.</p>
-      <label>Player A</label>
-      <select id="h2hPlayerA"><option value="">-- choose --</option></select>
-      <label>Player B</label>
-      <select id="h2hPlayerB"><option value="">-- choose --</option></select>
-      <button class="primary" id="h2hCompareBtn">Compare</button>
-      <div id="h2hResult"></div>
-    `;
-    const selA = document.getElementById("h2hPlayerA");
-    const selB = document.getElementById("h2hPlayerB");
-    poolPlayers.forEach(p => {
-      selA.innerHTML += "<option value='" + p.id + "'>" + p.name + "</option>";
-      selB.innerHTML += "<option value='" + p.id + "'>" + p.name + "</option>";
-    });
-    document.getElementById("h2hCompareBtn").addEventListener("click", async () => {
-      const idA = selA.value, idB = selB.value;
-      const resultDiv = document.getElementById("h2hResult");
-      if (!idA || !idB || idA === idB) { resultDiv.innerHTML = "<p class='status-msg'>Pick two different players.</p>"; return; }
-      resultDiv.innerHTML = "<p class='status-msg'>Loading...</p>";
-      const stats = await computeHeadToHead(idA, idB);
-      const nameA = poolPlayers.find(p => p.id === idA).name;
-      const nameB = poolPlayers.find(p => p.id === idB).name;
-      if (stats.matches === 0) {
-        resultDiv.innerHTML = "<p class='status-msg'>" + nameA + " and " + nameB + " haven't played each other yet.</p>";
-        return;
-      }
-      resultDiv.innerHTML = `
-        <div class="stat-grid">
-          <div class="stat-card"><div class="label">Matches played</div><div class="value">${stats.matches}</div></div>
-          <div class="stat-card"><div class="label">${nameA} wins</div><div class="value">${stats.winsA}</div></div>
-          <div class="stat-card"><div class="label">${nameB} wins</div><div class="value">${stats.winsB}</div></div>
-          <div class="stat-card"><div class="label">Goals ${nameA} scored</div><div class="value">${stats.goalsA}</div></div>
-          <div class="stat-card"><div class="label">Goals ${nameB} scored</div><div class="value">${stats.goalsB}</div></div>
-        </div>
-      `;
-    });
-  }
-
-  async function computeHeadToHead(idA, idB) {
-    const resultsSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "single")));
-    const stats = { matches: 0, winsA: 0, winsB: 0, goalsA: 0, goalsB: 0 };
-
-    for (const resultDoc of resultsSnap.docs) {
-      const tSnap = await getDoc(doc(db, "tournaments", resultDoc.id));
-      if (!tSnap.exists()) continue;
-      const data = tSnap.data();
-
-      let matchList = [];
-      if (data.finalScore) matchList.push({ sideA: data.participants[0].name, sideB: data.participants[1].name, scoreA: data.finalScore.side1, scoreB: data.finalScore.side2 });
-      if (data.matches) matchList = matchList.concat(data.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
-      if (data.knockout) data.knockout.stages.forEach(stage => { matchList = matchList.concat(stage.matches.filter(m => m.scoreA !== null && m.scoreB !== null)); });
-
-      matchList.forEach(m => {
-        const refA = sideRef(data, m.sideA)[0], refB = sideRef(data, m.sideB)[0];
-        if (!refA || !refB) return;
-        let sA, sB;
-        if (refA.id === idA && refB.id === idB) { sA = m.scoreA; sB = m.scoreB; }
-        else if (refA.id === idB && refB.id === idA) { sA = m.scoreB; sB = m.scoreA; }
-        else return;
-        stats.matches++;
-        stats.goalsA += sA; stats.goalsB += sB;
-        if (sA > sB) stats.winsA++; else if (sB > sA) stats.winsB++;
-      });
-    }
-    return stats;
-  }
-
-  function renderPlayersList(body) {
-    body.innerHTML = "<div id='playersListInner'></div>";
-    const inner = document.getElementById("playersListInner");
-    poolPlayers.forEach(p => {
-      const row = document.createElement("div");
-      row.style.padding = "6px 0";
-      row.style.display = "flex";
-      row.style.alignItems = "center";
-      row.style.gap = "8px";
-
-      const imgHtml = p.imageUrl
-        ? `<img src="${convertImageUrl(p.imageUrl)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid var(--accent);">`
-        : `<div style="width:28px;height:28px;border-radius:50%;background:var(--bg-surface-alt);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;">${p.name.slice(0, 1)}</div>`;
-
-      const btn = document.createElement("button");
-      btn.className = "player-name-link";
-      btn.textContent = p.name;
-      btn.addEventListener("click", () => { viewingPlayerId = p.id; renderRecordsBody(); });
-
-      row.innerHTML = imgHtml;
-      row.appendChild(btn);
-      inner.appendChild(row);
-    });
-  }
-
-  function renderPlayerProfile(body, playerId) {
-    const p = poolPlayers.find(x => x.id === playerId);
-    if (!p) { body.innerHTML = "<p>Player not found.</p>"; return; }
-    const matches = num(p.singleMatchesPlayed), wins = num(p.singleWins);
-    const winPct = matches > 0 ? Math.round((wins / matches) * 100) : 0;
-
-    const multiMatches = num(p.tagMultiMatchesPlayed), multiWins = num(p.tagMultiWins);
-    const multiWinPct = multiMatches > 0 ? Math.round((multiWins / multiMatches) * 100) : 0;
-
-    const regMatches = num(p.tagRegularTournamentsPlayed), regWins = num(p.tagRegularChampionships);
-    const regWinPct = regMatches > 0 ? Math.round((regWins / regMatches) * 100) : 0;
-
-    const headerAvatar = p.imageUrl
-      ? `<img src="${convertImageUrl(p.imageUrl)}" style="width:68px;height:68px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);box-shadow:0 3px 10px rgba(0,0,0,0.2);margin-bottom:8px;">`
-      : `<div style="width:68px;height:68px;border-radius:50%;background:var(--bg-surface-alt);border:2px solid var(--border-strong);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:bold;margin-bottom:8px;">${p.name.slice(0,1)}</div>`;
-
-    body.innerHTML = `
-      <button id="backToPlayers">&larr; Back to players</button>
-      <div style="display:flex; flex-direction:column; align-items:center; margin-top:10px;">
-        ${headerAvatar}
-        <h2 style="margin-top:2px;">${p.name}</h2>
-      </div>
-      <h3>Recent form</h3>
-      <div id="recentFormRow" style="display:flex; gap:6px;"><span class="status-msg">Loading...</span></div>
-      <h3>Tournament participation</h3>
-      <div class="stat-grid">
-        <div class="stat-card"><div class="label">Single player tournaments</div><div class="value">${num(p.singleTournamentsPlayed)}</div></div>
-        <div class="stat-card"><div class="label">Single player championships</div><div class="value">${num(p.singleChampionships)}</div></div>
-        <div class="stat-card"><div class="label">Single player runner-ups</div><div class="value">${num(p.singleRunnerUps)}</div></div>
-        <div class="stat-card"><div class="label">Tag-team regular tournaments</div><div class="value">${num(p.tagRegularTournamentsPlayed)}</div></div>
-        <div class="stat-card"><div class="label">Tag-team regular championships</div><div class="value">${num(p.tagRegularChampionships)}</div></div>
-        <div class="stat-card"><div class="label">Tag-team regular runner-ups</div><div class="value">${num(p.tagRegularRunnerUps)}</div></div>
-        <div class="stat-card"><div class="label">Tag-team multi tournaments</div><div class="value">${num(p.tagMultiTournamentsPlayed)}</div></div>
-        <div class="stat-card"><div class="label">Tag-team multi championships</div><div class="value">${num(p.tagMultiChampionships)}</div></div>
-        <div class="stat-card"><div class="label">Tag-team multi runner-ups</div><div class="value">${num(p.tagMultiRunnerUps)}</div></div>
-      </div>
-      <h3>Single player match stats</h3>
-      <div class="stat-grid">
-        <div class="stat-card"><div class="label">Matches played</div><div class="value">${matches}</div></div>
-        <div class="stat-card"><div class="label">Win %</div><div class="value">${winPct}%</div></div>
-        <div class="stat-card"><div class="label">Wins</div><div class="value">${num(p.singleWins)}</div></div>
-        <div class="stat-card"><div class="label">Losses</div><div class="value">${num(p.singleLosses)}</div></div>
-        <div class="stat-card"><div class="label">Goals scored</div><div class="value">${num(p.singleGoalsFor)}</div></div>
-        <div class="stat-card"><div class="label">Goals against</div><div class="value">${num(p.singleGoalsAgainst)}</div></div>
-      </div>
-      <h3>Tag-team multi controller match stats</h3>
-      <div class="stat-grid">
-        <div class="stat-card"><div class="label">Matches played</div><div class="value">${multiMatches}</div></div>
-        <div class="stat-card"><div class="label">Win %</div><div class="value">${multiWinPct}%</div></div>
-        <div class="stat-card"><div class="label">Wins</div><div class="value">${num(p.tagMultiWins)}</div></div>
-        <div class="stat-card"><div class="label">Losses</div><div class="value">${num(p.tagMultiLosses)}</div></div>
-      </div>
-      <h3>Tag-team regular controller matches</h3>
-      <div class="stat-grid">
-        <div class="stat-card"><div class="label">Matches played</div><div class="value">${regMatches}</div></div>
-        <div class="stat-card"><div class="label">Win %</div><div class="value">${regWinPct}%</div></div>
-        <div class="stat-card"><div class="label">Wins</div><div class="value">${num(p.tagRegularChampionships)}</div></div>
-        <div class="stat-card"><div class="label">Losses</div><div class="value">${num(p.tagRegularRunnerUps)}</div></div>
-      </div>
-    `;
-    document.getElementById("backToPlayers").addEventListener("click", () => { viewingPlayerId = null; renderRecordsBody(); });
-    loadRecentForm(playerId);
-  }
-
-  async function loadRecentForm(playerId) {
-    const row = document.getElementById("recentFormRow");
-    const tournamentsSnap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "single"), where("status", "==", "completed")));
-    const tournaments = [];
-    tournamentsSnap.forEach(d => tournaments.push(d.data()));
-    tournaments.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-
-    const results = [];
-    tournaments.forEach(data => {
-      let matchList = [];
-      if (data.finalScore) matchList.push({ sideA: data.participants[0].name, sideB: data.participants[1].name, scoreA: data.finalScore.side1, scoreB: data.finalScore.side2 });
-      if (data.matches) matchList = matchList.concat(data.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
-      if (data.knockout) data.knockout.stages.forEach(stage => { matchList = matchList.concat(stage.matches.filter(m => m.scoreA !== null && m.scoreB !== null)); });
-      matchList.forEach(m => {
-        const refA = sideRef(data, m.sideA)[0], refB = sideRef(data, m.sideB)[0];
-        let mine = null, opp = null;
-        if (refA && refA.id === playerId) { mine = m.scoreA; opp = m.scoreB; }
-        else if (refB && refB.id === playerId) { mine = m.scoreB; opp = m.scoreA; }
-        else return;
-        const result = mine > opp ? "W" : mine < opp ? "L" : "D";
-        results.push({ result });
-      });
-    });
-    const last5 = results.slice(-5);
-    if (!row) return;
-    if (last5.length === 0) { row.innerHTML = "<span class='status-msg'>No single player matches yet.</span>"; return; }
-    const colors = { W: "#2ecc71", L: "#e74c3c", D: "#999" };
-    row.innerHTML = last5.map(r => `<span style="width:26px; height:26px; border-radius:50%; background:${colors[r.result]}; color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold;">${r.result}</span>`).join("");
-  }
-
-  async function computeDuoStats() {
-    const tournamentsSnap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "tagteam"), where("status", "==", "completed")));
-    const stats = {};
-    tournamentsSnap.forEach(d => {
-      const data = d.data();
-      if (!data.teams || !data.winner || !data.runnerUp) return;
-      const winTeam = data.teams.find(t => t.teamName === data.winner);
-      const loseTeam = data.teams.find(t => t.teamName === data.runnerUp);
-      if (winTeam && winTeam.members.length === 2) {
-        stats[winTeam.teamName] = stats[winTeam.teamName] || { name: winTeam.teamName, wins: 0, losses: 0 };
-        stats[winTeam.teamName].wins++;
-      }
-      if (loseTeam && loseTeam.members.length === 2) {
-        stats[loseTeam.teamName] = stats[loseTeam.teamName] || { name: loseTeam.teamName, wins: 0, losses: 0 };
-        stats[loseTeam.teamName].losses++;
-      }
-    });
-    let best = null;
-    Object.values(stats).forEach(s => { if (!best || s.wins > best.wins) best = s; });
-    return { best };
-  }
-
-  async function computeFunRecords() {
-    const tournamentsSnap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "single"), where("status", "==", "completed")));
-    let biggestScoring = null, biggestMargin = null;
-    const cleanSheetCounts = {};
-    const goldenBootCounts = {};
-
-    tournamentsSnap.forEach(d => {
-      const data = d.data();
-      let matchList = [];
-      if (data.finalScore) matchList.push({ sideA: data.participants[0].name, sideB: data.participants[1].name, scoreA: data.finalScore.side1, scoreB: data.finalScore.side2 });
-      if (data.matches) matchList = matchList.concat(data.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
-      if (data.knockout) data.knockout.stages.forEach(stage => { matchList = matchList.concat(stage.matches.filter(m => m.scoreA !== null && m.scoreB !== null)); });
-
-      matchList.forEach(m => {
-        const total = m.scoreA + m.scoreB;
-        const margin = Math.abs(m.scoreA - m.scoreB);
-        const entry = { sideA: m.sideA, sideB: m.sideB, scoreA: m.scoreA, scoreB: m.scoreB, tournamentName: data.name };
-        if (!biggestScoring || total > biggestScoring.total) biggestScoring = { ...entry, total };
-        if (margin > 0 && (!biggestMargin || margin > biggestMargin.margin)) biggestMargin = { ...entry, margin };
-        if (m.scoreB === 0) cleanSheetCounts[m.sideA] = (cleanSheetCounts[m.sideA] || 0) + 1;
-        if (m.scoreA === 0) cleanSheetCounts[m.sideB] = (cleanSheetCounts[m.sideB] || 0) + 1;
-      });
-
-      const gb = computeGoldenBoot(data);
-      if (gb) goldenBootCounts[gb.name] = (goldenBootCounts[gb.name] || 0) + 1;
-    });
-
-    let mostCleanSheets = null;
-    Object.entries(cleanSheetCounts).forEach(([name, count]) => {
-      if (!mostCleanSheets || count > mostCleanSheets.count) mostCleanSheets = { name, count };
-    });
-
-    let mostGoldenBoots = null;
-    Object.entries(goldenBootCounts).forEach(([name, count]) => {
-      if (!mostGoldenBoots || count > mostGoldenBoots.count) mostGoldenBoots = { name, count };
-    });
-
-    return { biggestScoring, biggestMargin, mostCleanSheets, mostGoldenBoots };
-  }
-
-  let tournamentRecordsCache = null;
-
-  async function renderTournamentRecords(body, forceRefresh) {
-    if (tournamentRecordsCache && !forceRefresh) {
-      renderTournamentRecordsHtml(body, tournamentRecordsCache);
-      return;
-    }
-    body.innerHTML = "<p>Loading...</p>";
-    try {
-      const resultsSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "single")));
-      let topChampion = null, topRunnerUp = null, topScorer = null, topConceder = null;
-      poolPlayers.forEach(p => {
-        if (!topChampion || num(p.singleChampionships) > num(topChampion.singleChampionships)) topChampion = p;
-        if (!topRunnerUp || num(p.singleRunnerUps) > num(topRunnerUp.singleRunnerUps)) topRunnerUp = p;
-        if (!topScorer || num(p.singleGoalsFor) > num(topScorer.singleGoalsFor)) topScorer = p;
-        if (!topConceder || num(p.singleGoalsAgainst) > num(topConceder.singleGoalsAgainst)) topConceder = p;
-      });
-      const { biggestScoring, biggestMargin, mostCleanSheets, mostGoldenBoots } = await computeFunRecords();
-      const duoStats = await computeDuoStats();
-      const singleList = [];
-      resultsSnap.forEach(d => singleList.push({ id: d.id, ...d.data() }));
-      singleList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
-
-      const regularSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "tagteam"), where("subMode", "==", "regular")));
-      const regularList = []; regularSnap.forEach(d => regularList.push({ id: d.id, ...d.data() }));
-      regularList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
-
-      const multiSnap = await getDocs(query(collection(db, "resultsTable"), where("format", "==", "tagteam"), where("subMode", "==", "multi")));
-      const multiList = []; multiSnap.forEach(d => multiList.push({ id: d.id, ...d.data() }));
-      multiList.sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
-
-      tournamentRecordsCache = { total: resultsSnap.size, topChampion, topRunnerUp, topScorer, topConceder, biggestScoring, biggestMargin, mostCleanSheets, mostGoldenBoots, duoStats, singleList, regularList, multiList };
-      renderTournamentRecordsHtml(body, tournamentRecordsCache);
-    } catch (e) {
-      body.innerHTML = "<p class='warn'>Failed to load tournament records: " + e.message + "</p>";
-    }
-  }
-
-  function renderTournamentRecordsHtml(body, c) {
-    const rowHtml = (r) => "<tr data-tid='" + r.id + "'><td>" + r.tournamentName + "</td><td>" + renderPlayerBadge(r.winner) + "</td><td>" + renderPlayerBadge(r.runnerUp) + "</td><td><button class='detailsBtn' data-tid='" + r.id + "'>Details</button></td></tr>";
-    body.innerHTML = `
-      <button id="recordsRefreshBtn" style="float:right;">Refresh</button>
-      <h3>Single player</h3>
-      <div class="stat-grid">
-        <div class="stat-card"><div class="label">Total tournaments played</div><div class="value">${c.total}</div></div>
-        <div class="stat-card"><div class="label">Most-time champion</div><div class="value">${c.topChampion && num(c.topChampion.singleChampionships) > 0 ? c.topChampion.name + " (" + c.topChampion.singleChampionships + ")" : "-"}</div></div>
-        <div class="stat-card"><div class="label">Most-time runner-up</div><div class="value">${c.topRunnerUp && num(c.topRunnerUp.singleRunnerUps) > 0 ? c.topRunnerUp.name + " (" + c.topRunnerUp.singleRunnerUps + ")" : "-"}</div></div>
-        <div class="stat-card"><div class="label">Most goals scored</div><div class="value">${c.topScorer && num(c.topScorer.singleGoalsFor) > 0 ? c.topScorer.name + " (" + c.topScorer.singleGoalsFor + ")" : "-"}</div></div>
-        <div class="stat-card"><div class="label">Most goals conceded</div><div class="value">${c.topConceder && num(c.topConceder.singleGoalsAgainst) > 0 ? c.topConceder.name + " (" + c.topConceder.singleGoalsAgainst + ")" : "-"}</div></div>
-        <div class="stat-card"><div class="label">Biggest scoring match</div><div class="value">${c.biggestScoring ? c.biggestScoring.sideA + " " + c.biggestScoring.scoreA + "-" + c.biggestScoring.scoreB + " " + c.biggestScoring.sideB + " (" + c.biggestScoring.total + " goals)" : "-"}</div></div>
-        <div class="stat-card"><div class="label">Biggest win margin</div><div class="value">${c.biggestMargin ? c.biggestMargin.sideA + " " + c.biggestMargin.scoreA + "-" + c.biggestMargin.scoreB + " " + c.biggestMargin.sideB + " (" + c.biggestMargin.margin + ")" : "-"}</div></div>
-        <div class="stat-card"><div class="label">Most clean sheets</div><div class="value">${c.mostCleanSheets ? c.mostCleanSheets.name + " (" + c.mostCleanSheets.count + ")" : "-"}</div></div>
-        <div class="stat-card"><div class="label">Most Golden Boots</div><div class="value">${c.mostGoldenBoots ? c.mostGoldenBoots.name + " (" + c.mostGoldenBoots.count + ")" : "-"}</div></div>
-      </div>
-      <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th><th></th></tr></thead><tbody>${c.singleList.map(rowHtml).join("") || "<tr><td colspan=4>None yet.</td></tr>"}</tbody></table>
-
-      <h3>Tag-team regular controller</h3>
-      <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th><th></th></tr></thead><tbody>${c.regularList.map(rowHtml).join("") || "<tr><td colspan=4>None yet.</td></tr>"}</tbody></table>
-
-      <h3>Tag-team multiple controller</h3>
-      <table><thead><tr><th>Tournament</th><th>Winner</th><th>Runner-up</th><th></th></tr></thead><tbody>${c.multiList.map(rowHtml).join("") || "<tr><td colspan=4>None yet.</td></tr>"}</tbody></table>
-
-      <h3>Tag-team duos</h3>
-      <div class="stat-grid">
-        <div class="stat-card"><div class="label">Most successful duo</div><div class="value">${c.duoStats.best ? c.duoStats.best.name + " (" + c.duoStats.best.wins + "-time champions)" : "-"}</div></div>
-      </div>
-    `;
-    document.getElementById("recordsRefreshBtn").addEventListener("click", () => { tournamentRecordsCache = null; renderTournamentRecords(body, true); });
-    body.querySelectorAll(".detailsBtn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        viewingTournamentId = btn.dataset.tid;
-        renderRecordsBody();
-      });
-    });
-  }
+// comment ==> 38. Rankings & Duo Leaderboard ends here
 </script>
 
 </body>
