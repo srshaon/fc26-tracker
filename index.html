@@ -126,14 +126,69 @@
   th, td { text-align: left; padding: 6px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
   th { color: var(--text-secondary); font-weight: normal; }
 
-  /* Qualification Zone Strips */
+  /* 1. Esports Stage Badges (Replacing raw h3 text) */
+  .stage-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-surface-alt);
+    border: 1px solid var(--border-strong);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    margin: 14px 0 8px 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+  .stage-badge .badge-icon {
+    font-size: 14px;
+    line-height: 1;
+  }
+  .stage-badge .live-pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    display: inline-block;
+    animation: liveRing 1.6s ease-out infinite;
+  }
+
+  /* 2. Sleek Themed Toggle Buttons (No more clashing white boxes) */
+  .toggle-stage-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 10px 0 6px 0;
+    padding: 7px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: var(--font-body);
+    border-radius: 20px;
+    background: var(--bg-surface-alt);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-strong);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .toggle-stage-btn:hover {
+    background: color-mix(in srgb, var(--accent) 15%, var(--bg-surface-alt));
+    border-color: var(--accent);
+    color: var(--text-primary);
+  }
+
+  /* 3. Qualification Zone Strips, Gradients & Q Badges */
   table tbody tr.qual-top2 td:first-child {
     border-left: 4.5px solid #00e676;
     font-weight: 800;
     color: #00e676;
   }
   table tbody tr.qual-top2 {
-    background: rgba(0, 230, 118, 0.08);
+    background: linear-gradient(90deg, rgba(0, 230, 118, 0.12) 0%, rgba(0, 230, 118, 0.02) 100%);
   }
   table tbody tr.qual-pre td:first-child {
     border-left: 4.5px solid #ffb300;
@@ -141,10 +196,32 @@
     color: #ffb300;
   }
   table tbody tr.qual-pre {
-    background: rgba(255, 179, 0, 0.06);
+    background: linear-gradient(90deg, rgba(255, 179, 0, 0.10) 0%, rgba(255, 179, 0, 0.02) 100%);
+  }
+  .qual-tag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 900;
+    padding: 1px 5px;
+    border-radius: 4px;
+    margin-left: 5px;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+    vertical-align: middle;
+  }
+  .qual-tag-top2 {
+    background: rgba(0, 230, 118, 0.22);
+    color: #00e676;
+    border: 1px solid rgba(0, 230, 118, 0.6);
+    box-shadow: 0 0 6px rgba(0, 230, 118, 0.3);
+  }
+  .qual-tag-pre {
+    background: rgba(255, 179, 0, 0.22);
+    color: #ffb300;
+    border: 1px solid rgba(255, 179, 0, 0.6);
   }
 
-  /* Rank Movement Indicators (▲ Green, ▼ Red, – Neutral) */
+  /* 4. Rank Movement Indicators */
   .rank-move {
     font-size: 10px;
     font-weight: 800;
@@ -156,7 +233,7 @@
   .rank-move.rank-down { color: #ff5252; text-shadow: 0 0 5px rgba(255, 82, 82, 0.6); }
   .rank-move.rank-same { color: var(--text-muted); opacity: 0.55; }
 
-  /* Mini Form Dots Under Headshots */
+  /* 5. Mini Form Dots Under Headshots */
   .form-dots-cluster {
     display: flex;
     align-items: center;
@@ -181,7 +258,44 @@
   .form-dot-l { background: #ff5252; box-shadow: 0 0 5px rgba(255, 82, 82, 0.6); }
   .form-dot-d { background: #78909c; }
 
-  /* Touch Stepper Scoreboard Capsules */
+  /* 6. Scoreboard Capsule & Steppers */
+  .scoreboard-capsule {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.45);
+    padding: 5px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-strong);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.15);
+    flex-shrink: 0;
+  }
+  .scoreboard-capsule .score-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    font-family: var(--font-heading);
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+  .scoreboard-capsule .score-num.score-winner {
+    color: var(--accent);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 75%, transparent);
+  }
+  .scoreboard-capsule .score-num.score-loser {
+    color: var(--text-muted);
+    opacity: 0.6;
+  }
+  .scoreboard-capsule .score-divider {
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--text-muted);
+    opacity: 0.7;
+  }
+
   .stepper-wrap {
     display: inline-flex;
     align-items: center;
@@ -231,7 +345,7 @@
     margin: 0;
   }
 
-  /* Match Filter Pills */
+  /* 7. Match Filter Pills */
   .match-filter-bar {
     display: flex;
     align-items: center;
@@ -264,7 +378,7 @@
     box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 45%, transparent);
   }
 
-  /* Winner Highlight & Loser Dimming */
+  /* 8. Winner Highlight & Loser Dimming */
   .match-fixture .name.side-winner .player-avatar-circle,
   .match-fixture .name.side-winner .player-avatar-placeholder {
     border-color: var(--accent) !important;
@@ -278,7 +392,7 @@
   }
   .match-fixture .name.side-loser {
     opacity: 0.55;
-    filter: grayscale(20%);
+    filter: grayscale(25%);
     transition: all 0.25s ease;
   }
   .match-fixture .name.side-loser .player-avatar-circle,
@@ -940,11 +1054,15 @@
     align-items: center;
     gap: 6px;
     flex-shrink: 0;
+    background: rgba(0, 0, 0, 0.28);
+    padding: 4px 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
   }
-  .score-box span, .score-display {
+  .score-box span {
     font-weight: 800;
     font-size: 15px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     flex-shrink: 0;
   }
   /* Dedicated line-2 save button */
@@ -993,6 +1111,10 @@
       font-size: 13px !important;
       border-width: 2px;
     }
+    .score-box {
+      padding: 3px 5px;
+      gap: 4px;
+    }
     .stepper-wrap {
       border-radius: 6px;
     }
@@ -1005,6 +1127,14 @@
       width: 28px !important;
       height: 28px !important;
       font-size: 13px !important;
+    }
+    .scoreboard-capsule {
+      padding: 4px 8px;
+      gap: 6px;
+    }
+    .scoreboard-capsule .score-num {
+      font-size: 15px;
+      min-width: 20px;
     }
     .match-save-btn {
       min-width: 110px !important;
@@ -1047,7 +1177,7 @@
     }
   }
 /* comment ==> 08. CSS Responsive Media Queries ends here */
-
+ 
 </style>
 </head>
 
@@ -2754,12 +2884,21 @@
 
   function standingsTable(title, rows, initialOrder) {
     const wrap = document.createElement("div");
-    wrap.innerHTML = "<h3>" + title + "</h3><table><thead><tr><th>#</th><th>Name</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody></tbody></table>";
+    wrap.innerHTML = `<div class="stage-badge"><span class="badge-icon">&#127942;</span> ${title}</div>` +
+      `<table><thead><tr><th>#</th><th>Name</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody></tbody></table>`;
     const tbody = wrap.querySelector("tbody");
     rows.forEach((r, i) => {
       const tr = document.createElement("tr");
-      if (i < 2) tr.className = "qual-top2";
-      else if (i < 4 && rows.length >= 5) tr.className = "qual-pre";
+
+      /* Qualification Styling & Q Badge */
+      let qualTag = "";
+      if (i < 2) {
+        tr.className = "qual-top2";
+        qualTag = `<span class="qual-tag qual-tag-top2">Q</span>`;
+      } else if (i < 4 && rows.length >= 5) {
+        tr.className = "qual-pre";
+        qualTag = `<span class="qual-tag qual-tag-pre">PRE</span>`;
+      }
 
       /* Rank Movement Indicator compared against seed order */
       let moveHtml = "";
@@ -2772,7 +2911,7 @@
         }
       }
 
-      tr.innerHTML = "<td>" + (i + 1) + moveHtml + "</td><td>" + renderPlayerBadge(r.name) + "</td><td>" + r.played + "</td><td>" + r.wins + "</td><td>" + (r.draws || 0) + "</td><td>" + r.losses + "</td><td>" + r.gf + "</td><td>" + r.ga + "</td><td>" + (r.gf - r.ga) + "</td><td><strong>" + (r.points ?? "-") + "</strong></td>";
+      tr.innerHTML = "<td>" + (i + 1) + moveHtml + qualTag + "</td><td>" + renderPlayerBadge(r.name) + "</td><td>" + r.played + "</td><td>" + r.wins + "</td><td>" + (r.draws || 0) + "</td><td>" + r.losses + "</td><td>" + r.gf + "</td><td>" + r.ga + "</td><td>" + (r.gf - r.ga) + "</td><td><strong>" + (r.points ?? "-") + "</strong></td>";
       tbody.appendChild(tr);
     });
     return wrap;
@@ -2809,7 +2948,7 @@
 
     const matchesDiv = document.createElement("div");
     matchesDiv.style.display = "none";
-    matchesDiv.innerHTML = "<h3>Group / round-robin matches</h3>";
+    matchesDiv.innerHTML = `<div class="stage-badge"><span class="live-pulse-dot"></span> Group stage fixtures</div>`;
 
     data.matches.forEach((m, idx) => {
       const row = document.createElement("div");
@@ -2829,11 +2968,17 @@
       const formDotsB = renderFormDotsHtml(getPlayerRecentForm(m.sideB, data.matches));
 
       if (!canEdit || isTvMode) {
-        const scoreText = alreadyScored ? (m.scoreA + " - " + m.scoreB) : "vs";
+        const scoreCapsule = alreadyScored ? `
+          <div class="scoreboard-capsule">
+            <span class="score-num ${aWon ? "score-winner" : (bWon ? "score-loser" : "")}">${m.scoreA}</span>
+            <span class="score-divider">:</span>
+            <span class="score-num ${bWon ? "score-winner" : (aWon ? "score-loser" : "")}">${m.scoreB}</span>
+          </div>` : `<span class="score-display">vs</span>`;
+
         row.innerHTML = `
           <div class="match-fixture">
             <span class="name${classA}">${renderPlayerBadge(m.sideA)}${formDotsA}</span>
-            <span class="score-display">${scoreText}</span>
+            ${scoreCapsule}
             <span class="name${classB}">${renderPlayerBadge(m.sideB)}${formDotsB}</span>
           </div>`;
       } else {
@@ -2846,7 +2991,7 @@
                 <input type="number" min="0" value="${m.scoreA ?? ""}" data-idx="${idx}" data-side="A">
                 <button type="button" class="stepper-btn stepper-plus">&plus;</button>
               </div>
-              <span>-</span>
+              <span>:</span>
               <div class="stepper-wrap">
                 <button type="button" class="stepper-btn stepper-minus">&minus;</button>
                 <input type="number" min="0" value="${m.scoreB ?? ""}" data-idx="${idx}" data-side="B">
@@ -2900,12 +3045,14 @@
       });
     });
 
+    /* Clean Styled Toggle Button */
     const toggleBtn = document.createElement("button");
-    toggleBtn.textContent = "Show group stage matches";
+    toggleBtn.className = "toggle-stage-btn";
+    toggleBtn.innerHTML = "&#9662; Show group stage matches";
     toggleBtn.addEventListener("click", () => {
       const showing = matchesDiv.style.display !== "none";
       matchesDiv.style.display = showing ? "none" : "block";
-      toggleBtn.textContent = showing ? "Show group stage matches" : "Hide group stage matches";
+      toggleBtn.innerHTML = showing ? "&#9662; Show group stage matches" : "&#9652; Hide group stage matches";
     });
     container.appendChild(toggleBtn);
     container.appendChild(matchesDiv);
@@ -2925,6 +3072,7 @@
         renderKnockout(container, tid, data);
         if (currentAdmin && currentAdmin.isMaster) {
           const changeBtn = document.createElement("button");
+          changeBtn.className = "toggle-stage-btn";
           changeBtn.textContent = "Change knockout format";
           changeBtn.style.marginTop = "10px";
           changeBtn.addEventListener("click", () => {
@@ -2939,6 +3087,7 @@
 
           if (data.previousKnockout) {
             const undoBtn = document.createElement("button");
+            undoBtn.className = "toggle-stage-btn";
             undoBtn.textContent = "Undo last format change";
             undoBtn.style.marginTop = "10px";
             undoBtn.style.marginLeft = "8px";
