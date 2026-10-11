@@ -679,6 +679,105 @@
 /* comment ==> 07. CSS Bracket Layout ends here */
  
 /* comment ==> 08. CSS Responsive Media Queries starts from here */
+  /* Shared Fixture Card Layout (PC & Mobile) */
+  .match-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--bg-surface-alt);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    padding: 12px 14px;
+    margin: 10px 0;
+    gap: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  }
+  .match-fixture {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 10px;
+  }
+  /* Left Player: Avatar then Name */
+  .match-fixture .name:first-child {
+    flex: 1 1 0%;
+    display: flex;
+    justify-content: flex-start;
+    text-align: left;
+    min-width: 0;
+  }
+  .match-fixture .name:first-child .player-badge-col {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    text-align: left !important;
+  }
+  /* Right Player: Name then Avatar */
+  .match-fixture .name:last-of-type {
+    flex: 1 1 0%;
+    display: flex;
+    justify-content: flex-end;
+    text-align: right;
+    min-width: 0;
+  }
+  .match-fixture .name:last-of-type .player-badge-col {
+    flex-direction: row-reverse !important;
+    align-items: center !important;
+    gap: 8px !important;
+    text-align: right !important;
+  }
+  /* Full player names without truncation */
+  .match-fixture .side-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.25;
+    word-break: break-word;
+    white-space: normal;
+    overflow: visible;
+  }
+  /* Center score boxes */
+  .score-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .score-box input[type=number] {
+    width: 42px !important;
+    height: 34px !important;
+    font-size: 16px !important;
+    font-weight: 800;
+    text-align: center;
+    border-radius: 5px;
+    border: 1px solid var(--border-strong);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+  }
+  .score-box span, .score-display {
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+  /* Dedicated line-2 save button */
+  .match-save-btn {
+    margin: 4px auto 0 !important;
+    width: auto !important;
+    min-width: 130px !important;
+    padding: 6px 20px !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    border-radius: 6px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    border: none;
+    cursor: pointer;
+  }
+
   @media (max-width: 520px) {
     body { margin: 12px auto; padding: 0 8px; }
     h1 { font-size: 19px; }
@@ -688,17 +787,35 @@
     .champ-grid { grid-template-columns: 1fr; }
     .stat-grid { grid-template-columns: 1fr; }
 
-    /* Bracket adjustments for phone screens */
-    .bracket-columns {
-      gap: 14px;
-      padding: 26px 4px 16px;
+    /* Mobile match fixture tuning */
+    .match-row {
+      padding: 10px 8px;
+      margin: 8px 0;
+      gap: 6px;
     }
-    .bracket-col {
-      min-width: 210px;
+    .match-fixture {
+      gap: 6px;
     }
-    .bracket-match .side-name {
-      max-width: 115px;
+    .match-fixture .side-name {
       font-size: 11.5px;
+      line-height: 1.2;
+    }
+    .match-fixture .player-avatar-circle,
+    .match-fixture .player-avatar-placeholder {
+      width: 36px !important;
+      height: 36px !important;
+      font-size: 13px !important;
+      border-width: 2px;
+    }
+    .score-box input[type=number] {
+      width: 36px !important;
+      height: 32px !important;
+      font-size: 15px !important;
+    }
+    .match-save-btn {
+      min-width: 110px !important;
+      padding: 5px 16px !important;
+      font-size: 11px !important;
     }
 
     /* Standings table mobile polish */
@@ -718,90 +835,19 @@
       border-width: 1.5px;
     }
 
-    /* Group Stage Match Card Rows (Preserved) */
-    .match-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 8px;
-      margin: 8px 0;
-      background: var(--bg-surface-alt);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-card);
-      gap: 6px 4px;
+    /* Bracket adjustments for phone screens */
+    .bracket-columns {
+      gap: 14px;
+      padding: 26px 4px 16px;
     }
-    .match-row .name:first-child {
-      flex: 1 1 0%;
-      min-width: 0;
-      width: auto;
-      text-align: left;
-      align-items: flex-start;
+    .bracket-col {
+      min-width: 210px;
     }
-    .match-row .name:first-child .player-badge-col {
-      flex-direction: row;
-      align-items: center;
-      gap: 6px;
-      text-align: left;
-      width: 100%;
+    .bracket-match .side-name {
+      max-width: 115px;
+      font-size: 11.5px;
     }
-    .match-row .name:last-of-type {
-      flex: 1 1 0%;
-      min-width: 0;
-      width: auto;
-      text-align: right;
-      align-items: flex-end;
-    }
-    .match-row .name:last-of-type .player-badge-col {
-      flex-direction: row-reverse;
-      align-items: center;
-      gap: 6px;
-      text-align: right;
-      width: 100%;
-    }
-    .match-row .player-avatar-circle,
-    .match-row .player-avatar-placeholder {
-      width: 36px;
-      height: 36px;
-      font-size: 14px;
-      border-width: 2px;
-      flex-shrink: 0;
-    }
-    .match-row .side-name {
-      display: block;
-      font-size: 11px;
-      font-weight: bold;
-      line-height: 1.2;
-      flex: 1;
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .match-row input[type=number] {
-      width: 34px !important;
-      height: 32px;
-      padding: 2px;
-      font-size: 14px;
-      font-weight: bold;
-      text-align: center;
-      flex-shrink: 0;
-    }
-    .match-row span {
-      flex-shrink: 0;
-      font-size: 13px;
-      font-weight: bold;
-      color: var(--text-secondary);
-    }
-    .match-row button {
-      flex-basis: 100%;
-      max-width: 100px;
-      margin: 6px auto 0 auto;
-      padding: 6px 14px;
-      font-size: 12px;
-      font-weight: bold;
-      border-radius: var(--radius-card);
-    }
+
     select, input[type=text], input[type=password], input[type=url] {
       width: 100%;
     }
@@ -2512,10 +2558,25 @@
       const canEdit = !currentAdmin ? false : (alreadyScored ? currentAdmin.isMaster : true);
       if (!canEdit) {
         const scoreText = alreadyScored ? (m.scoreA + " - " + m.scoreB) : "vs";
-        row.innerHTML = `<span class="name">${renderPlayerBadge(m.sideA)}</span><span>${scoreText}</span><span class="name">${renderPlayerBadge(m.sideB)}</span>`;
+        row.innerHTML = `
+          <div class="match-fixture">
+            <span class="name">${renderPlayerBadge(m.sideA)}</span>
+            <span class="score-display">${scoreText}</span>
+            <span class="name">${renderPlayerBadge(m.sideB)}</span>
+          </div>`;
       } else {
-        row.innerHTML = `<span class="name">${renderPlayerBadge(m.sideA)}</span><input type="number" min="0" value="${m.scoreA ?? ""}" data-idx="${idx}" data-side="A"><span>-</span><input type="number" min="0" value="${m.scoreB ?? ""}" data-idx="${idx}" data-side="B"><span class="name">${renderPlayerBadge(m.sideB)}</span>`;
+        row.innerHTML = `
+          <div class="match-fixture">
+            <span class="name">${renderPlayerBadge(m.sideA)}</span>
+            <div class="score-box">
+              <input type="number" min="0" value="${m.scoreA ?? ""}" data-idx="${idx}" data-side="A">
+              <span>-</span>
+              <input type="number" min="0" value="${m.scoreB ?? ""}" data-idx="${idx}" data-side="B">
+            </div>
+            <span class="name">${renderPlayerBadge(m.sideB)}</span>
+          </div>`;
         const btn = document.createElement("button");
+        btn.className = "match-save-btn";
         btn.textContent = m.scoreA !== null ? "Update" : "Save";
         btn.addEventListener("click", () => {
           if (btn.disabled) return;
@@ -2581,7 +2642,7 @@
     }
   }
 
- async function saveGroupMatch(tid, data, idx, container, btn) {
+  async function saveGroupMatch(tid, data, idx, container, btn) {
     const inputA = container.querySelector('input[data-idx="' + idx + '"][data-side="A"]');
     const inputB = container.querySelector('input[data-idx="' + idx + '"][data-side="B"]');
     const sA = parseInt(inputA.value, 10), sB = parseInt(inputB.value, 10);
@@ -2622,9 +2683,9 @@
     } catch (refErr) {
       console.warn("Card auto-refresh error:", refErr);
     }
-  } 
- 
- async function refreshTournamentCard(tid, container) {
+  }
+
+  async function refreshTournamentCard(tid, container) {
     const snap = await getDoc(doc(db, "tournaments", tid));
     const fresh = snap.data();
     if (fresh.status === "completed") {
@@ -2634,7 +2695,7 @@
     }
   }
 // comment ==> 28. Standings & Group Matches Engine ends here
-
+ 
 // comment ==> 29. Knockout Setup Buttons (Top 2 to Final Option) starts from here
   function renderKnockoutSetupButtons(appendTo, tid, data, isChange, outerContainer) {
     const setup = document.createElement("div");
