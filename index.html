@@ -412,18 +412,21 @@
 /* comment ==> 07. CSS Bracket Layout starts from here */
   .bracket-columns {
     display: flex;
-    gap: 18px;
+    gap: 20px;
     overflow-x: auto;
-    padding: 8px 2px 14px;
-    margin-top: 6px;
+    padding: 30px 10px 18px;
+    margin-top: 8px;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
   }
   .bracket-col {
     display: flex;
     flex-direction: column;
     justify-content: space-around;
-    gap: 14px;
-    min-width: 155px;
+    gap: 16px;
+    min-width: 220px;
     flex-shrink: 0;
+    scroll-snap-align: start;
   }
   .bracket-col:not(:first-child)::before {
     content: "";
@@ -439,32 +442,208 @@
     to { transform: scaleX(1); }
   }
   .bracket-col h4 {
-    font-size: 11px;
+    font-size: 12px;
     text-transform: var(--heading-transform);
-    letter-spacing: 0.5px;
-    color: var(--text-muted);
+    letter-spacing: 1px;
+    color: var(--text-secondary);
     font-family: var(--font-heading);
-    margin: 0 0 6px;
+    margin: 0 0 8px;
     text-align: center;
   }
+
+  /* Esports Bracket Card */
+  .bracket-match {
+    position: relative;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-card);
+    background: var(--bg-surface);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    overflow: visible;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  /* Internal Side Rows */
+  .bracket-match .side {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    min-height: 44px;
+    gap: 10px;
+    transition: background 0.2s ease;
+  }
+  .bracket-match .side:first-of-type {
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Horizontal Player Badge in Brackets */
+  .bracket-match .player-badge-col {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    flex: 1;
+    min-width: 0;
+    text-align: left !important;
+  }
+
+  /* Avatar scaling & duo avatar overlap */
+  .bracket-match .player-avatars-cluster {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .bracket-match .player-avatar-circle,
+  .bracket-match .player-avatar-placeholder {
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 11px !important;
+    border: 1.5px solid var(--border-strong);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  .bracket-match .player-avatars-cluster .player-avatar-circle:nth-child(2),
+  .bracket-match .player-avatars-cluster .player-avatar-placeholder:nth-child(2) {
+    margin-left: -8px;
+  }
+
+  /* Clean Player / Team Name (No Dotted Underlines) */
+  .bracket-match .side-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+    max-width: 125px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-decoration: none !important;
+    line-height: 1.2;
+  }
+  .bracket-match .side-name.clickable {
+    cursor: pointer;
+    text-decoration: none !important;
+  }
+  .bracket-match .side-name.clickable:hover {
+    color: var(--accent);
+  }
+
+  /* High-Contrast Digital Score Box */
+  .bracket-match .side > span,
+  .bracket-match .side .count-up {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 26px;
+    padding: 0 5px;
+    border-radius: 5px;
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 800;
+    background: rgba(0, 0, 0, 0.25);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  /* Winner Highlight: Row tint + Accent Score Box */
+  .bracket-match .side.winner-side {
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+  }
+  .bracket-match .side.winner-side .side-name {
+    color: var(--text-primary);
+    font-weight: 800;
+  }
+  .bracket-match .side.winner-side > span,
+  .bracket-match .side.winner-side .count-up {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    border-color: var(--accent);
+    font-weight: 900;
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+
+  /* Admin Score Input */
+  .bracket-match .side input[type=number] {
+    width: 34px !important;
+    height: 28px;
+    padding: 2px;
+    font-size: 14px;
+    font-weight: 800;
+    text-align: center;
+    border-radius: 5px;
+    border: 1px solid var(--border-strong);
+    background: var(--bg-surface-alt);
+    color: var(--text-primary);
+    flex-shrink: 0;
+  }
+  .bracket-match button {
+    display: block;
+    margin: 6px auto 8px;
+    width: calc(100% - 16px);
+    font-size: 11px;
+    font-weight: bold;
+    padding: 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    border: none;
+  }
+
+  /* Penalty shootout badge */
+  .bracket-match > div[style*="font-size:10px"] {
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--accent) !important;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 3px 8px;
+    border-top: 1px dashed var(--border);
+    border-radius: 0 0 calc(var(--radius-card) - 1px) calc(var(--radius-card) - 1px);
+  }
+
+  /* Champion Box & Crown */
+  .bracket-final .bracket-match { border-color: var(--accent); }
+  .bracket-match.champion-box {
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+  .champion-crown {
+    position: absolute;
+    top: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 22px;
+    line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
+    animation: crownDrop 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  }
+  @keyframes crownDrop {
+    from { transform: translate(-50%, -15px); opacity: 0; }
+    to { transform: translate(-50%, 0); opacity: 1; }
+  }
+
+  /* Awaiting & Flip Animations */
   .bracket-match.flip-reveal { animation: flipReveal 0.5s ease; transform-origin: center; }
   @keyframes flipReveal {
     0% { transform: scaleY(0.15); opacity: 0.3; }
     60% { transform: scaleY(1.08); }
     100% { transform: scaleY(1); opacity: 1; }
   }
-  .bracket-match.awaiting { border-color: var(--accent); animation: awaitPulse 1.6s ease-in-out infinite; }
+  .bracket-match.awaiting {
+    border-color: var(--accent);
+    animation: awaitPulse 1.6s ease-in-out infinite;
+  }
   @keyframes awaitPulse {
     0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); }
     50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 0%, transparent); }
   }
   .bracket-col.connector-lit::before { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
-  .bracket-match.champion-box { position: relative; border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--bg-surface-alt)); }
-  .champion-crown { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 20px; animation: crownDrop 0.6s ease; }
-  @keyframes crownDrop {
-    from { transform: translate(-50%, -18px); opacity: 0; }
-    to { transform: translate(-50%, 0); opacity: 1; }
-  }
+  .bracket-match.path-highlight { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+
+  /* Breadcrumb & Pool Picker */
   .stage-breadcrumb { display: flex; gap: 6px; margin: 6px 0 10px; flex-wrap: wrap; }
   .stage-breadcrumb .step {
     padding: 4px 10px; border-radius: 12px; font-size: 11px;
@@ -473,8 +652,6 @@
   }
   .stage-breadcrumb .step.current { background: var(--accent); color: var(--accent-contrast); font-weight: bold; }
   .stage-breadcrumb .step.done { color: var(--text-secondary); }
-  .bracket-match.path-highlight { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
-  .side-name.clickable { cursor: pointer; text-decoration: underline dotted; }
 
   .pool-picker-list {
     max-height: 180px;
@@ -500,7 +677,7 @@
     cursor: pointer;
   }
 /* comment ==> 07. CSS Bracket Layout ends here */
-
+ 
 /* comment ==> 08. CSS Responsive Media Queries starts from here */
   @media (max-width: 520px) {
     body { margin: 12px auto; padding: 0 8px; }
@@ -510,6 +687,19 @@
     .teams-grid { grid-template-columns: 1fr; }
     .champ-grid { grid-template-columns: 1fr; }
     .stat-grid { grid-template-columns: 1fr; }
+
+    /* Bracket adjustments for phone screens */
+    .bracket-columns {
+      gap: 14px;
+      padding: 26px 4px 16px;
+    }
+    .bracket-col {
+      min-width: 210px;
+    }
+    .bracket-match .side-name {
+      max-width: 115px;
+      font-size: 11.5px;
+    }
 
     /* Standings table mobile polish */
     table { font-size: 11px; }
@@ -528,7 +718,7 @@
       border-width: 1.5px;
     }
 
-    /* Match card row */
+    /* Group Stage Match Card Rows (Preserved) */
     .match-row {
       display: flex;
       flex-wrap: wrap;
@@ -541,8 +731,6 @@
       border-radius: var(--radius-card);
       gap: 6px 4px;
     }
-
-    /* Left Player: Avatar then Name */
     .match-row .name:first-child {
       flex: 1 1 0%;
       min-width: 0;
@@ -557,8 +745,6 @@
       text-align: left;
       width: 100%;
     }
-
-    /* Right Player: Name then Avatar (uses :last-of-type so the hyphen span is skipped) */
     .match-row .name:last-of-type {
       flex: 1 1 0%;
       min-width: 0;
@@ -573,8 +759,6 @@
       text-align: right;
       width: 100%;
     }
-
-    /* Circular avatars */
     .match-row .player-avatar-circle,
     .match-row .player-avatar-placeholder {
       width: 36px;
@@ -583,8 +767,6 @@
       border-width: 2px;
       flex-shrink: 0;
     }
-
-    /* Fluid name display - no hard 78px cut-off */
     .match-row .side-name {
       display: block;
       font-size: 11px;
@@ -596,8 +778,6 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-
-    /* Centered score input boxes */
     .match-row input[type=number] {
       width: 34px !important;
       height: 32px;
@@ -613,8 +793,6 @@
       font-weight: bold;
       color: var(--text-secondary);
     }
-
-    /* Save button on the line below */
     .match-row button {
       flex-basis: 100%;
       max-width: 100px;
@@ -624,14 +802,12 @@
       font-weight: bold;
       border-radius: var(--radius-card);
     }
-
-    /* Standard inputs */
     select, input[type=text], input[type=password], input[type=url] {
       width: 100%;
     }
   }
 /* comment ==> 08. CSS Responsive Media Queries ends here */
-
+ 
 </style>
 </head>
 
