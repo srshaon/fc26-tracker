@@ -125,9 +125,60 @@
   table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
   th, td { text-align: left; padding: 6px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
   th { color: var(--text-secondary); font-weight: normal; }
-  .match-row { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 12px 0; }
-  .match-row .name { font-size: 13px; font-weight: bold; width: 140px; text-align: center; font-family: var(--font-heading); color: var(--text-primary); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .match-row input { width: 46px; text-align: center; }
+
+  /* 1. Qualification Zone Strips (Champions League style) */
+  table tbody tr.qual-top2 td:first-child {
+    border-left: 4.5px solid #00e676;
+    font-weight: 800;
+    color: #00e676;
+  }
+  table tbody tr.qual-top2 {
+    background: rgba(0, 230, 118, 0.08);
+  }
+  table tbody tr.qual-pre td:first-child {
+    border-left: 4.5px solid #ffb300;
+    font-weight: 800;
+    color: #ffb300;
+  }
+  table tbody tr.qual-pre {
+    background: rgba(255, 179, 0, 0.06);
+  }
+
+  /* 2. Match Fixture: Winner Highlight & Loser Dimming */
+  .match-fixture .name.side-winner .player-avatar-circle,
+  .match-fixture .name.side-winner .player-avatar-placeholder {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 2.5px var(--accent), 0 0 14px color-mix(in srgb, var(--accent) 75%, transparent) !important;
+    transform: scale(1.06);
+    transition: all 0.25s ease;
+  }
+  .match-fixture .name.side-winner .side-name {
+    color: var(--text-primary);
+    font-weight: 800;
+  }
+  .match-fixture .name.side-loser {
+    opacity: 0.55;
+    filter: grayscale(20%);
+    transition: all 0.25s ease;
+  }
+  .match-fixture .name.side-loser .player-avatar-circle,
+  .match-fixture .name.side-loser .player-avatar-placeholder {
+    box-shadow: none !important;
+    border-color: var(--border) !important;
+  }
+
+  /* Knockout Bracket Winner Glow & Loser Dimming */
+  .bracket-match .side.winner-side .player-avatar-circle,
+  .bracket-match .side.winner-side .player-avatar-placeholder {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 2px var(--accent), 0 0 12px color-mix(in srgb, var(--accent) 70%, transparent);
+  }
+  .bracket-match .side.loser-side {
+    opacity: 0.55;
+    filter: grayscale(25%);
+    transition: opacity 0.25s ease;
+  }
+
   .status-msg { font-size: 13px; color: var(--text-secondary); margin-top: 8px; }
   .warn { color: var(--danger-text); }
   .champ-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 6px; }
@@ -145,7 +196,7 @@
   #winnerBanner { display: none; margin-top: 12px; padding: 12px; background: var(--success-bg); border-radius: 8px; font-weight: bold; color: var(--success-text); text-align: center; }
   .player-name-link { color: var(--accent); text-decoration: underline; cursor: pointer; background: none; border: none; font-size: 14px; padding: 0; font-family: var(--font-body); }
 /* comment ==> 04. CSS Components (Cards, Buttons, Inputs, Tables) ends here */
-
+ 
 /* comment ==> 05. CSS Player Avatar & Badge System starts from here */
   .player-badge-col {
     display: inline-flex;
@@ -2530,6 +2581,12 @@
     const tbody = wrap.querySelector("tbody");
     rows.forEach((r, i) => {
       const tr = document.createElement("tr");
+      /* Highlight Top 2 (Green) and Pre-semi 3rd & 4th (Amber) */
+      if (i < 2) {
+        tr.className = "qual-top2";
+      } else if (i < 4 && rows.length >= 5) {
+        tr.className = "qual-pre";
+      }
       tr.innerHTML = "<td>" + (i + 1) + "</td><td>" + renderPlayerBadge(r.name) + "</td><td>" + r.played + "</td><td>" + r.wins + "</td><td>" + (r.draws || 0) + "</td><td>" + r.losses + "</td><td>" + r.gf + "</td><td>" + r.ga + "</td><td>" + (r.gf - r.ga) + "</td><td><strong>" + (r.points ?? "-") + "</strong></td>";
       tbody.appendChild(tr);
     });
@@ -2556,24 +2613,31 @@
       row.className = "match-row";
       const alreadyScored = m.scoreA !== null && m.scoreB !== null;
       const canEdit = !currentAdmin ? false : (alreadyScored ? currentAdmin.isMaster : true);
+
+      /* Calculate Winner vs Loser */
+      const aWon = alreadyScored && m.scoreA > m.scoreB;
+      const bWon = alreadyScored && m.scoreB > m.scoreA;
+      const classA = alreadyScored ? (aWon ? " side-winner" : bWon ? " side-loser" : "") : "";
+      const classB = alreadyScored ? (bWon ? " side-winner" : aWon ? " side-loser" : "") : "";
+
       if (!canEdit) {
         const scoreText = alreadyScored ? (m.scoreA + " - " + m.scoreB) : "vs";
         row.innerHTML = `
           <div class="match-fixture">
-            <span class="name">${renderPlayerBadge(m.sideA)}</span>
+            <span class="name${classA}">${renderPlayerBadge(m.sideA)}</span>
             <span class="score-display">${scoreText}</span>
-            <span class="name">${renderPlayerBadge(m.sideB)}</span>
+            <span class="name${classB}">${renderPlayerBadge(m.sideB)}</span>
           </div>`;
       } else {
         row.innerHTML = `
           <div class="match-fixture">
-            <span class="name">${renderPlayerBadge(m.sideA)}</span>
+            <span class="name${classA}">${renderPlayerBadge(m.sideA)}</span>
             <div class="score-box">
               <input type="number" min="0" value="${m.scoreA ?? ""}" data-idx="${idx}" data-side="A">
               <span>-</span>
               <input type="number" min="0" value="${m.scoreB ?? ""}" data-idx="${idx}" data-side="B">
             </div>
-            <span class="name">${renderPlayerBadge(m.sideB)}</span>
+            <span class="name${classB}">${renderPlayerBadge(m.sideB)}</span>
           </div>`;
         const btn = document.createElement("button");
         btn.className = "match-save-btn";
@@ -3012,20 +3076,23 @@
         box.dataset.sideA = m.sideA; box.dataset.sideB = m.sideB;
 
         const crownHtml = isChampionBox ? `<div class="champion-crown">&#128081;</div>` : "";
-
         const canEdit = currentAdmin && bothKnown && (!decided || currentAdmin.isMaster);
+
+        /* Assign winner-side or loser-side */
+        const sideAClass = decided ? (aWon ? " winner-side" : (bWon ? " loser-side" : "")) : "";
+        const sideBClass = decided ? (bWon ? " winner-side" : (aWon ? " loser-side" : "")) : "";
 
         if (!canEdit) {
           const penText = wentToPens ? " (" + m.penaltyA + "-" + m.penaltyB + " pens)" : "";
           box.innerHTML = crownHtml +
-            `<div class="side${aWon ? " winner-side" : ""}">${renderPlayerBadge(m.sideA, true)}<span>${decided ? m.scoreA : ""}</span></div>` +
-            `<div class="side${bWon ? " winner-side" : ""}">${renderPlayerBadge(m.sideB, true)}<span>${decided ? m.scoreB : ""}</span></div>` +
+            `<div class="side${sideAClass}">${renderPlayerBadge(m.sideA, true)}<span>${decided ? m.scoreA : ""}</span></div>` +
+            `<div class="side${sideBClass}">${renderPlayerBadge(m.sideB, true)}<span>${decided ? m.scoreB : ""}</span></div>` +
             (penText ? `<div style="font-size:10px; text-align:center; color:var(--text-muted);">${penText.trim()}</div>` : "");
         } else {
           const pensId = "kopens_" + si + "_" + mi;
           box.innerHTML = crownHtml +
-            `<div class="side${aWon ? " winner-side" : ""}">${renderPlayerBadge(m.sideA, true)}<input type="number" min="0" value="${m.scoreA ?? ""}" data-stage="${si}" data-match="${mi}" data-side="A"></div>` +
-            `<div class="side${bWon ? " winner-side" : ""}">${renderPlayerBadge(m.sideB, true)}<input type="number" min="0" value="${m.scoreB ?? ""}" data-stage="${si}" data-match="${mi}" data-side="B"></div>` +
+            `<div class="side${sideAClass}">${renderPlayerBadge(m.sideA, true)}<input type="number" min="0" value="${m.scoreA ?? ""}" data-stage="${si}" data-match="${mi}" data-side="A"></div>` +
+            `<div class="side${sideBClass}">${renderPlayerBadge(m.sideB, true)}<input type="number" min="0" value="${m.scoreB ?? ""}" data-stage="${si}" data-match="${mi}" data-side="B"></div>` +
             `<div id="${pensId}" style="display:none; margin-top:4px;">
                <div class="side"><span class="side-name">Pens</span><input type="number" min="0" data-stage="${si}" data-match="${mi}" data-pen="A"></div>
                <div class="side"><span class="side-name">Pens</span><input type="number" min="0" data-stage="${si}" data-match="${mi}" data-pen="B"></div>
@@ -3083,7 +3150,7 @@
     justResolvedKnockoutKey = null;
   }
 // comment ==> 31. Interactive Knockout Bracket Renderer ends here
-
+ 
 // comment ==> 32. Knockout Match Score Saver starts from here
   async function saveKnockoutMatch(tid, data, si, mi, container, btn, pensId, penaltiesEnabled) {
     const inputA = container.querySelector('input[data-stage="' + si + '"][data-match="' + mi + '"][data-side="A"]');
