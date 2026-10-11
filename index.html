@@ -126,7 +126,7 @@
   th, td { text-align: left; padding: 6px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
   th { color: var(--text-secondary); font-weight: normal; }
 
-  /* 1. Qualification Zone Strips (Champions League style) */
+  /* Qualification Zone Strips */
   table tbody tr.qual-top2 td:first-child {
     border-left: 4.5px solid #00e676;
     font-weight: 800;
@@ -144,7 +144,127 @@
     background: rgba(255, 179, 0, 0.06);
   }
 
-  /* 2. Match Fixture: Winner Highlight & Loser Dimming */
+  /* Rank Movement Indicators (▲ Green, ▼ Red, – Neutral) */
+  .rank-move {
+    font-size: 10px;
+    font-weight: 800;
+    margin-left: 4px;
+    display: inline-block;
+    line-height: 1;
+  }
+  .rank-move.rank-up { color: #00e676; text-shadow: 0 0 5px rgba(0, 230, 118, 0.6); }
+  .rank-move.rank-down { color: #ff5252; text-shadow: 0 0 5px rgba(255, 82, 82, 0.6); }
+  .rank-move.rank-same { color: var(--text-muted); opacity: 0.55; }
+
+  /* Mini Form Dots Under Headshots */
+  .form-dots-cluster {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3.5px;
+    margin-top: 3px;
+  }
+  .form-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    font-size: 8px;
+    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    line-height: 1;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+  }
+  .form-dot-w { background: #00e676; box-shadow: 0 0 5px rgba(0, 230, 118, 0.6); }
+  .form-dot-l { background: #ff5252; box-shadow: 0 0 5px rgba(255, 82, 82, 0.6); }
+  .form-dot-d { background: #78909c; }
+
+  /* Touch Stepper Scoreboard Capsules */
+  .stepper-wrap {
+    display: inline-flex;
+    align-items: center;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 7px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  }
+  .stepper-btn {
+    width: 26px;
+    height: 32px;
+    background: var(--bg-surface-alt);
+    color: var(--text-primary);
+    border: none;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+  .stepper-btn:hover {
+    background: var(--accent);
+    color: var(--accent-contrast);
+  }
+  .stepper-btn:active {
+    transform: scale(0.9);
+  }
+  .stepper-wrap input[type=number] {
+    width: 34px !important;
+    height: 32px !important;
+    border: none !important;
+    background: transparent !important;
+    text-align: center;
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--text-primary);
+    padding: 0 !important;
+    -moz-appearance: textfield;
+  }
+  .stepper-wrap input[type=number]::-webkit-inner-spin-button,
+  .stepper-wrap input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Match Filter Pills */
+  .match-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 8px 0 12px;
+    flex-wrap: wrap;
+  }
+  .filter-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: bold;
+    margin-right: 2px;
+  }
+  .filter-pill {
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 14px;
+    border: 1px solid var(--border-strong);
+    background: var(--bg-surface-alt);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .filter-pill.active {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    border-color: var(--accent);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+
+  /* Winner Highlight & Loser Dimming */
   .match-fixture .name.side-winner .player-avatar-circle,
   .match-fixture .name.side-winner .player-avatar-placeholder {
     border-color: var(--accent) !important;
@@ -178,6 +298,32 @@
     filter: grayscale(25%);
     transition: opacity 0.25s ease;
   }
+
+  /* Spectator / TV Cast Mode */
+  body.tv-mode {
+    max-width: 1180px !important;
+    padding: 20px 30px !important;
+  }
+  body.tv-mode #authBar,
+  body.tv-mode .match-save-btn,
+  body.tv-mode .stepper-btn,
+  body.tv-mode #saveTournamentBtn,
+  body.tv-mode .tourn-header button,
+  body.tv-mode .detailsBtn,
+  body.tv-mode #themeOptions,
+  body.tv-mode #musicUrlInput {
+    display: none !important;
+  }
+  body.tv-mode h1 { font-size: 28px; }
+  body.tv-mode h2 { font-size: 22px; color: var(--accent); }
+  body.tv-mode h3 { font-size: 16px; }
+  body.tv-mode .match-fixture .side-name { font-size: 15px; }
+  body.tv-mode .match-fixture .player-avatar-circle,
+  body.tv-mode .match-fixture .player-avatar-placeholder { width: 46px !important; height: 46px !important; }
+  body.tv-mode table { font-size: 15px; }
+  body.tv-mode table th, body.tv-mode table td { padding: 9px 8px; }
+  body.tv-mode .bracket-match { min-width: 250px; }
+  body.tv-mode .bracket-match .side-name { font-size: 14px; max-width: 160px; }
 
   .status-msg { font-size: 13px; color: var(--text-secondary); margin-top: 8px; }
   .warn { color: var(--danger-text); }
@@ -795,17 +941,6 @@
     gap: 6px;
     flex-shrink: 0;
   }
-  .score-box input[type=number] {
-    width: 42px !important;
-    height: 34px !important;
-    font-size: 16px !important;
-    font-weight: 800;
-    text-align: center;
-    border-radius: 5px;
-    border: 1px solid var(--border-strong);
-    background: var(--bg-surface);
-    color: var(--text-primary);
-  }
   .score-box span, .score-display {
     font-weight: 800;
     font-size: 15px;
@@ -858,10 +993,18 @@
       font-size: 13px !important;
       border-width: 2px;
     }
-    .score-box input[type=number] {
-      width: 36px !important;
-      height: 32px !important;
-      font-size: 15px !important;
+    .stepper-wrap {
+      border-radius: 6px;
+    }
+    .stepper-btn {
+      width: 22px;
+      height: 28px;
+      font-size: 13px;
+    }
+    .stepper-wrap input[type=number] {
+      width: 28px !important;
+      height: 28px !important;
+      font-size: 13px !important;
     }
     .match-save-btn {
       min-width: 110px !important;
@@ -904,7 +1047,7 @@
     }
   }
 /* comment ==> 08. CSS Responsive Media Queries ends here */
- 
+
 </style>
 </head>
 
@@ -955,6 +1098,7 @@
   let currentAdmin = null;
   let currentView = "home";
   let poolPlayers = [];
+  let isTvMode = false;
 
   const authBar = document.getElementById("authBar");
   const mainNav = document.getElementById("mainNav");
@@ -964,7 +1108,7 @@
   function num(v) { return v || 0; }
   function num2(v) { return v || 0; }
 // comment ==> 11. Global State Variables ends here
-
+ 
 // comment ==> 12. Utility Helpers & Drive Image Converter starts from here
   function convertImageUrl(url) {
     if (!url) return url;
@@ -1258,6 +1402,19 @@
       mainNav.appendChild(btn);
     });
 
+    /* TV / Spectator Mode Toggle Button */
+    const tvBtn = document.createElement("button");
+    tvBtn.innerHTML = isTvMode ? "&#10006; Exit TV mode" : "&#128250; TV mode";
+    tvBtn.className = isTvMode ? "active" : "";
+    tvBtn.style.borderColor = isTvMode ? "var(--accent)" : "var(--border-strong)";
+    tvBtn.addEventListener("click", () => {
+      isTvMode = !isTvMode;
+      document.body.classList.toggle("tv-mode", isTvMode);
+      renderNav();
+      renderView();
+    });
+    mainNav.appendChild(tvBtn);
+
     if (!isStandaloneMode) {
       const installBtn = document.createElement("button");
       installBtn.innerHTML = "&#11015; Install app";
@@ -1281,7 +1438,7 @@
     }
   }
 // comment ==> 17. Navigation & PWA Engine ends here
-
+ 
 // comment ==> 18. View Router (renderView) starts from here
   function renderView() {
     if (currentView === "home") return renderHome();
@@ -2575,19 +2732,47 @@
     return Object.values(stats).sort((a, b) => b.points - a.points || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf);
   }
 
-  function standingsTable(title, rows) {
+  function getPlayerRecentForm(name, matches) {
+    const done = matches.filter(m => (m.sideA === name || m.sideB === name) && m.scoreA !== null && m.scoreB !== null);
+    const last3 = done.slice(-3);
+    return last3.map(m => {
+      const isA = m.sideA === name;
+      const myScore = isA ? m.scoreA : m.scoreB;
+      const oppScore = isA ? m.scoreB : m.scoreA;
+      if (myScore > oppScore) return "W";
+      if (myScore < oppScore) return "L";
+      return "D";
+    });
+  }
+
+  function renderFormDotsHtml(formArr) {
+    if (!formArr || formArr.length === 0) return "";
+    return `<div class="form-dots-cluster">` +
+      formArr.map(f => `<span class="form-dot form-dot-${f.toLowerCase()}" title="${f === 'W' ? 'Win' : f === 'L' ? 'Loss' : 'Draw'}">${f}</span>`).join("") +
+      `</div>`;
+  }
+
+  function standingsTable(title, rows, initialOrder) {
     const wrap = document.createElement("div");
     wrap.innerHTML = "<h3>" + title + "</h3><table><thead><tr><th>#</th><th>Name</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody></tbody></table>";
     const tbody = wrap.querySelector("tbody");
     rows.forEach((r, i) => {
       const tr = document.createElement("tr");
-      /* Highlight Top 2 (Green) and Pre-semi 3rd & 4th (Amber) */
-      if (i < 2) {
-        tr.className = "qual-top2";
-      } else if (i < 4 && rows.length >= 5) {
-        tr.className = "qual-pre";
+      if (i < 2) tr.className = "qual-top2";
+      else if (i < 4 && rows.length >= 5) tr.className = "qual-pre";
+
+      /* Rank Movement Indicator compared against seed order */
+      let moveHtml = "";
+      if (initialOrder && r.played > 0) {
+        const initIdx = initialOrder.indexOf(r.name);
+        if (initIdx !== -1) {
+          if (i < initIdx) moveHtml = `<span class="rank-move rank-up" title="Climbed">&#9650;</span>`;
+          else if (i > initIdx) moveHtml = `<span class="rank-move rank-down" title="Fell">&#9660;</span>`;
+          else moveHtml = `<span class="rank-move rank-same" title="No change">&ndash;</span>`;
+        }
       }
-      tr.innerHTML = "<td>" + (i + 1) + "</td><td>" + renderPlayerBadge(r.name) + "</td><td>" + r.played + "</td><td>" + r.wins + "</td><td>" + (r.draws || 0) + "</td><td>" + r.losses + "</td><td>" + r.gf + "</td><td>" + r.ga + "</td><td>" + (r.gf - r.ga) + "</td><td><strong>" + (r.points ?? "-") + "</strong></td>";
+
+      tr.innerHTML = "<td>" + (i + 1) + moveHtml + "</td><td>" + renderPlayerBadge(r.name) + "</td><td>" + r.played + "</td><td>" + r.wins + "</td><td>" + (r.draws || 0) + "</td><td>" + r.losses + "</td><td>" + r.gf + "</td><td>" + r.ga + "</td><td>" + (r.gf - r.ga) + "</td><td><strong>" + (r.points ?? "-") + "</strong></td>";
       tbody.appendChild(tr);
     });
     return wrap;
@@ -2598,46 +2783,77 @@
 
     const standingsDiv = document.createElement("div");
     if (data.groups) {
-      data.groups.forEach((g, gi) => standingsDiv.appendChild(standingsTable("Group " + (gi + 1), computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi), data.pointsSystem))));
+      data.groups.forEach((g, gi) => {
+        standingsDiv.appendChild(standingsTable("Group " + (gi + 1), computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi), data.pointsSystem), g.members));
+      });
     } else {
       const allNames = [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
-      standingsDiv.appendChild(standingsTable("Standings", computeStandings(allNames, data.matches, data.pointsSystem)));
+      standingsDiv.appendChild(standingsTable("Standings", computeStandings(allNames, data.matches, data.pointsSystem), allNames));
     }
     container.appendChild(standingsDiv);
+
+    /* Match Filter Bar */
+    const totalMatches = data.matches.length;
+    const finishedMatches = data.matches.filter(m => m.scoreA !== null && m.scoreB !== null).length;
+    const toPlayMatches = totalMatches - finishedMatches;
+
+    const filterBar = document.createElement("div");
+    filterBar.className = "match-filter-bar";
+    filterBar.innerHTML = `
+      <span class="filter-label">Filter:</span>
+      <button type="button" class="filter-pill active" data-filter="all">All (${totalMatches})</button>
+      <button type="button" class="filter-pill" data-filter="unplayed">To Play (${toPlayMatches})</button>
+      <button type="button" class="filter-pill" data-filter="finished">Finished (${finishedMatches})</button>
+    `;
+    container.appendChild(filterBar);
 
     const matchesDiv = document.createElement("div");
     matchesDiv.style.display = "none";
     matchesDiv.innerHTML = "<h3>Group / round-robin matches</h3>";
+
     data.matches.forEach((m, idx) => {
       const row = document.createElement("div");
       row.className = "match-row";
       const alreadyScored = m.scoreA !== null && m.scoreB !== null;
+      row.dataset.scored = alreadyScored ? "true" : "false";
+
       const canEdit = !currentAdmin ? false : (alreadyScored ? currentAdmin.isMaster : true);
 
-      /* Calculate Winner vs Loser */
       const aWon = alreadyScored && m.scoreA > m.scoreB;
       const bWon = alreadyScored && m.scoreB > m.scoreA;
       const classA = alreadyScored ? (aWon ? " side-winner" : bWon ? " side-loser" : "") : "";
       const classB = alreadyScored ? (bWon ? " side-winner" : aWon ? " side-loser" : "") : "";
 
-      if (!canEdit) {
+      /* Mini form dots */
+      const formDotsA = renderFormDotsHtml(getPlayerRecentForm(m.sideA, data.matches));
+      const formDotsB = renderFormDotsHtml(getPlayerRecentForm(m.sideB, data.matches));
+
+      if (!canEdit || isTvMode) {
         const scoreText = alreadyScored ? (m.scoreA + " - " + m.scoreB) : "vs";
         row.innerHTML = `
           <div class="match-fixture">
-            <span class="name${classA}">${renderPlayerBadge(m.sideA)}</span>
+            <span class="name${classA}">${renderPlayerBadge(m.sideA)}${formDotsA}</span>
             <span class="score-display">${scoreText}</span>
-            <span class="name${classB}">${renderPlayerBadge(m.sideB)}</span>
+            <span class="name${classB}">${renderPlayerBadge(m.sideB)}${formDotsB}</span>
           </div>`;
       } else {
         row.innerHTML = `
           <div class="match-fixture">
-            <span class="name${classA}">${renderPlayerBadge(m.sideA)}</span>
+            <span class="name${classA}">${renderPlayerBadge(m.sideA)}${formDotsA}</span>
             <div class="score-box">
-              <input type="number" min="0" value="${m.scoreA ?? ""}" data-idx="${idx}" data-side="A">
+              <div class="stepper-wrap">
+                <button type="button" class="stepper-btn stepper-minus">&minus;</button>
+                <input type="number" min="0" value="${m.scoreA ?? ""}" data-idx="${idx}" data-side="A">
+                <button type="button" class="stepper-btn stepper-plus">&plus;</button>
+              </div>
               <span>-</span>
-              <input type="number" min="0" value="${m.scoreB ?? ""}" data-idx="${idx}" data-side="B">
+              <div class="stepper-wrap">
+                <button type="button" class="stepper-btn stepper-minus">&minus;</button>
+                <input type="number" min="0" value="${m.scoreB ?? ""}" data-idx="${idx}" data-side="B">
+                <button type="button" class="stepper-btn stepper-plus">&plus;</button>
+              </div>
             </div>
-            <span class="name${classB}">${renderPlayerBadge(m.sideB)}</span>
+            <span class="name${classB}">${renderPlayerBadge(m.sideB)}${formDotsB}</span>
           </div>`;
         const btn = document.createElement("button");
         btn.className = "match-save-btn";
@@ -2650,6 +2866,38 @@
         row.appendChild(btn);
       }
       matchesDiv.appendChild(row);
+    });
+
+    /* Stepper (+ / -) Click Event Delegation */
+    matchesDiv.addEventListener("click", (e) => {
+      const btn = e.target.closest(".stepper-btn");
+      if (!btn) return;
+      e.preventDefault();
+      const wrap = btn.closest(".stepper-wrap");
+      const input = wrap.querySelector("input[type=number]");
+      let val = parseInt(input.value, 10);
+      if (isNaN(val)) val = 0;
+      if (btn.classList.contains("stepper-plus")) {
+        val++;
+      } else if (btn.classList.contains("stepper-minus")) {
+        val = Math.max(0, val - 1);
+      }
+      input.value = val;
+    });
+
+    /* Filter Pills Click Handler */
+    filterBar.querySelectorAll(".filter-pill").forEach(pill => {
+      pill.addEventListener("click", () => {
+        filterBar.querySelectorAll(".filter-pill").forEach(p => p.classList.remove("active"));
+        pill.classList.add("active");
+        const mode = pill.dataset.filter;
+        matchesDiv.querySelectorAll(".match-row").forEach(row => {
+          const isDone = row.dataset.scored === "true";
+          if (mode === "all") row.style.display = "flex";
+          else if (mode === "unplayed") row.style.display = isDone ? "none" : "flex";
+          else if (mode === "finished") row.style.display = isDone ? "flex" : "none";
+        });
+      });
     });
 
     const toggleBtn = document.createElement("button");
