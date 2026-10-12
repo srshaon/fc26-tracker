@@ -2029,6 +2029,8 @@
   let sel = { format: null, subMode: null, teamSize: null, time: null, usePenalties: true };
   let singleParticipants = [];
   let regularTeams = [[], []];
+  let regularParticipants = [];
+  let regularMode = null;
   let multiTeamCount = 0;
   let multiTeams = [];
   let multiParticipants = [];
@@ -2038,8 +2040,16 @@
 
   function resetWizardState() {
     sel = { format: null, subMode: null, teamSize: null, time: null, usePenalties: true };
-    singleParticipants = []; regularTeams = [[], []]; multiTeamCount = 0; multiTeams = []; multiParticipants = [];
-    bracketStyle = null; groupCount = null; groups = [];
+    singleParticipants = [];
+    regularTeams = [[], []];
+    regularParticipants = [];
+    regularMode = null;
+    multiTeamCount = 0;
+    multiTeams = [];
+    multiParticipants = [];
+    bracketStyle = null;
+    groupCount = null;
+    groups = [];
   }
 
   function todayNameFragment() {
@@ -2121,21 +2131,21 @@
     document.getElementById("formatOptions").addEventListener("click", (e) => {
       if (!e.target.classList.contains("option-btn")) return;
       sel = { format: e.target.dataset.v, subMode: null, teamSize: null, time: null, usePenalties: true };
-      singleParticipants = []; regularTeams = [[], []]; multiTeamCount = 0; multiTeams = []; multiParticipants = [];
+      singleParticipants = []; regularTeams = [[], []]; regularParticipants = []; regularMode = null; multiTeamCount = 0; multiTeams = []; multiParticipants = [];
       markSelected("formatOptions", e.target);
       updateWizard();
     });
     document.getElementById("subModeOptions").addEventListener("click", (e) => {
       if (!e.target.classList.contains("option-btn")) return;
       sel.subMode = e.target.dataset.v; sel.teamSize = null; sel.time = null;
-      regularTeams = [[], []]; multiTeamCount = 0; multiTeams = []; multiParticipants = [];
+      regularTeams = [[], []]; regularParticipants = []; regularMode = null; multiTeamCount = 0; multiTeams = []; multiParticipants = [];
       markSelected("subModeOptions", e.target);
       updateWizard();
     });
     document.getElementById("teamSizeOptions").addEventListener("click", (e) => {
       if (!e.target.classList.contains("option-btn")) return;
       sel.teamSize = parseInt(e.target.dataset.v, 10); sel.time = null;
-      regularTeams = [[], []];
+      regularTeams = [[], []]; regularParticipants = []; regularMode = null;
       markSelected("teamSizeOptions", e.target);
       updateWizard();
     });
@@ -2174,10 +2184,15 @@
 
   function updateSummary() {
     const card = document.getElementById("summaryCard");
-    if (!sel.format) { card.style.display = "none"; return; }
+    const btn = document.getElementById("saveTournamentBtn");
+    if (!sel.format) { card.style.display = "none"; btn.style.display = "none"; return; }
+
+    const isReg = sel.format === "tagteam" && sel.subMode === "regular";
+    const regReady = !isReg || (regularTeams[0].length === sel.teamSize && regularTeams[1].length === sel.teamSize);
+
     card.style.display = "block";
     card.innerHTML = "<strong>" + todayNameFragment() + " " + typeLabel() + "</strong>" + (sel.time ? " — " + sel.time + " min match" : "");
-    document.getElementById("saveTournamentBtn").style.display = "inline-block";
+    btn.style.display = regReady ? "inline-block" : "none";
   }
 
   function renderSelectionStep() {
@@ -2196,7 +2211,7 @@
         <div id="poolSelectSingle"></div>
         <div class="chip-list" id="singleChips"></div>
         <label>Add guest players</label>
-        <div class="guest-row"><input type="text" id="guestSingle" placeholder="Guest name"><button id="addGuestSingle">Add</button></div>
+        <div class="guest-row"><input type="text" id="guestSingle" placeholder="Guest name"><button id="addGuestSingle" type="button">Add</button></div>
       `;
       document.getElementById("addGuestSingle").addEventListener("click", async () => {
         const input = document.getElementById("guestSingle");
@@ -2207,9 +2222,40 @@
       });
       renderSingleChips();
     } else if (sel.format === "tagteam" && sel.subMode === "regular" && sel.teamSize) {
+      const targetCount = sel.teamSize * 2;
       stepEl.style.display = "block";
-      stepEl.innerHTML = `<h3>4. Assign teams (${sel.teamSize} each)</h3><div class="teams-grid" id="regularGrid"></div>`;
-      buildRegularTeamBoxes();
+      stepEl.innerHTML = `
+        <h3>4. Select all ${targetCount} participating players (${sel.teamSize} per team)</h3>
+        <label>Add from player pool</label>
+        <div id="poolSelectRegFlat"></div>
+        <div class="chip-list" id="regParticipantChips"></div>
+        <label>Add guest players</label>
+        <div class="guest-row"><input type="text" id="guestRegFlat" placeholder="Guest name"><button id="addGuestRegFlat" type="button">Add</button></div>
+        <p class="status-msg" id="regParticipantStatus"></p>
+        <div id="regTeamModeStep" style="display:none; margin-top:14px;">
+          <h3>5. Team assignment</h3>
+          <div class="options" id="regModeOptions">
+            <button class="option-btn" data-v="manual">Set teams manually</button>
+            <button class="option-btn" data-v="random">Completely random (lucky draw)</button>
+          </div>
+          <div id="regTeamsResult"></div>
+        </div>
+      `;
+      document.getElementById("addGuestRegFlat").addEventListener("click", async () => {
+        const input = document.getElementById("guestRegFlat");
+        const typed = input.value.trim();
+        const label = typed ? typed.toUpperCase() : await nextGuestLabel();
+        regularParticipants.push({ type: "guest", id: null, name: label });
+        input.value = ""; renderRegularParticipantChips();
+      });
+      document.getElementById("regModeOptions").addEventListener("click", (e) => {
+        if (!e.target.classList.contains("option-btn")) return;
+        markSelected("regModeOptions", e.target);
+        regularMode = e.target.dataset.v;
+        if (regularMode === "manual") buildManualRegularTeams();
+        else runRandomRegularTeams();
+      });
+      renderRegularParticipantChips();
     } else if (sel.format === "tagteam" && sel.subMode === "multi") {
       stepEl.style.display = "block";
       stepEl.innerHTML = `
@@ -2218,7 +2264,7 @@
         <div id="poolSelectMultiFlat"></div>
         <div class="chip-list" id="multiParticipantChips"></div>
         <label>Add guest players</label>
-        <div class="guest-row"><input type="text" id="guestMultiFlat" placeholder="Guest name"><button id="addGuestMultiFlat">Add</button></div>
+        <div class="guest-row"><input type="text" id="guestMultiFlat" placeholder="Guest name"><button id="addGuestMultiFlat" type="button">Add</button></div>
         <p class="status-msg" id="multiParticipantStatus"></p>
         <div id="multiTeamModeStep" style="display:none;">
           <h3>5. Team assignment</h3>
@@ -2248,6 +2294,139 @@
         else runRandomAssign();
       });
     }
+  }
+
+  function renderRegularParticipantChips() {
+    const list = document.getElementById("regParticipantChips");
+    if (!list) return;
+    list.innerHTML = "";
+    regularParticipants.forEach((p, idx) => {
+      const chip = document.createElement("div"); chip.className = "chip";
+      chip.innerHTML = "<span>" + p.name + (p.type === "guest" ? " (guest)" : "") + "</span>";
+      const btn = document.createElement("button"); btn.textContent = "x";
+      btn.addEventListener("click", () => {
+        regularParticipants.splice(idx, 1);
+        regularTeams = [[], []];
+        renderRegularParticipantChips();
+      });
+      chip.appendChild(btn); list.appendChild(chip);
+    });
+
+    const pickerEl = document.getElementById("poolSelectRegFlat");
+    if (pickerEl) {
+      renderPoolCheckboxPicker(pickerEl, regularParticipants.filter(p => p.type === "pool").map(p => p.id), (selected) => {
+        selected.forEach(p => regularParticipants.push({ type: "pool", id: p.id, name: p.name }));
+        renderRegularParticipantChips();
+      });
+    }
+
+    const modeStep = document.getElementById("regTeamModeStep");
+    const statusEl = document.getElementById("regParticipantStatus");
+    const target = sel.teamSize * 2;
+    const n = regularParticipants.length;
+
+    if (n < target) {
+      statusEl.className = "status-msg warn";
+      statusEl.textContent = "Players undersized: need " + (target - n) + " more (" + n + "/" + target + " selected).";
+      modeStep.style.display = "none";
+      regularTeams = [[], []];
+    } else if (n > target) {
+      statusEl.className = "status-msg warn";
+      statusEl.textContent = "Players oversized: remove " + (n - target) + " player(s) (" + n + "/" + target + " selected).";
+      modeStep.style.display = "none";
+      regularTeams = [[], []];
+    } else {
+      statusEl.className = "status-msg";
+      statusEl.style.color = "var(--success-text)";
+      statusEl.textContent = "✓ Exactly " + target + " players selected. Choose team assignment below.";
+      modeStep.style.display = "block";
+      if (regularMode === "random") runRandomRegularTeams();
+      else if (regularMode === "manual") buildManualRegularTeams();
+    }
+    updateSummary();
+  }
+
+  function runRandomRegularTeams() {
+    const resultDiv = document.getElementById("regTeamsResult");
+    const shuffled = fairShuffle(regularParticipants);
+    regularTeams = [shuffled.slice(0, sel.teamSize), shuffled.slice(sel.teamSize)];
+    resultDiv.innerHTML = `
+      <p style="font-size:12px;color:var(--text-muted);">Lucky draw complete — players randomly split into two equal teams.</p>
+      <div class="teams-grid">
+        <div class="card"><h3>Team 1</h3>${regularTeams[0].map(m => m.name + (m.type === "guest" ? " (guest)" : "")).join("<br>")}</div>
+        <div class="card"><h3>Team 2</h3>${regularTeams[1].map(m => m.name + (m.type === "guest" ? " (guest)" : "")).join("<br>")}</div>
+      </div>
+      <button type="button" id="reshuffleRegBtn" style="margin-top:8px;">Draw again</button>
+    `;
+    document.getElementById("reshuffleRegBtn").addEventListener("click", runRandomRegularTeams);
+    updateSummary();
+  }
+
+  function buildManualRegularTeams() {
+    regularTeams = [regularTeams[0] || [], []];
+    // Keep only valid selections for Team 1
+    regularTeams[0] = regularTeams[0].filter(m => regularParticipants.some(p => p.name === m.name));
+    if (regularTeams[0].length > sel.teamSize) regularTeams[0] = regularTeams[0].slice(0, sel.teamSize);
+
+    // Auto-draft the remaining players into Team 2 once Team 1 reaches full capacity
+    if (regularTeams[0].length === sel.teamSize) {
+      regularTeams[1] = regularParticipants.filter(p => !regularTeams[0].some(t1 => t1.name === p.name));
+    } else {
+      regularTeams[1] = [];
+    }
+
+    const resultDiv = document.getElementById("regTeamsResult");
+    resultDiv.innerHTML = `
+      <div class="teams-grid">
+        <div class="card" id="manualRegTeam1Card">
+          <h3>Team 1 (${regularTeams[0].length}/${sel.teamSize})</h3>
+          <select id="regTeam1Select"></select>
+          <div class="chip-list" id="regTeam1Chips"></div>
+        </div>
+        <div class="card" id="manualRegTeam2Card">
+          <h3>Team 2 (Auto-drafted)</h3>
+          <div id="regTeam2List" style="font-size:13px; margin-top:6px;">
+            ${regularTeams[1].length === sel.teamSize
+              ? regularTeams[1].map(m => "• " + m.name + (m.type === "guest" ? " (guest)" : "")).join("<br>")
+              : "<span style='color:var(--text-muted); font-size:12px;'>Select all " + sel.teamSize + " members for Team 1 first — remaining players will be automatically drafted here.</span>"}
+          </div>
+        </div>
+      </div>
+    `;
+
+    const selectEl = document.getElementById("regTeam1Select");
+    const chipsEl = document.getElementById("regTeam1Chips");
+
+    // Populate dropdown with players not yet picked into Team 1
+    const available = regularParticipants.filter(p => !regularTeams[0].some(t1 => t1.name === p.name));
+    selectEl.innerHTML = '<option value="">-- add to Team 1 --</option>' +
+      available.map((p, idx) => `<option value="${idx}">${p.name}${p.type === "guest" ? " (guest)" : ""}</option>`).join("");
+
+    selectEl.onchange = () => {
+      if (!selectEl.value) return;
+      const picked = available[parseInt(selectEl.value, 10)];
+      if (regularTeams[0].length >= sel.teamSize) {
+        showToast("Team 1 already has " + sel.teamSize + " members.", "error");
+        return;
+      }
+      regularTeams[0].push(picked);
+      buildManualRegularTeams();
+    };
+
+    // Render chips for Team 1
+    chipsEl.innerHTML = "";
+    regularTeams[0].forEach((m, idx) => {
+      const chip = document.createElement("div"); chip.className = "chip";
+      chip.innerHTML = "<span>" + m.name + (m.type === "guest" ? " (guest)" : "") + "</span>";
+      const btn = document.createElement("button"); btn.textContent = "x";
+      btn.onclick = () => {
+        regularTeams[0].splice(idx, 1);
+        buildManualRegularTeams();
+      };
+      chip.appendChild(btn); chipsEl.appendChild(chip);
+    });
+
+    updateSummary();
   }
 
   function renderPoolCheckboxPicker(containerEl, excludeIds, onAdd) {
@@ -2366,50 +2545,6 @@
     }
   }
 
-  function buildRegularTeamBoxes() {
-    const grid = document.getElementById("regularGrid");
-    grid.innerHTML = "";
-    for (let i = 0; i < 2; i++) {
-      const box = document.createElement("div"); box.className = "card";
-      box.innerHTML = `<h3>Team ${i + 1}</h3><div class="regPoolPicker" data-t="${i}"></div><div class="chip-list" data-t="${i}"></div><div class="guest-row"><input type="text" class="regGuestInput" data-t="${i}" placeholder="Guest name"><button class="regGuestBtn" data-t="${i}">Add</button></div>`;
-      grid.appendChild(box);
-    }
-    grid.querySelectorAll(".regGuestBtn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const t = parseInt(btn.dataset.t, 10);
-        if (regularTeams[t].length >= sel.teamSize) { showToast("Team " + (t + 1) + " is full.", "error"); return; }
-        const input = grid.querySelector('.regGuestInput[data-t="' + t + '"]');
-        const typed = input.value.trim();
-        const label = typed ? typed.toUpperCase() : await nextGuestLabel();
-        regularTeams[t].push({ type: "guest", id: null, name: label });
-        input.value = ""; renderRegularChips(t);
-      });
-    });
-    renderRegularChips(0); renderRegularChips(1);
-  }
-  function renderRegularChips(t) {
-    const list = document.querySelector('#regularGrid .chip-list[data-t="' + t + '"]');
-    list.innerHTML = "";
-    regularTeams[t].forEach((m, idx) => {
-      const chip = document.createElement("div"); chip.className = "chip";
-      chip.innerHTML = "<span>" + m.name + (m.type === "guest" ? " (guest)" : "") + "</span>";
-      const btn = document.createElement("button"); btn.textContent = "x";
-      btn.addEventListener("click", () => { regularTeams[t].splice(idx, 1); renderRegularChips(t); });
-      chip.appendChild(btn); list.appendChild(chip);
-    });
-    const pickerEl = document.querySelector('#regularGrid .regPoolPicker[data-t="' + t + '"]');
-    if (pickerEl) {
-      const usedElsewhere = [...regularTeams[0].filter(m => m.id), ...regularTeams[1].filter(m => m.id)].map(m => m.id);
-      renderPoolCheckboxPicker(pickerEl, usedElsewhere, (selected) => {
-        const room = sel.teamSize - regularTeams[t].length;
-        const toAdd = selected.slice(0, room);
-        toAdd.forEach(p => regularTeams[t].push({ type: "pool", id: p.id, name: p.name }));
-        if (selected.length > toAdd.length) showToast("Team " + (t + 1) + " only had room for " + room + " more.", "error");
-        renderRegularChips(0); renderRegularChips(1);
-      });
-    }
-  }
-
   function currentSideCount() {
     if (sel.format === "single") return singleParticipants.length;
     if (sel.subMode === "multi") return multiTeamCount;
@@ -2420,7 +2555,7 @@
     return multiTeams.filter(t => t.length === 2).map(t => t.map(m => m.name).join(" & "));
   }
 // comment ==> 23. Tournament Creation Wizard ends here
-
+ 
 // comment ==> 24. Team Balancing & Random Shuffle Algorithms starts from here
   async function computePlayerRating(participant) {
     if (participant.type !== "pool") return 50;
@@ -2609,14 +2744,28 @@
         loss: parseInt(document.getElementById("pointsLossInput").value, 10) || 0
       };
     }
-    const base = { format: sel.format, subMode: sel.subMode, teamSize: sel.teamSize, matchTimeMinutes: sel.time, usePenalties: sel.usePenalties, pointsSystem, name: todayNameFragment() + " " + typeLabel(), createdAt: Date.now() };
+    const dateToday = todayNameFragment();
+    const base = {
+      format: sel.format,
+      subMode: sel.subMode,
+      teamSize: sel.teamSize,
+      matchTimeMinutes: sel.time,
+      usePenalties: sel.usePenalties,
+      pointsSystem,
+      dateStr: dateToday,
+      name: dateToday + " " + typeLabel(),
+      createdAt: Date.now()
+    };
 
     try {
       if (sel.format === "single") {
         if (singleParticipants.length < 2) { statusEl.textContent = "Add at least 2 participants."; return; }
         await finalizeAndSave(base, { participants: singleParticipants }, singleParticipants.map(p => p.name));
       } else if (sel.subMode === "regular") {
-        if (regularTeams[0].length !== sel.teamSize || regularTeams[1].length !== sel.teamSize) { statusEl.textContent = "Both teams need exactly " + sel.teamSize + " member(s)."; return; }
+        if (regularTeams[0].length !== sel.teamSize || regularTeams[1].length !== sel.teamSize) {
+          statusEl.textContent = "Both teams need exactly " + sel.teamSize + " member(s). Complete team assignment.";
+          return;
+        }
         const teamData = regularTeams.map(t => ({ members: t, teamName: t.map(m => m.name).join(" & ") }));
         await addDoc(collection(db, "tournaments"), { ...base, teams: teamData, status: "ready" });
         statusEl.textContent = "Tournament created. Go to Live tournaments to play the match.";
@@ -2812,41 +2961,62 @@
     const winnerName = wentToPenalties ? (penaltyScores.p1 > penaltyScores.p2 ? nameA : nameB) : (s1 > s2 ? nameA : nameB);
     const runnerUpName = winnerName === nameA ? nameB : nameA;
 
+    // Renames tournament to date only upon finish
+    const finishedName = data.dateStr || (data.name ? data.name.replace(/\s+(Single Player|Tag Team|Regular|Multiple|Controller|Tournament).*$/i, "").trim() : todayNameFragment());
+
     if (data.format === "single") {
       const refA = sideRef(data, nameA)[0], refB = sideRef(data, nameB)[0];
       const aWon = winnerName === nameA, bWon = winnerName === nameB;
-      if (refA && refA.type === "pool") await bump(refA.id, { singleMatchesPlayed: 1, singleGoalsFor: s1, singleGoalsAgainst: s2, singleWins: aWon ? 1 : 0, singleLosses: bWon ? 1 : 0 });
-      if (refB && refB.type === "pool") await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: s2, singleGoalsAgainst: s1, singleWins: bWon ? 1 : 0, singleLosses: aWon ? 1 : 0 });
+      if (refA && refA.type === "pool" && refA.id) await bump(refA.id, { singleMatchesPlayed: 1, singleGoalsFor: s1, singleGoalsAgainst: s2, singleWins: aWon ? 1 : 0, singleLosses: bWon ? 1 : 0 });
+      if (refB && refB.type === "pool" && refB.id) await bump(refB.id, { singleMatchesPlayed: 1, singleGoalsFor: s2, singleGoalsAgainst: s1, singleWins: bWon ? 1 : 0, singleLosses: aWon ? 1 : 0 });
     } else {
       if (data.subMode === "multi") {
         const winnerMembersForMatch = sideRef(data, winnerName), loserMembersForMatch = sideRef(data, runnerUpName);
-        for (const m of winnerMembersForMatch) { if (m.type === "pool") await bump(m.id, { tagMultiMatchesPlayed: 1, tagMultiWins: 1 }); }
-        for (const m of loserMembersForMatch) { if (m.type === "pool") await bump(m.id, { tagMultiMatchesPlayed: 1, tagMultiLosses: 1 }); }
+        for (const m of winnerMembersForMatch) { if (m.type === "pool" && m.id) await bump(m.id, { tagMultiMatchesPlayed: 1, tagMultiWins: 1 }); }
+        for (const m of loserMembersForMatch) { if (m.type === "pool" && m.id) await bump(m.id, { tagMultiMatchesPlayed: 1, tagMultiLosses: 1 }); }
       }
     }
 
     const allMembers = data.format === "single" ? data.participants : data.teams.flatMap(t => t.members);
     const prefix = tagPrefix(data.subMode);
     for (const m of allMembers) {
-      if (m.type !== "pool") continue;
+      if (m.type !== "pool" || !m.id) continue;
       if (data.format === "single") await bump(m.id, { singleTournamentsPlayed: 1 });
       else await bump(m.id, { [prefix + "TournamentsPlayed"]: 1 });
     }
     const winnerMembers = sideRef(data, winnerName), loserMembers = sideRef(data, runnerUpName);
-    for (const m of winnerMembers) { if (m.type !== "pool") continue; if (data.format === "single") await bump(m.id, { singleChampionships: 1 }); else await bump(m.id, { [prefix + "Championships"]: 1 }); }
-    for (const m of loserMembers) { if (m.type !== "pool") continue; if (data.format === "single") await bump(m.id, { singleRunnerUps: 1 }); else await bump(m.id, { [prefix + "RunnerUps"]: 1 }); }
+    for (const m of winnerMembers) { if (m.type !== "pool" || !m.id) continue; if (data.format === "single") await bump(m.id, { singleChampionships: 1 }); else await bump(m.id, { [prefix + "Championships"]: 1 }); }
+    for (const m of loserMembers) { if (m.type !== "pool" || !m.id) continue; if (data.format === "single") await bump(m.id, { singleRunnerUps: 1 }); else await bump(m.id, { [prefix + "RunnerUps"]: 1 }); }
 
     const finalScore = { side1: s1, side2: s2 };
     if (wentToPenalties) { finalScore.penalty1 = penaltyScores.p1; finalScore.penalty2 = penaltyScores.p2; }
 
-    await updateDoc(doc(db, "tournaments", tid), { status: "completed", finalScore, winner: winnerName, runnerUp: runnerUpName });
-    await setDoc(doc(db, "champions", data.format + "_" + (data.subMode || "none")), { tournamentName: data.name, winner: winnerName, runnerUp: runnerUpName, updatedAt: Date.now() });
-    await setDoc(doc(db, "resultsTable", tid), { format: data.format, subMode: data.subMode || null, tournamentName: data.name, winner: winnerName, runnerUp: runnerUpName, completedAt: Date.now() });
-    await loadPool();
+    await updateDoc(doc(db, "tournaments", tid), {
+      name: finishedName,
+      status: "completed",
+      finalScore,
+      winner: winnerName,
+      runnerUp: runnerUpName
+    });
+    await setDoc(doc(db, "champions", data.format + "_" + (data.subMode || "none")), {
+      tournamentName: finishedName,
+      winner: winnerName,
+      runnerUp: runnerUpName,
+      updatedAt: Date.now()
+    });
+    await setDoc(doc(db, "resultsTable", tid), {
+      format: data.format,
+      subMode: data.subMode || null,
+      tournamentName: finishedName,
+      winner: winnerName,
+      runnerUp: runnerUpName,
+      completedAt: Date.now()
+    });
+    try { await loadPool(); } catch (e) {}
     tournamentRecordsCache = null;
   }
 // comment ==> 27. Single Match Engine & Result Finalization ends here
-
+ 
 // comment ==> 28. Standings & Group Matches Engine starts from here
   function getQualCount(data) {
     if (!data || !data.knockout) return 0;
@@ -3643,6 +3813,10 @@
         const winnerName = winner, runnerUpName = winner === m.sideA ? m.sideB : m.sideA;
         const allMembers = data.format === "single" ? data.participants : data.teams.flatMap(t => t.members);
         const prefix = tagPrefix(data.subMode);
+
+        // Renames tournament to date only upon finish
+        const finishedName = data.dateStr || (data.name ? data.name.replace(/\s+(Single Player|Tag Team|Regular|Multiple|Controller|Tournament).*$/i, "").trim() : todayNameFragment());
+
         try {
           for (const mem of allMembers) {
             if (mem.type !== "pool" || !mem.id) continue;
@@ -3656,9 +3830,26 @@
           console.warn("Final stats bump skipped:", fStatsErr);
         }
 
-        await updateDoc(doc(db, "tournaments", tid), { status: "completed", winner: winnerName, runnerUp: runnerUpName });
-        await setDoc(doc(db, "champions", data.format + "_" + (data.subMode || "none")), { tournamentName: data.name, winner: winnerName, runnerUp: runnerUpName, updatedAt: Date.now() });
-        await setDoc(doc(db, "resultsTable", tid), { format: data.format, subMode: data.subMode || null, tournamentName: data.name, winner: winnerName, runnerUp: runnerUpName, completedAt: Date.now() });
+        await updateDoc(doc(db, "tournaments", tid), {
+          name: finishedName,
+          status: "completed",
+          winner: winnerName,
+          runnerUp: runnerUpName
+        });
+        await setDoc(doc(db, "champions", data.format + "_" + (data.subMode || "none")), {
+          tournamentName: finishedName,
+          winner: winnerName,
+          runnerUp: runnerUpName,
+          updatedAt: Date.now()
+        });
+        await setDoc(doc(db, "resultsTable", tid), {
+          format: data.format,
+          subMode: data.subMode || null,
+          tournamentName: finishedName,
+          winner: winnerName,
+          runnerUp: runnerUpName,
+          completedAt: Date.now()
+        });
         try { await loadPool(); } catch (e) {}
         tournamentRecordsCache = null;
         showWinnerBanner(container, winnerName);
