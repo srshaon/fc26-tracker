@@ -126,7 +126,7 @@
   th, td { text-align: left; padding: 6px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
   th { color: var(--text-secondary); font-weight: normal; }
 
-  /* 1. Esports Stage Badges (Replacing raw h3 text) */
+  /* 1. Esports Stage Badges */
   .stage-badge {
     display: inline-flex;
     align-items: center;
@@ -158,7 +158,7 @@
     animation: liveRing 1.6s ease-out infinite;
   }
 
-  /* 2. Sleek Themed Toggle Buttons (No more clashing white boxes) */
+  /* 2. Sleek Themed Toggle Buttons */
   .toggle-stage-btn {
     display: inline-flex;
     align-items: center;
@@ -181,23 +181,25 @@
     color: var(--text-primary);
   }
 
-  /* 3. Qualification Zone Strips, Gradients & Q Badges */
-  table tbody tr.qual-top2 td:first-child {
+  /* 3. Qualification (Q) & Elimination (E) Strips and Badges */
+  table tbody tr.row-qual td:first-child {
     border-left: 4.5px solid #00e676;
     font-weight: 800;
     color: #00e676;
   }
-  table tbody tr.qual-top2 {
+  table tbody tr.row-qual {
     background: linear-gradient(90deg, rgba(0, 230, 118, 0.12) 0%, rgba(0, 230, 118, 0.02) 100%);
   }
-  table tbody tr.qual-pre td:first-child {
-    border-left: 4.5px solid #ffb300;
+
+  table tbody tr.row-elim td:first-child {
+    border-left: 4.5px solid rgba(255, 82, 82, 0.7);
     font-weight: 800;
-    color: #ffb300;
+    color: #ff5252;
   }
-  table tbody tr.qual-pre {
-    background: linear-gradient(90deg, rgba(255, 179, 0, 0.10) 0%, rgba(255, 179, 0, 0.02) 100%);
+  table tbody tr.row-elim {
+    background: linear-gradient(90deg, rgba(255, 82, 82, 0.09) 0%, rgba(255, 82, 82, 0.01) 100%);
   }
+
   .qual-tag {
     display: inline-block;
     font-size: 9px;
@@ -209,16 +211,17 @@
     line-height: 1.2;
     vertical-align: middle;
   }
-  .qual-tag-top2 {
-    background: rgba(0, 230, 118, 0.22);
+  .qual-tag-q {
+    background: rgba(0, 230, 118, 0.2);
     color: #00e676;
     border: 1px solid rgba(0, 230, 118, 0.6);
     box-shadow: 0 0 6px rgba(0, 230, 118, 0.3);
   }
-  .qual-tag-pre {
-    background: rgba(255, 179, 0, 0.22);
-    color: #ffb300;
-    border: 1px solid rgba(255, 179, 0, 0.6);
+  .qual-tag-e {
+    background: rgba(255, 82, 82, 0.18);
+    color: #ff5252;
+    border: 1px solid rgba(255, 82, 82, 0.5);
+    box-shadow: 0 0 4px rgba(255, 82, 82, 0.2);
   }
 
   /* 4. Rank Movement Indicators */
@@ -2845,6 +2848,19 @@
 // comment ==> 27. Single Match Engine & Result Finalization ends here
 
 // comment ==> 28. Standings & Group Matches Engine starts from here
+  function getQualCount(data) {
+    const isGrouped = !!data.groups;
+    if (data.knockout) {
+      const opt = data.knockout.option;
+      if (opt === "final_only") return isGrouped ? 1 : 2;
+      if (opt === 1) return isGrouped ? 2 : 4;
+      if (opt === 2) return isGrouped ? 3 : 6;
+      if (opt === 3) return isGrouped ? 4 : 8;
+      if (opt === "eliminator") return 3;
+    }
+    return isGrouped ? 2 : 4;
+  }
+
   function computeStandings(sideNames, matches, pointsSystem) {
     const pts = pointsSystem || { win: 3, draw: 1, loss: 0 };
     const stats = {};
@@ -2882,7 +2898,7 @@
       `</div>`;
   }
 
-  function standingsTable(title, rows, initialOrder) {
+  function standingsTable(title, rows, initialOrder, qualCount = 2) {
     const wrap = document.createElement("div");
     wrap.innerHTML = `<div class="stage-badge"><span class="badge-icon">&#127942;</span> ${title}</div>` +
       `<table><thead><tr><th>#</th><th>Name</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody></tbody></table>`;
@@ -2890,15 +2906,12 @@
     rows.forEach((r, i) => {
       const tr = document.createElement("tr");
 
-      /* Qualification Styling & Q Badge */
-      let qualTag = "";
-      if (i < 2) {
-        tr.className = "qual-top2";
-        qualTag = `<span class="qual-tag qual-tag-top2">Q</span>`;
-      } else if (i < 4 && rows.length >= 5) {
-        tr.className = "qual-pre";
-        qualTag = `<span class="qual-tag qual-tag-pre">PRE</span>`;
-      }
+      /* Exact Knockout-Aware Qualification (Q) vs Elimination (E) */
+      const isQualified = i < qualCount;
+      tr.className = isQualified ? "row-qual" : "row-elim";
+      const qualTag = isQualified
+        ? `<span class="qual-tag qual-tag-q">Q</span>`
+        : `<span class="qual-tag qual-tag-e">E</span>`;
 
       /* Rank Movement Indicator compared against seed order */
       let moveHtml = "";
@@ -2919,15 +2932,16 @@
 
   function renderBracketBody(container, tid, data) {
     container.innerHTML = "";
+    const qCount = getQualCount(data);
 
     const standingsDiv = document.createElement("div");
     if (data.groups) {
       data.groups.forEach((g, gi) => {
-        standingsDiv.appendChild(standingsTable("Group " + (gi + 1), computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi), data.pointsSystem), g.members));
+        standingsDiv.appendChild(standingsTable("Group " + (gi + 1), computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi), data.pointsSystem), g.members, qCount));
       });
     } else {
       const allNames = [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
-      standingsDiv.appendChild(standingsTable("Standings", computeStandings(allNames, data.matches, data.pointsSystem), allNames));
+      standingsDiv.appendChild(standingsTable("Standings", computeStandings(allNames, data.matches, data.pointsSystem), allNames, qCount));
     }
     container.appendChild(standingsDiv);
 
@@ -3795,31 +3809,50 @@
 
     const hasGroupInfo = !!(data.groups || data.matches);
     if (hasGroupInfo) {
+      const qCount = getQualCount(data);
       if (data.groups) {
-        data.groups.forEach((g, gi) => contentDiv.appendChild(standingsTable("Group " + (gi + 1), computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi), data.pointsSystem))));
+        data.groups.forEach((g, gi) => contentDiv.appendChild(standingsTable("Group " + (gi + 1), computeStandings(g.members, data.matches.filter(m => m.groupIndex === gi), data.pointsSystem), g.members, qCount)));
       } else if (data.matches) {
         const allNames = [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
-        contentDiv.appendChild(standingsTable("Standings", computeStandings(allNames, data.matches, data.pointsSystem)));
+        contentDiv.appendChild(standingsTable("Standings", computeStandings(allNames, data.matches, data.pointsSystem), allNames, qCount));
       }
 
       const matchListDiv = document.createElement("div");
       matchListDiv.style.display = "none";
-      matchListDiv.innerHTML = "<h3>Group / round-robin matches</h3>";
+      matchListDiv.innerHTML = `<div class="stage-badge"><span class="live-pulse-dot"></span> Group stage fixtures</div>`;
       data.matches.forEach(m => {
         const row = document.createElement("div");
         row.className = "match-row";
-        const scoreText = (m.scoreA !== null && m.scoreB !== null) ? (m.scoreA + " - " + m.scoreB) : "vs";
-        row.innerHTML = `<span class="name">${renderPlayerBadge(m.sideA)}</span><span>${scoreText}</span><span class="name">${renderPlayerBadge(m.sideB)}</span>`;
+        const decided = m.scoreA !== null && m.scoreB !== null;
+        const aWon = decided && m.scoreA > m.scoreB;
+        const bWon = decided && m.scoreB > m.scoreA;
+        const classA = decided ? (aWon ? " side-winner" : bWon ? " side-loser" : "") : "";
+        const classB = decided ? (bWon ? " side-winner" : aWon ? " side-loser" : "") : "";
+
+        const scoreCapsule = decided ? `
+          <div class="scoreboard-capsule">
+            <span class="score-num ${aWon ? "score-winner" : (bWon ? "score-loser" : "")}">${m.scoreA}</span>
+            <span class="score-divider">:</span>
+            <span class="score-num ${bWon ? "score-winner" : (aWon ? "score-loser" : "")}">${m.scoreB}</span>
+          </div>` : `<span class="score-display">vs</span>`;
+
+        row.innerHTML = `
+          <div class="match-fixture">
+            <span class="name${classA}">${renderPlayerBadge(m.sideA)}</span>
+            ${scoreCapsule}
+            <span class="name${classB}">${renderPlayerBadge(m.sideB)}</span>
+          </div>`;
         matchListDiv.appendChild(row);
       });
 
       const toggleBtn = document.createElement("button");
-      toggleBtn.textContent = "Show group stage matches";
+      toggleBtn.className = "toggle-stage-btn";
+      toggleBtn.innerHTML = "&#9662; Show group stage matches";
       toggleBtn.style.marginTop = "6px";
       toggleBtn.addEventListener("click", () => {
         const showing = matchListDiv.style.display !== "none";
         matchListDiv.style.display = showing ? "none" : "block";
-        toggleBtn.textContent = showing ? "Show group stage matches" : "Hide group stage matches";
+        toggleBtn.innerHTML = showing ? "&#9662; Show group stage matches" : "&#9652; Hide group stage matches";
       });
       contentDiv.appendChild(toggleBtn);
       contentDiv.appendChild(matchListDiv);
@@ -3852,7 +3885,7 @@
 
   function renderKnockoutReadOnly(container, data) {
     const wrap = document.createElement("div");
-    wrap.innerHTML = "<h3>Knockout stage</h3>";
+    wrap.innerHTML = `<div class="stage-badge"><span class="badge-icon">&#127942;</span> Knockout stage</div>`;
     wrap.appendChild(buildBreadcrumb(data.knockout.stages));
     const columns = document.createElement("div");
     columns.className = "bracket-columns";
@@ -3874,8 +3907,8 @@
         box.dataset.sideA = m.sideA; box.dataset.sideB = m.sideB;
         box.innerHTML =
           (isChampionBox ? `<div class="champion-crown">&#128081;</div>` : "") +
-          `<div class="side${aWon ? " winner-side" : ""}">${renderPlayerBadge(m.sideA, true)}<span class="count-up" data-final="${decided ? m.scoreA : ""}">${decided ? "" : ""}</span></div>` +
-          `<div class="side${bWon ? " winner-side" : ""}">${renderPlayerBadge(m.sideB, true)}<span class="count-up" data-final="${decided ? m.scoreB : ""}">${decided ? "" : ""}</span></div>` +
+          `<div class="side${aWon ? " winner-side" : (bWon ? " loser-side" : "")}">${renderPlayerBadge(m.sideA, true)}<span class="count-up" data-final="${decided ? m.scoreA : ""}">${decided ? "" : ""}</span></div>` +
+          `<div class="side${bWon ? " winner-side" : (aWon ? " loser-side" : "")}">${renderPlayerBadge(m.sideB, true)}<span class="count-up" data-final="${decided ? m.scoreB : ""}">${decided ? "" : ""}</span></div>` +
           (wentToPens ? `<div style="font-size:10px; text-align:center; color:var(--text-muted);">${m.penaltyA}-${m.penaltyB} pens</div>` : "");
         col.appendChild(box);
         if (decided) {
@@ -3918,7 +3951,7 @@
     tournamentRecordsCache = null;
   }
 // comment ==> 34. Tournament Detail View ends here
-
+ 
 // comment ==> 35. Head-to-Head Comparison Engine starts from here
   function renderHeadToHead(body) {
     body.innerHTML = `
