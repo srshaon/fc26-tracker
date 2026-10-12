@@ -2849,16 +2849,15 @@
 
 // comment ==> 28. Standings & Group Matches Engine starts from here
   function getQualCount(data) {
+    if (!data || !data.knockout) return 0;
     const isGrouped = !!data.groups;
-    if (data.knockout) {
-      const opt = data.knockout.option;
-      if (opt === "final_only") return isGrouped ? 1 : 2;
-      if (opt === 1) return isGrouped ? 2 : 4;
-      if (opt === 2) return isGrouped ? 3 : 6;
-      if (opt === 3) return isGrouped ? 4 : 8;
-      if (opt === "eliminator") return 3;
-    }
-    return isGrouped ? 2 : 4;
+    const opt = data.knockout.option;
+    if (opt === "final_only") return isGrouped ? 1 : 2;
+    if (opt === 1) return isGrouped ? 2 : 4;
+    if (opt === 2) return isGrouped ? 3 : 6;
+    if (opt === 3) return isGrouped ? 4 : 8;
+    if (opt === "eliminator") return 3;
+    return 0;
   }
 
   function computeStandings(sideNames, matches, pointsSystem) {
@@ -2898,7 +2897,7 @@
       `</div>`;
   }
 
-  function standingsTable(title, rows, initialOrder, qualCount = 2) {
+  function standingsTable(title, rows, initialOrder, qualCount = 0) {
     const wrap = document.createElement("div");
     wrap.innerHTML = `<div class="stage-badge"><span class="badge-icon">&#127942;</span> ${title}</div>` +
       `<table><thead><tr><th>#</th><th>Name</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody></tbody></table>`;
@@ -2906,12 +2905,15 @@
     rows.forEach((r, i) => {
       const tr = document.createElement("tr");
 
-      /* Exact Knockout-Aware Qualification (Q) vs Elimination (E) */
-      const isQualified = i < qualCount;
-      tr.className = isQualified ? "row-qual" : "row-elim";
-      const qualTag = isQualified
-        ? `<span class="qual-tag qual-tag-q">Q</span>`
-        : `<span class="qual-tag qual-tag-e">E</span>`;
+      /* Exact Knockout-Aware Qualification (Q) vs Elimination (E) - Only active when qualCount > 0 */
+      let qualTag = "";
+      if (qualCount > 0) {
+        const isQualified = i < qualCount;
+        tr.className = isQualified ? "row-qual" : "row-elim";
+        qualTag = isQualified
+          ? `<span class="qual-tag qual-tag-q">Q</span>`
+          : `<span class="qual-tag qual-tag-e">E</span>`;
+      }
 
       /* Rank Movement Indicator compared against seed order */
       let moveHtml = "";
