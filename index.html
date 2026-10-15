@@ -1913,115 +1913,309 @@
 
 // comment ==> 22. Player Pool Management starts from here
   async function loadPool() {
-    const snap = await getDocs(collection(db, "players"));
-    poolPlayers = [];
-    snap.forEach(d => poolPlayers.push({ id: d.id, ...d.data() }));
-    poolPlayers.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    try {
+      const snap = await getDocs(collection(db, "players"));
+      poolPlayers = [];
+      snap.forEach(d => poolPlayers.push({ id: d.id, ...d.data() }));
+      poolPlayers.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+
+      // Automatically sync past records in background if logged in as admin
+      if (currentAdmin) {
+        autoSyncDatabaseSilently();
+      }
+    } catch (e) {
+      console.warn("Couldn't load player pool:", e);
+    }
+  }
+
+  function replaceNameInString(str, oldN, newN) {
+    if (!str || typeof str !== "string") return str;
+    if (str === oldN) return newN;
+    const parts = str.split(" & ");
+    if (parts.length > 1) {
+      return parts.map(p => p.trim() === oldN ? newN : p.trim()).join(" & ");
+    }
+    return str;
+  }
+
+  /* Fully automated background sync engine */
+  async function autoSyncDatabaseSilently() {
+    if (!poolPlayers || poolPlayers.length === 0) return;
+    const idToCurrentName = {};
+    poolPlayers.forEach(p => { if (p.id && p.name) idToCurrentName[p.id] = p.name; });
+
+    try {
+      const tourSnaps = await getDocs(collection(db, "tournaments"));
+      const globalRenames = {};
+
+      for (const tDoc of tourSnaps.docs) {
+        const t = tDoc.data();
+        const localRenameMap = {};
+
+        // 1. Detect renames in single participants
+        if (Array.isArray(t.participants)) {
+          t.participants.forEach(p => {
+            if (p.id && idToCurrentName[p.id] && p.name !== idToCurrentName[p.id]) {
+              localRenameMap[p.name] = idToCurrentName[p.id];
+              globalRenames[p.name] = idToCurrentName[p.id];
+              p.name = idToCurrentName[p.id];
+            }
+          });
+        }
+
+        // 2. Detect renames in tag-team rosters & recompute duo names
+        if (Array.isArray(t.teams)) {
+          t.teams.forEach(team => {
+            const prevTeamName = team.teamName;
+            let rosterChanged = false;
+            (team.members || []).forEach(m => {
+              if (m.id && idToCurrentName[m.id] && m.name !== idToCurrentName[m.id]) {
+                localRenameMap[m.name] = idToCurrentName[m.id];
+                globalRenames[m.name] = idToCurrentName[m.id];
+                m.name = idToCurrentName[m.id];
+                rosterChanged = true;
+              }
+            });
+            if (rosterChanged) {
+              const freshTeamName = team.members.map(m => m.name).join(" & ");
+              if (prevTeamName && prevTeamName !== freshTeamName) {
+                localRenameMap[prevTeamName] = freshTeamName;
+                globalRenames[prevTeamName] = freshTeamName;
+                team.teamName = freshTeamName;
+              }
+            }
+          });
+        }
+
+        // 3. If renames were found, cascade through the entire tournament document
+        if (Object.keys(localRenameMap).length > 0) {
+          const applyMap = (str) => {
+            if (!str || typeof str !== "string") return str;
+            if (localRenameMap[str]) return localRenameMap[str];
+            let res = str;
+            for (const [oldN, newN] of Object.entries(localRenameMap)) {
+              res = replaceNameInString(res, oldN, newN);
+            }
+            return res;
+          };
+
+          if (t.winner) t.winner = applyMap(t.winner);
+          if (t.runnerUp) t.runnerUp = applyMap(t.runnerUp);
+
+          if (Array.isArray(t.groups)) {
+            t.groups.forEach(g => {
+              if (Array.isArray(g.members)) g.members = g.members.map(applyMap);
+            });
+          }
+
+          if (Array.isArray(t.matches)) {
+            t.matches.forEach(m => {
+              m.sideA = applyMap(m.sideA);
+              m.sideB = applyMap(m.sideB);
+            });
+          }
+
+          if (t.knockout && Array.isArray(t.knockout.stages)) {
+            t.knockout.stages.forEach(st => {
+              if (Array.isArray(st.matches)) {
+                st.matches.forEach(km => {
+                  km.sideA = applyMap(km.sideA);
+                  km.sideB = applyMap(km.sideB);
+                });
+              }
+            });
+          }
+
+          const updatePayload = {
+            matches: t.matches || null,
+            groups: t.groups || null,
+            winner: t.winner || null,
+            runnerUp: t.runnerUp || null
+          };
+          if (t.participants) updatePayload.participants = t.participants;
+          if (t.teams) updatePayload.teams = t.teams;
+          if (t.knockout) updatePayload.knockout = t.knockout;
+
+          await updateDoc(doc(db, "tournaments", tDoc.id), updatePayload);
+
+          try {
+            await updateDoc(doc(db, "resultsTable", tDoc.id), {
+              winner: t.winner,
+              runnerUp: t.runnerUp
+            });
+          } catch (rErr) {}
+        }
+      }
+
+      // 4. Sync champions collection with any updated names
+      if (Object.keys(globalRenames).length > 0) {
+        try {
+          const champSnaps = await getDocs(collection(db, "champions"));
+          for (const cDoc of champSnaps.docs) {
+            const cd = cDoc.data();
+            let w = cd.winner, ru = cd.runnerUp;
+            for (const [oldN, newN] of Object.entries(globalRenames)) {
+              w = replaceNameInString(w, oldN, newN);
+              ru = replaceNameInString(ru, oldN, newN);
+            }
+            if (w !== cd.winner || ru !== cd.runnerUp) {
+              await updateDoc(doc(db, "champions", cDoc.id), { winner: w, runnerUp: ru });
+            }
+          }
+        } catch (cErr) {}
+        tournamentRecordsCache = null;
+      }
+    } catch (err) {
+      console.warn("Background auto-sync skipped:", err);
+    }
   }
 
   function renderPlayerPool() {
-    viewArea.innerHTML = `
-      <h2>Player pool</h2>
-      ${currentAdmin ? `
-      <div class="card">
-        <label>Player name</label>
-        <input type="text" id="newPlayerName">
-        <label>Image URL (optional)</label>
-        <input type="url" id="newPlayerImage">
-        <p style="font-size:11px; color:var(--text-muted); margin:4px 0 0;">Google Drive share links work too — just make sure the file is shared as "Anyone with the link."</p>
-        <br><button class="primary" id="addPlayerBtn">Add player</button>
-        <p class="status-msg" id="playerStatus"></p>
-      </div>` : `<p class="status-msg">Log in as an admin to add or edit players.</p>`}
-      <table><thead><tr><th></th><th>Name</th><th></th></tr></thead><tbody id="playerBody"></tbody></table>
+    viewArea.innerHTML = "<h2>Player pool</h2><div id='poolBody'></div>";
+    const body = document.getElementById("poolBody");
+
+    let adminControls = "";
+    if (currentAdmin) {
+      adminControls = `
+        <div class="card">
+          <h3>Add new player</h3>
+          <label>Player name</label>
+          <input type="text" id="newPlayerName" placeholder="e.g. Alex">
+          <label>Google Drive avatar link / image URL (optional)</label>
+          <input type="url" id="newPlayerPhoto" placeholder="https://drive.google.com/file/d/...">
+          <br><button class="primary" id="addPlayerBtn">Add player</button>
+          <p class="status-msg" id="addPlayerStatus"></p>
+        </div>
+      `;
+    }
+
+    body.innerHTML = adminControls + `
+      <div class="card" style="margin-top:12px;">
+        <h3>Registered players (${poolPlayers.length})</h3>
+        <div id="playerList"></div>
+      </div>
+      <div id="editPlayerModal" class="card" style="display:none; margin-top:12px; border:2px solid var(--accent);"></div>
     `;
+
     if (currentAdmin) {
       document.getElementById("addPlayerBtn").addEventListener("click", async () => {
-        const statusEl = document.getElementById("playerStatus");
-        const name = document.getElementById("newPlayerName").value.trim();
-        const img = convertImageUrl(document.getElementById("newPlayerImage").value.trim());
-        if (!name) { statusEl.textContent = "Name is required."; return; }
+        const nameInput = document.getElementById("newPlayerName");
+        const photoInput = document.getElementById("newPlayerPhoto");
+        const status = document.getElementById("addPlayerStatus");
+        const name = nameInput.value.trim().toUpperCase();
+        if (!name) { status.textContent = "Name cannot be empty."; return; }
+        if (poolPlayers.some(p => p.name.toUpperCase() === name)) {
+          status.textContent = "A player with this name already exists.";
+          return;
+        }
+
         try {
-          await addDoc(collection(db, "players"), { name: name.toUpperCase(), imageUrl: img || null, createdAt: Date.now() });
-          statusEl.textContent = "Player added.";
-          document.getElementById("newPlayerName").value = "";
-          document.getElementById("newPlayerImage").value = "";
+          await addDoc(collection(db, "players"), {
+            name,
+            photoUrl: photoInput.value.trim() || null,
+            createdAt: Date.now()
+          });
+          nameInput.value = "";
+          photoInput.value = "";
+          status.textContent = "Player added!";
           await loadPool();
-          refreshPlayerTable();
-        } catch (e) { statusEl.textContent = "Failed: " + e.message; }
+          renderPlayerPool();
+        } catch (e) {
+          status.textContent = "Error: " + e.message;
+        }
       });
     }
-    refreshPlayerTable();
+
+    renderPlayerItems();
   }
 
-  function refreshPlayerTable() {
-    const body = document.getElementById("playerBody");
-    body.innerHTML = "";
+  function renderPlayerItems() {
+    const listEl = document.getElementById("playerList");
+    if (!listEl) return;
+    if (poolPlayers.length === 0) {
+      listEl.innerHTML = "<p class='status-msg'>No players added yet.</p>";
+      return;
+    }
+
+    listEl.innerHTML = "";
     poolPlayers.forEach(p => {
-      const row = document.createElement("tr");
-      row.dataset.playerId = p.id;
-      renderPlayerRow(row, p);
-      body.appendChild(row);
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);";
+      row.innerHTML = `
+        <div style="display:flex; align-items:center; gap:10px;">
+          ${renderPlayerBadge(p.name)}
+        </div>
+        <div>
+          ${currentAdmin ? `<button type="button" class="toggle-stage-btn edit-player-btn" data-id="${p.id}" style="margin:0; padding:4px 10px; font-size:11px;">Edit</button>` : ""}
+        </div>
+      `;
+      listEl.appendChild(row);
     });
-  }
-
-  function renderPlayerRow(row, p) {
-    const imgHtml = p.imageUrl ? "<img src='" + convertImageUrl(p.imageUrl) + "' style='width:28px;height:28px;border-radius:50%;object-fit:cover;'>" : "";
-    row.innerHTML = "<td>" + imgHtml + "</td><td>" + p.name + "</td><td></td>";
-    const actionsCell = row.children[2];
 
     if (currentAdmin) {
-      const editBtn = document.createElement("button");
-      editBtn.textContent = "Edit";
-      editBtn.addEventListener("click", () => renderPlayerEditRow(row, p));
-      actionsCell.appendChild(editBtn);
-    }
-
-    if (currentAdmin && currentAdmin.isMaster) {
-      const delBtn = document.createElement("button");
-      delBtn.textContent = "Delete";
-      delBtn.style.marginLeft = "6px";
-      delBtn.addEventListener("click", async () => {
-        if (!confirm("Delete " + p.name + " from the player pool? This cannot be undone.")) return;
-        await deleteDoc(doc(db, "players", p.id));
-        await loadPool();
-        refreshPlayerTable();
+      listEl.querySelectorAll(".edit-player-btn").forEach(btn => {
+        btn.addEventListener("click", () => showEditPlayerModal(btn.dataset.id));
       });
-      actionsCell.appendChild(delBtn);
     }
   }
 
-  function renderPlayerEditRow(row, p) {
-    row.innerHTML = "<td></td><td></td><td></td>";
-    const nameCell = row.children[1];
-    const imgCell = row.children[0];
-    const actionsCell = row.children[2];
+  function showEditPlayerModal(pid) {
+    const p = poolPlayers.find(item => item.id === pid);
+    if (!p) return;
+    const modal = document.getElementById("editPlayerModal");
+    modal.style.display = "block";
+    modal.innerHTML = `
+      <h3>Edit Player: ${p.name}</h3>
+      <label>Player name</label>
+      <input type="text" id="editPlayerName" value="${p.name}">
+      <label>Google Drive avatar link / image URL</label>
+      <input type="url" id="editPlayerPhoto" value="${p.photoUrl || ""}">
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <button class="primary" id="savePlayerEditBtn" style="margin-top:0;">Save changes</button>
+        <button type="button" class="toggle-stage-btn" id="cancelPlayerEditBtn" style="margin:0;">Cancel</button>
+      </div>
+      <p class="status-msg" id="editPlayerStatus"></p>
+    `;
+    modal.scrollIntoView({ behavior: "smooth" });
 
-    const nameInput = document.createElement("input");
-    nameInput.type = "text"; nameInput.value = p.name;
-    nameCell.appendChild(nameInput);
-
-    const imgInput = document.createElement("input");
-    imgInput.type = "url"; imgInput.value = p.imageUrl || ""; imgInput.placeholder = "Image URL";
-    imgInput.style.width = "160px";
-    imgCell.appendChild(imgInput);
-
-    const saveBtn = document.createElement("button");
-    saveBtn.textContent = "Save";
-    saveBtn.addEventListener("click", async () => {
-      const newName = nameInput.value.trim();
-      if (!newName) { showToast("Name is required.", "error"); return; }
-      const convertedImg = convertImageUrl(imgInput.value.trim());
-      await updateDoc(doc(db, "players", p.id), { name: newName.toUpperCase(), imageUrl: convertedImg || null });
-      await loadPool();
-      refreshPlayerTable();
+    document.getElementById("cancelPlayerEditBtn").addEventListener("click", () => {
+      modal.style.display = "none";
+      modal.innerHTML = "";
     });
-    const cancelBtn = document.createElement("button");
-    cancelBtn.textContent = "Cancel";
-    cancelBtn.style.marginLeft = "6px";
-    cancelBtn.addEventListener("click", () => renderPlayerRow(row, p));
 
-    actionsCell.appendChild(saveBtn);
-    actionsCell.appendChild(cancelBtn);
+    document.getElementById("savePlayerEditBtn").addEventListener("click", async (e) => {
+      const nameInput = document.getElementById("editPlayerName");
+      const photoInput = document.getElementById("editPlayerPhoto");
+      const status = document.getElementById("editPlayerStatus");
+      const newName = nameInput.value.trim().toUpperCase();
+      const newPhoto = photoInput.value.trim() || null;
+
+      if (!newName) { status.textContent = "Name cannot be empty."; return; }
+      if (newName !== p.name && poolPlayers.some(item => item.id !== pid && item.name.toUpperCase() === newName)) {
+        status.textContent = "Another player already has this name.";
+        return;
+      }
+
+      e.target.disabled = true;
+      status.textContent = "Saving and syncing records automatically...";
+
+      try {
+        await updateDoc(doc(db, "players", pid), {
+          name: newName,
+          photoUrl: newPhoto
+        });
+
+        // Re-triggers loadPool which executes autoSyncDatabaseSilently
+        await loadPool();
+        showToast("Player updated and all past records auto-synced!");
+        modal.style.display = "none";
+        modal.innerHTML = "";
+        renderPlayerPool();
+      } catch (err) {
+        status.textContent = "Error: " + err.message;
+        e.target.disabled = false;
+      }
+    });
   }
 // comment ==> 22. Player Pool Management ends here
 
