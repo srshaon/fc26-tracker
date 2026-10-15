@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#17416f">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-apple-touch.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FC26 Tracker">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1106,24 +1106,6 @@
     } catch (err) {
       console.warn("Could not update player stats for", playerId, err);
     }
-  }
-
-  function showWinnerBanner(container, winnerName) {
-    const banner = document.createElement("div");
-    banner.className = "win-banner";
-    const colors = ["#fff", "#ffe066", "#ff6b6b", "#4dd0e1", "#a3ff7a"];
-    let confetti = "";
-    for (let i = 0; i < 18; i++) {
-      const left = Math.random() * 100;
-      const delay = (Math.random() * 0.4).toFixed(2);
-      const color = colors[i % colors.length];
-      confetti += `<span class="confetti-piece" style="left:${left}%; background:${color}; animation-delay:${delay}s;"></span>`;
-    }
-    banner.innerHTML = confetti +
-      "<div class='trophy'>\u{1F3C6}</div>" +
-      "<div class='winSub'>Champion</div>" +
-      "<div class='winName'>" + winnerName + "</div>";
-    container.appendChild(banner);
   }
 // comment ==> 12. Utility Helpers & Drive Image Converter ends here
  
