@@ -126,321 +126,133 @@
   th, td { text-align: left; padding: 6px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
   th { color: var(--text-secondary); font-weight: normal; }
 
-  /* 1. Esports Stage Badges */
-  .stage-badge {
+  /* 1. FUT-Style OVR Badges */
+  .fut-badge {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    background: var(--bg-surface-alt);
-    border: 1px solid var(--border-strong);
-    padding: 6px 14px;
-    border-radius: 6px;
-    font-family: var(--font-heading);
-    font-size: 13px;
-    font-weight: 800;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    color: var(--text-primary);
-    margin: 14px 0 8px 0;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  }
-  .stage-badge .badge-icon {
-    font-size: 14px;
-    line-height: 1;
-  }
-  .stage-badge .live-pulse-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 8px var(--accent);
-    display: inline-block;
-    animation: liveRing 1.6s ease-out infinite;
-  }
-
-  /* 2. Sleek Themed Toggle Buttons */
-  .toggle-stage-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin: 10px 0 6px 0;
-    padding: 7px 16px;
-    font-size: 12px;
-    font-weight: 700;
-    font-family: var(--font-body);
-    border-radius: 20px;
-    background: var(--bg-surface-alt);
-    color: var(--text-secondary);
-    border: 1px solid var(--border-strong);
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .toggle-stage-btn:hover {
-    background: color-mix(in srgb, var(--accent) 15%, var(--bg-surface-alt));
-    border-color: var(--accent);
-    color: var(--text-primary);
-  }
-
-  /* 3. Qualification (Q) & Elimination (E) Strips and Badges */
-  table tbody tr.row-qual td:first-child {
-    border-left: 4.5px solid #00e676;
-    font-weight: 800;
-    color: #00e676;
-  }
-  table tbody tr.row-qual {
-    background: linear-gradient(90deg, rgba(0, 230, 118, 0.12) 0%, rgba(0, 230, 118, 0.02) 100%);
-  }
-
-  table tbody tr.row-elim td:first-child {
-    border-left: 4.5px solid rgba(255, 82, 82, 0.7);
-    font-weight: 800;
-    color: #ff5252;
-  }
-  table tbody tr.row-elim {
-    background: linear-gradient(90deg, rgba(255, 82, 82, 0.09) 0%, rgba(255, 82, 82, 0.01) 100%);
-  }
-
-  .qual-tag {
-    display: inline-block;
-    font-size: 9px;
-    font-weight: 900;
-    padding: 1px 5px;
-    border-radius: 4px;
-    margin-left: 5px;
-    letter-spacing: 0.5px;
-    line-height: 1.2;
-    vertical-align: middle;
-  }
-  .qual-tag-q {
-    background: rgba(0, 230, 118, 0.2);
-    color: #00e676;
-    border: 1px solid rgba(0, 230, 118, 0.6);
-    box-shadow: 0 0 6px rgba(0, 230, 118, 0.3);
-  }
-  .qual-tag-e {
-    background: rgba(255, 82, 82, 0.18);
-    color: #ff5252;
-    border: 1px solid rgba(255, 82, 82, 0.5);
-    box-shadow: 0 0 4px rgba(255, 82, 82, 0.2);
-  }
-
-  /* 4. Rank Movement Indicators */
-  .rank-move {
+    justify-content: center;
+    width: 20px;
+    height: 18px;
+    border-radius: 3px;
     font-size: 10px;
-    font-weight: 800;
-    margin-left: 4px;
-    display: inline-block;
-    line-height: 1;
-  }
-  .rank-move.rank-up { color: #00e676; text-shadow: 0 0 5px rgba(0, 230, 118, 0.6); }
-  .rank-move.rank-down { color: #ff5252; text-shadow: 0 0 5px rgba(255, 82, 82, 0.6); }
-  .rank-move.rank-same { color: var(--text-muted); opacity: 0.55; }
-
-  /* 5. Mini Form Dots Under Headshots */
-  .form-dots-cluster {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 3.5px;
-    margin-top: 3px;
-  }
-  .form-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    font-size: 8px;
     font-weight: 900;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: #ffffff;
-    line-height: 1;
-    border: 1px solid rgba(0, 0, 0, 0.3);
-  }
-  .form-dot-w { background: #00e676; box-shadow: 0 0 5px rgba(0, 230, 118, 0.6); }
-  .form-dot-l { background: #ff5252; box-shadow: 0 0 5px rgba(255, 82, 82, 0.6); }
-  .form-dot-d { background: #78909c; }
-
-  /* 6. Scoreboard Capsule & Steppers */
-  .scoreboard-capsule {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: rgba(0, 0, 0, 0.45);
-    padding: 5px 12px;
-    border-radius: 8px;
-    border: 1px solid var(--border-strong);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.15);
-    flex-shrink: 0;
-  }
-  .scoreboard-capsule .score-num {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 24px;
     font-family: var(--font-heading);
-    font-size: 17px;
-    font-weight: 800;
-    color: var(--text-primary);
+    line-height: 1;
+    margin-right: 4px;
+    flex-shrink: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    clip-path: polygon(0% 0%, 100% 0%, 100% 75%, 50% 100%, 0% 75%);
   }
-  .scoreboard-capsule .score-num.score-winner {
-    color: var(--accent);
-    text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 75%, transparent);
-  }
-  .scoreboard-capsule .score-num.score-loser {
-    color: var(--text-muted);
-    opacity: 0.6;
-  }
-  .scoreboard-capsule .score-divider {
-    font-weight: 800;
-    font-size: 14px;
-    color: var(--text-muted);
-    opacity: 0.7;
-  }
+  .fut-gold { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); color: #3d2c00; border-top: 1px solid #fff2a3; }
+  .fut-silver { background: linear-gradient(135deg, #e0e0e0 0%, #9e9e9e 100%); color: #212121; border-top: 1px solid #ffffff; }
+  .fut-bronze { background: linear-gradient(135deg, #c79061 0%, #8d5524 100%); color: #2a1505; border-top: 1px solid #dfb088; }
 
-  .stepper-wrap {
-    display: inline-flex;
-    align-items: center;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-strong);
-    border-radius: 7px;
-    overflow: hidden;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  /* 2. Qualification & Elimination Strips */
+  table tbody tr.row-qual td:first-child { border-left: 4.5px solid #00e676; font-weight: 800; color: #00e676; }
+  table tbody tr.row-qual { background: linear-gradient(90deg, rgba(0, 230, 118, 0.12) 0%, rgba(0, 230, 118, 0.02) 100%); }
+  table tbody tr.row-elim td:first-child { border-left: 4.5px solid rgba(255, 82, 82, 0.7); font-weight: 800; color: #ff5252; }
+  table tbody tr.row-elim { background: linear-gradient(90deg, rgba(255, 82, 82, 0.09) 0%, rgba(255, 82, 82, 0.01) 100%); }
+  .qual-tag { display: inline-block; font-size: 9px; font-weight: 900; padding: 1px 5px; border-radius: 4px; margin-left: 5px; }
+  .qual-tag-q { background: rgba(0, 230, 118, 0.2); color: #00e676; border: 1px solid rgba(0, 230, 118, 0.6); }
+  .qual-tag-e { background: rgba(255, 82, 82, 0.18); color: #ff5252; border: 1px solid rgba(255, 82, 82, 0.5); }
+
+  /* 3. Stage Badges & Toggles */
+  .stage-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--bg-surface-alt); border: 1px solid var(--border-strong);
+    padding: 6px 14px; border-radius: 6px; font-family: var(--font-heading);
+    font-size: 13px; font-weight: 800; text-transform: uppercase; color: var(--text-primary);
+    margin: 14px 0 8px 0;
   }
-  .stepper-btn {
-    width: 26px;
-    height: 32px;
-    background: var(--bg-surface-alt);
-    color: var(--text-primary);
-    border: none;
-    font-size: 15px;
-    font-weight: 800;
+  .stage-badge .live-pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+  .toggle-stage-btn {
+    display: inline-flex; align-items: center; gap: 6px; margin: 10px 0 6px 0;
+    padding: 7px 16px; font-size: 12px; font-weight: 700; border-radius: 20px;
+    background: var(--bg-surface-alt); color: var(--text-secondary); border: 1px solid var(--border-strong);
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-    transition: background 0.15s ease, transform 0.1s ease;
   }
-  .stepper-btn:hover {
-    background: var(--accent);
-    color: var(--accent-contrast);
-  }
-  .stepper-btn:active {
-    transform: scale(0.9);
-  }
-  .stepper-wrap input[type=number] {
-    width: 34px !important;
-    height: 32px !important;
-    border: none !important;
-    background: transparent !important;
-    text-align: center;
-    font-weight: 800;
-    font-size: 15px;
-    color: var(--text-primary);
-    padding: 0 !important;
-    -moz-appearance: textfield;
-  }
-  .stepper-wrap input[type=number]::-webkit-inner-spin-button,
-  .stepper-wrap input[type=number]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
+  .toggle-stage-btn:hover { border-color: var(--accent); color: var(--text-primary); }
 
-  /* 7. Match Filter Pills */
-  .match-filter-bar {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin: 8px 0 12px;
-    flex-wrap: wrap;
+  /* 4. Scoreboard Capsule & Steppers */
+  .scoreboard-capsule {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: rgba(0, 0, 0, 0.45); padding: 5px 12px; border-radius: 8px;
+    border: 1px solid var(--border-strong); cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease;
   }
-  .filter-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    font-weight: bold;
-    margin-right: 2px;
-  }
-  .filter-pill {
-    padding: 5px 12px;
-    font-size: 12px;
-    font-weight: 700;
-    border-radius: 14px;
-    border: 1px solid var(--border-strong);
-    background: var(--bg-surface-alt);
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .filter-pill.active {
-    background: var(--accent);
-    color: var(--accent-contrast);
-    border-color: var(--accent);
-    box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 45%, transparent);
-  }
+  .scoreboard-capsule:hover { border-color: var(--accent); transform: scale(1.03); }
+  .scoreboard-capsule .score-num { font-family: var(--font-heading); font-size: 17px; font-weight: 800; color: var(--text-primary); }
+  .scoreboard-capsule .score-num.score-winner { color: var(--accent); }
+  .scoreboard-capsule .score-num.score-loser { color: var(--text-muted); opacity: 0.6; }
+  .scoreboard-capsule .score-divider { font-weight: 800; font-size: 14px; color: var(--text-muted); }
+  .score-display.clickable { cursor: pointer; transition: color 0.2s ease; }
+  .score-display.clickable:hover { color: var(--accent); }
 
-  /* 8. Winner Highlight & Loser Dimming */
+  .stepper-wrap { display: inline-flex; align-items: center; background: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: 7px; overflow: hidden; }
+  .stepper-btn { width: 26px; height: 32px; background: var(--bg-surface-alt); color: var(--text-primary); border: none; font-size: 15px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .stepper-btn:hover { background: var(--accent); color: var(--accent-contrast); }
+  .stepper-wrap input[type=number] { width: 34px !important; height: 32px !important; border: none !important; background: transparent !important; text-align: center; font-weight: 800; font-size: 15px; color: var(--text-primary); padding: 0 !important; }
+
+  /* 5. Winner Highlight & Loser Dimming */
   .match-fixture .name.side-winner .player-avatar-circle,
   .match-fixture .name.side-winner .player-avatar-placeholder {
     border-color: var(--accent) !important;
     box-shadow: 0 0 0 2.5px var(--accent), 0 0 14px color-mix(in srgb, var(--accent) 75%, transparent) !important;
     transform: scale(1.06);
-    transition: all 0.25s ease;
   }
-  .match-fixture .name.side-winner .side-name {
-    color: var(--text-primary);
-    font-weight: 800;
-  }
-  .match-fixture .name.side-loser {
-    opacity: 0.55;
-    filter: grayscale(25%);
-    transition: all 0.25s ease;
-  }
-  .match-fixture .name.side-loser .player-avatar-circle,
-  .match-fixture .name.side-loser .player-avatar-placeholder {
-    box-shadow: none !important;
-    border-color: var(--border) !important;
-  }
+  .match-fixture .name.side-winner .side-name { font-weight: 800; }
+  .match-fixture .name.side-loser { opacity: 0.55; filter: grayscale(25%); }
 
-  /* Knockout Bracket Winner Glow & Loser Dimming */
-  .bracket-match .side.winner-side .player-avatar-circle,
-  .bracket-match .side.winner-side .player-avatar-placeholder {
-    border-color: var(--accent) !important;
-    box-shadow: 0 0 0 2px var(--accent), 0 0 12px color-mix(in srgb, var(--accent) 70%, transparent);
-  }
-  .bracket-match .side.loser-side {
-    opacity: 0.55;
-    filter: grayscale(25%);
-    transition: opacity 0.25s ease;
-  }
+  /* 6. Form Dots & Match Filters */
+  .form-dots-cluster { display: flex; align-items: center; justify-content: center; gap: 3.5px; margin-top: 3px; }
+  .form-dot { width: 14px; height: 14px; border-radius: 50%; font-size: 8px; font-weight: 900; display: inline-flex; align-items: center; justify-content: center; color: #fff; }
+  .form-dot-w { background: #00e676; } .form-dot-l { background: #ff5252; } .form-dot-d { background: #78909c; }
+  .match-filter-bar { display: flex; align-items: center; gap: 6px; margin: 8px 0 12px; flex-wrap: wrap; }
+  .filter-pill { padding: 5px 12px; font-size: 12px; font-weight: 700; border-radius: 14px; border: 1px solid var(--border-strong); background: var(--bg-surface-alt); color: var(--text-secondary); cursor: pointer; }
+  .filter-pill.active { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
 
-  /* Spectator / TV Cast Mode */
-  body.tv-mode {
-    max-width: 1180px !important;
-    padding: 20px 30px !important;
+  /* 7. Head-to-Head (H2H) Rivalry Modal */
+  .h2h-modal-overlay {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.78);
+    backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center;
+    z-index: 9999; padding: 16px; animation: modalFadeIn 0.2s ease;
   }
-  body.tv-mode #authBar,
-  body.tv-mode .match-save-btn,
-  body.tv-mode .stepper-btn,
-  body.tv-mode #saveTournamentBtn,
-  body.tv-mode .tourn-header button,
-  body.tv-mode .detailsBtn,
-  body.tv-mode #themeOptions,
-  body.tv-mode #musicUrlInput {
-    display: none !important;
+  @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .h2h-modal-card {
+    background: var(--bg-surface); border: 2px solid var(--accent);
+    border-radius: 12px; width: 100%; max-width: 440px; padding: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px color-mix(in srgb, var(--accent) 30%, transparent);
+    position: relative;
   }
-  body.tv-mode h1 { font-size: 28px; }
-  body.tv-mode h2 { font-size: 22px; color: var(--accent); }
-  body.tv-mode h3 { font-size: 16px; }
-  body.tv-mode .match-fixture .side-name { font-size: 15px; }
-  body.tv-mode .match-fixture .player-avatar-circle,
-  body.tv-mode .match-fixture .player-avatar-placeholder { width: 46px !important; height: 46px !important; }
-  body.tv-mode table { font-size: 15px; }
-  body.tv-mode table th, body.tv-mode table td { padding: 9px 8px; }
-  body.tv-mode .bracket-match { min-width: 250px; }
-  body.tv-mode .bracket-match .side-name { font-size: 14px; max-width: 160px; }
+  .h2h-close-btn {
+    position: absolute; top: 12px; right: 14px; background: none; border: none;
+    font-size: 18px; font-weight: bold; color: var(--text-muted); cursor: pointer;
+  }
+  .h2h-header-grid { display: flex; align-items: center; justify-content: space-between; margin: 12px 0 16px; text-align: center; }
+  .h2h-side { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .h2h-stat-bar { margin: 8px 0; }
+  .h2h-bar-labels { display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; margin-bottom: 4px; }
+  .h2h-bar-track { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--bg-surface-alt); border: 1px solid var(--border); }
+  .h2h-bar-fill-a { background: var(--accent); transition: width 0.4s ease; }
+  .h2h-bar-fill-b { background: #ff5252; transition: width 0.4s ease; }
+
+  /* 8. Winner Banner & Matchday Story Share Button */
+  #winnerBanner {
+    display: none; margin-top: 14px; padding: 16px; border-radius: 10px;
+    background: linear-gradient(135deg, rgba(0, 230, 118, 0.2) 0%, rgba(0, 0, 0, 0.5) 100%);
+    border: 2px solid #00e676; text-align: center; box-shadow: 0 0 20px rgba(0, 230, 118, 0.3);
+  }
+  .share-story-btn {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
+    padding: 8px 18px; font-size: 13px; font-weight: 800; border-radius: 20px;
+    background: #00e676; color: #000; border: none; cursor: pointer;
+    box-shadow: 0 0 12px rgba(0, 230, 118, 0.5); transition: transform 0.15s ease;
+  }
+  .share-story-btn:active { transform: scale(0.95); }
+
+  /* 9. Confetti Fullscreen Overlay */
+  #confettiCanvas {
+    position: fixed; inset: 0; pointer-events: none; z-index: 10000;
+  }
 
   .status-msg { font-size: 13px; color: var(--text-secondary); margin-top: 8px; }
   .warn { color: var(--danger-text); }
@@ -456,7 +268,6 @@
   .stat-card { background: var(--bg-surface-alt); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 8px 12px; }
   .stat-card .label { font-size: 11px; color: var(--text-muted); }
   .stat-card .value { font-size: 15px; font-weight: bold; color: var(--text-primary); }
-  #winnerBanner { display: none; margin-top: 12px; padding: 12px; background: var(--success-bg); border-radius: 8px; font-weight: bold; color: var(--success-text); text-align: center; }
   .player-name-link { color: var(--accent); text-decoration: underline; cursor: pointer; background: none; border: none; font-size: 14px; padding: 0; font-family: var(--font-body); }
 /* comment ==> 04. CSS Components (Cards, Buttons, Inputs, Tables) ends here */
  
@@ -1316,44 +1127,83 @@
   }
 // comment ==> 12. Utility Helpers & Drive Image Converter ends here
  
-// comment ==> 13. Player Avatar & Badge Component starts from here
-  function getPlayerImageByName(name) {
-    if (!name) return null;
-    const clean = name.trim().toUpperCase();
-    const p = poolPlayers.find(x => (x.name || "").trim().toUpperCase() === clean);
-    return p && p.imageUrl ? convertImageUrl(p.imageUrl) : null;
+// comment ==> 13. Player Avatars, Medallions & Clustered Badges starts from here
+  function parseDrivePhotoUrl(url) {
+    if (!url || typeof url !== "string") return null;
+    const m = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (m && m[1]) return "https://drive.google.com/thumbnail?id=" + m[1] + "&sz=w1000";
+    return url;
   }
 
-  function getSideVisuals(name) {
-    if (!name || name === "TBD" || name.toString().startsWith("TBD")) {
-      return [{ name: name || "TBD", img: null }];
+  function getInitials(name) {
+    if (!name) return "?";
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  /* Dynamic EA FC Style OVR Calculator */
+  function computePlayerOVR(playerName) {
+    if (!playerName || !poolPlayers || poolPlayers.length === 0) return 74;
+    const p = poolPlayers.find(x => x.name.toUpperCase() === playerName.toUpperCase());
+    if (!p) return 72; // Default for guests or unlisted
+    const played = p.singleMatchesPlayed || 0;
+    if (played === 0) return 75;
+
+    const winRate = (p.singleWins || 0) / played;
+    const gdPerGame = ((p.singleGoalsFor || 0) - (p.singleGoalsAgainst || 0)) / played;
+    const titles = p.singleChampionships || 0;
+
+    let ovr = Math.round(70 + (winRate * 18) + (gdPerGame * 2.5) + (titles * 1.5));
+    return Math.max(63, Math.min(95, ovr));
+  }
+
+  function renderFutBadge(name) {
+    if (name.includes(" & ")) return ""; // Skip dual team names
+    const ovr = computePlayerOVR(name);
+    const tier = ovr >= 83 ? "fut-gold" : (ovr >= 75 ? "fut-silver" : "fut-bronze");
+    return `<span class="fut-badge ${tier}" title="OVR Rating: ${ovr}">${ovr}</span>`;
+  }
+
+  function renderSingleAvatar(name, pObj) {
+    const photo = pObj && pObj.photoUrl ? parseDrivePhotoUrl(pObj.photoUrl) : null;
+    if (photo) {
+      return `<img class="player-avatar-circle" src="${photo}" alt="${name}" onerror="this.outerHTML='<span class=\\'player-avatar-placeholder\\'>${getInitials(name)}</span>'">`;
     }
-    const parts = name.toString().split(" & ").map(s => s.trim());
-    return parts.map(pName => ({
-      name: pName,
-      img: getPlayerImageByName(pName)
-    }));
+    return `<span class="player-avatar-placeholder">${getInitials(name)}</span>`;
   }
 
-  function renderPlayerBadge(name, isClickable = false) {
+  function renderPlayerBadge(name, isBracket = false) {
     if (!name) return "";
-    if (name === "TBD" || name.toString().startsWith("TBD")) {
-      return `<span>${name}</span>`;
+    const isDuo = name.includes(" & ");
+    const members = isDuo ? name.split(" & ").map(s => s.trim()) : [name];
+    let avatarsHtml = "";
+
+    if (isDuo) {
+      avatarsHtml = '<div class="player-avatars-cluster">';
+      members.forEach(m => {
+        const pObj = poolPlayers.find(p => p.name.toUpperCase() === m.toUpperCase());
+        avatarsHtml += renderSingleAvatar(m, pObj);
+      });
+      avatarsHtml += '</div>';
+    } else {
+      const pObj = poolPlayers.find(p => p.name.toUpperCase() === name.toUpperCase());
+      avatarsHtml = renderSingleAvatar(name, pObj);
     }
-    const visuals = getSideVisuals(name);
-    const clickAttr = isClickable ? `class="side-name clickable" data-player-name="${name}"` : `class="side-name"`;
 
-    const avatarsHtml = `<div class="player-avatars-cluster">` + visuals.map(v => {
-      if (v.img) {
-        return `<img src="${v.img}" class="player-avatar-circle" alt="${v.name}" onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'player-avatar-placeholder',innerText:'${(v.name||'?').slice(0,1).toUpperCase()}'}));">`;
-      }
-      return `<div class="player-avatar-placeholder">${(v.name || "?").slice(0, 1).toUpperCase()}</div>`;
-    }).join("") + `</div>`;
-
-    return `<div class="player-badge-col">${avatarsHtml}<span ${clickAttr}>${name}</span></div>`;
+    const clickClass = isBracket ? " clickable" : "";
+    const futHtml = !isDuo ? renderFutBadge(name) : "";
+    return `
+      <div class="player-badge-col">
+        ${avatarsHtml}
+        <span class="side-name${clickClass}" data-player-name="${name}">
+          ${futHtml}${name}
+        </span>
+      </div>
+    `;
   }
-// comment ==> 13. Player Avatar & Badge Component ends here
-
+// comment ==> 13. Player Avatars, Medallions & Clustered Badges ends here
+ 
 // comment ==> 14. Theme Handler starts from here
   const THEMES = [
     { key: "matchday", label: "Matchday broadcast" },
@@ -3210,8 +3060,8 @@
     tournamentRecordsCache = null;
   }
 // comment ==> 27. Single Match Engine & Result Finalization ends here
- 
-// comment ==> 28. Standings & Group Matches Engine starts from here
+
+ // comment ==> 28. Standings & Group Matches Engine starts from here
   function getQualCount(data) {
     if (!data || !data.knockout) return 0;
     const isGrouped = !!data.groups;
@@ -3269,7 +3119,6 @@
     rows.forEach((r, i) => {
       const tr = document.createElement("tr");
 
-      /* Exact Knockout-Aware Qualification (Q) vs Elimination (E) - Only active when qualCount > 0 */
       let qualTag = "";
       if (qualCount > 0) {
         const isQualified = i < qualCount;
@@ -3279,7 +3128,6 @@
           : `<span class="qual-tag qual-tag-e">E</span>`;
       }
 
-      /* Rank Movement Indicator compared against seed order */
       let moveHtml = "";
       if (initialOrder && r.played > 0) {
         const initIdx = initialOrder.indexOf(r.name);
@@ -3311,7 +3159,6 @@
     }
     container.appendChild(standingsDiv);
 
-    /* Match Filter Bar */
     const totalMatches = data.matches.length;
     const finishedMatches = data.matches.filter(m => m.scoreA !== null && m.scoreB !== null).length;
     const toPlayMatches = totalMatches - finishedMatches;
@@ -3337,23 +3184,21 @@
       row.dataset.scored = alreadyScored ? "true" : "false";
 
       const canEdit = !currentAdmin ? false : (alreadyScored ? currentAdmin.isMaster : true);
-
       const aWon = alreadyScored && m.scoreA > m.scoreB;
       const bWon = alreadyScored && m.scoreB > m.scoreA;
       const classA = alreadyScored ? (aWon ? " side-winner" : bWon ? " side-loser" : "") : "";
       const classB = alreadyScored ? (bWon ? " side-winner" : aWon ? " side-loser" : "") : "";
 
-      /* Mini form dots */
       const formDotsA = renderFormDotsHtml(getPlayerRecentForm(m.sideA, data.matches));
       const formDotsB = renderFormDotsHtml(getPlayerRecentForm(m.sideB, data.matches));
 
       if (!canEdit || isTvMode) {
         const scoreCapsule = alreadyScored ? `
-          <div class="scoreboard-capsule">
+          <div class="scoreboard-capsule" data-sidea="${m.sideA}" data-sideb="${m.sideB}" title="Tap to view Tale of the Tape H2H">
             <span class="score-num ${aWon ? "score-winner" : (bWon ? "score-loser" : "")}">${m.scoreA}</span>
             <span class="score-divider">:</span>
             <span class="score-num ${bWon ? "score-winner" : (aWon ? "score-loser" : "")}">${m.scoreB}</span>
-          </div>` : `<span class="score-display">vs</span>`;
+          </div>` : `<span class="score-display clickable" data-sidea="${m.sideA}" data-sideb="${m.sideB}" title="Tap to view Tale of the Tape H2H">vs</span>`;
 
         row.innerHTML = `
           <div class="match-fixture">
@@ -3371,7 +3216,7 @@
                 <input type="number" min="0" value="${m.scoreA ?? ""}" data-idx="${idx}" data-side="A">
                 <button type="button" class="stepper-btn stepper-plus">&plus;</button>
               </div>
-              <span>:</span>
+              <span class="score-display clickable" data-sidea="${m.sideA}" data-sideb="${m.sideB}" title="View H2H">:</span>
               <div class="stepper-wrap">
                 <button type="button" class="stepper-btn stepper-minus">&minus;</button>
                 <input type="number" min="0" value="${m.scoreB ?? ""}" data-idx="${idx}" data-side="B">
@@ -3393,7 +3238,15 @@
       matchesDiv.appendChild(row);
     });
 
-    /* Stepper (+ / -) Click Event Delegation */
+    // Scoreboard / VS Click Listener for Tale of the Tape H2H Modal
+    matchesDiv.addEventListener("click", (e) => {
+      const h2hTrigger = e.target.closest(".scoreboard-capsule, .score-display.clickable");
+      if (h2hTrigger && h2hTrigger.dataset.sidea && h2hTrigger.dataset.sideb) {
+        e.stopPropagation();
+        openH2HModal(h2hTrigger.dataset.sidea, h2hTrigger.dataset.sideb);
+      }
+    });
+
     matchesDiv.addEventListener("click", (e) => {
       const btn = e.target.closest(".stepper-btn");
       if (!btn) return;
@@ -3402,15 +3255,11 @@
       const input = wrap.querySelector("input[type=number]");
       let val = parseInt(input.value, 10);
       if (isNaN(val)) val = 0;
-      if (btn.classList.contains("stepper-plus")) {
-        val++;
-      } else if (btn.classList.contains("stepper-minus")) {
-        val = Math.max(0, val - 1);
-      }
+      if (btn.classList.contains("stepper-plus")) val++;
+      else if (btn.classList.contains("stepper-minus")) val = Math.max(0, val - 1);
       input.value = val;
     });
 
-    /* Filter Pills Click Handler */
     filterBar.querySelectorAll(".filter-pill").forEach(pill => {
       pill.addEventListener("click", () => {
         filterBar.querySelectorAll(".filter-pill").forEach(p => p.classList.remove("active"));
@@ -3425,7 +3274,6 @@
       });
     });
 
-    /* Clean Styled Toggle Button */
     const toggleBtn = document.createElement("button");
     toggleBtn.className = "toggle-stage-btn";
     toggleBtn.innerHTML = "&#9662; Show group stage matches";
@@ -4129,13 +3977,24 @@
   async function renderTournamentDetail(body, tid) {
     body.innerHTML = "<p>Loading...</p>";
     const snap = await getDoc(doc(db, "tournaments", tid));
-    if (!snap.exists()) { body.innerHTML = "<button id='backToTournaments'>&larr; Back</button><p>Tournament not found.</p>"; document.getElementById("backToTournaments").addEventListener("click", () => { viewingTournamentId = null; renderRecordsBody(); }); return; }
+    if (!snap.exists()) {
+      body.innerHTML = "<button id='backToTournaments'>&larr; Back</button><p>Tournament not found.</p>";
+      document.getElementById("backToTournaments").addEventListener("click", () => { viewingTournamentId = null; renderRecordsBody(); });
+      return;
+    }
     const data = snap.data();
 
-    let html = "<button id='backToTournaments'>&larr; Back to tournaments</button><h2>" + data.name + "</h2>";
+    let html = `
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <button id='backToTournaments'>&larr; Back to tournaments</button>
+        <button class="share-story-btn" id="storyExportBtn" style="margin:0;">&#128248; Generate Matchday Story</button>
+      </div>
+      <h2>${data.name}</h2>
+    `;
     if (data.winner) html += "<p class='status-msg'>Champion: <strong style='color:var(--accent);'>" + data.winner + "</strong> &middot; Runner-up: " + data.runnerUp + "</p>";
     const goldenBoot = computeGoldenBoot(data);
     if (goldenBoot) html += "<p class='status-msg'>&#9917; Golden Boot: <strong style='color:var(--accent);'>" + goldenBoot.name + "</strong> (" + goldenBoot.goals + " goal" + (goldenBoot.goals === 1 ? "" : "s") + ")</p>";
+
     if (currentAdmin && currentAdmin.isMaster) {
       html += `
         <div class="card">
@@ -4154,6 +4013,7 @@
     }
     body.innerHTML = html;
     document.getElementById("backToTournaments").addEventListener("click", () => { viewingTournamentId = null; renderRecordsBody(); });
+    document.getElementById("storyExportBtn").addEventListener("click", () => generateMatchdayStory(tid, data));
 
     if (currentAdmin && currentAdmin.isMaster) {
       document.getElementById("renameBtn").addEventListener("click", async () => {
@@ -4178,7 +4038,7 @@
 
       document.getElementById("deleteTournamentBtn").addEventListener("click", async () => {
         const statusEl = document.getElementById("deleteTournamentStatus");
-        if (!confirm("Permanently delete \"" + data.name + "\"? All its stats (goals, wins, championships, etc.) will be removed from every player. This cannot be undone.")) return;
+        if (!confirm("Permanently delete \"" + data.name + "\"? All its stats will be removed from every player.")) return;
         statusEl.textContent = "Deleting and recalculating stats...";
         try {
           await deleteCompletedTournament(tid, data);
@@ -4217,11 +4077,11 @@
         const classB = decided ? (bWon ? " side-winner" : aWon ? " side-loser" : "") : "";
 
         const scoreCapsule = decided ? `
-          <div class="scoreboard-capsule">
+          <div class="scoreboard-capsule" data-sidea="${m.sideA}" data-sideb="${m.sideB}" title="Tap to view Tale of the Tape H2H">
             <span class="score-num ${aWon ? "score-winner" : (bWon ? "score-loser" : "")}">${m.scoreA}</span>
             <span class="score-divider">:</span>
             <span class="score-num ${bWon ? "score-winner" : (aWon ? "score-loser" : "")}">${m.scoreB}</span>
-          </div>` : `<span class="score-display">vs</span>`;
+          </div>` : `<span class="score-display clickable" data-sidea="${m.sideA}" data-sideb="${m.sideB}" title="Tap to view Tale of the Tape H2H">vs</span>`;
 
         row.innerHTML = `
           <div class="match-fixture">
@@ -4230,6 +4090,13 @@
             <span class="name${classB}">${renderPlayerBadge(m.sideB)}</span>
           </div>`;
         matchListDiv.appendChild(row);
+      });
+
+      matchListDiv.addEventListener("click", (e) => {
+        const h2hTrigger = e.target.closest(".scoreboard-capsule, .score-display.clickable");
+        if (h2hTrigger && h2hTrigger.dataset.sidea && h2hTrigger.dataset.sideb) {
+          openH2HModal(h2hTrigger.dataset.sidea, h2hTrigger.dataset.sideb);
+        }
       });
 
       const toggleBtn = document.createElement("button");
@@ -4879,7 +4746,365 @@
       "<tr><td>" + (i + 1) + "</td><td>" + renderPlayerBadge(r.name) + "</td><td>" + r.wins + "</td><td>" + r.champion + "</td><td>" + r.runnerUp + "</td><td>" + r.semifinalist + "</td><td>" + r.quarterfinalist + "</td><td><strong>" + r.score + "</strong></td></tr>"
     ).join("");
   }
-// comment ==> 38. Rankings & Duo Leaderboard ends here
+// comment ==> 38. Rankings & Duo Leaderboard ends here 
+
+// comment ==> 39. Audio Fanfare, Confetti & Matchday Story Engine starts from here
+  /* 1. Web Audio Synthesizer (0kb external audio) */
+  function playVictoryFanfare() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      if (ctx.state === "suspended") ctx.resume();
+
+      // Dual-tone whistle burst
+      const whistleOsc = ctx.createOscillator();
+      const whistleGain = ctx.createGain();
+      whistleOsc.type = "sine";
+      whistleOsc.frequency.setValueAtTime(2850, ctx.currentTime);
+      whistleOsc.frequency.exponentialRampToValueAtTime(3200, ctx.currentTime + 0.15);
+      whistleGain.gain.setValueAtTime(0.2, ctx.currentTime);
+      whistleGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+      whistleOsc.connect(whistleGain);
+      whistleGain.connect(ctx.destination);
+      whistleOsc.start();
+      whistleOsc.stop(ctx.currentTime + 0.23);
+
+      // Victory horn triad (C5 -> E5 -> G5 -> C6)
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + 0.2 + (i * 0.14));
+        gain.gain.setValueAtTime(0, ctx.currentTime + 0.2 + (i * 0.14));
+        gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.24 + (i * 0.14));
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.75 + (i * 0.14));
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + 0.2 + (i * 0.14));
+        osc.stop(ctx.currentTime + 0.8 + (i * 0.14));
+      });
+    } catch (e) {
+      console.warn("Audio context not allowed yet:", e);
+    }
+  }
+
+  /* 2. Fullscreen Canvas Confetti Particles */
+  function launchConfetti() {
+    let canvas = document.getElementById("confettiCanvas");
+    if (!canvas) {
+      canvas = document.createElement("canvas");
+      canvas.id = "confettiCanvas";
+      document.body.appendChild(canvas);
+    }
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const colors = ["#00e676", "#00e5ff", "#ffd700", "#ff5252", "#e040fb", "#ffffff"];
+    const pieces = Array.from({ length: 110 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * -canvas.height * 0.6,
+      size: Math.random() * 8 + 5,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      speedY: Math.random() * 4 + 3,
+      speedX: (Math.random() - 0.5) * 3,
+      rotation: Math.random() * 360,
+      rotSpeed: (Math.random() - 0.5) * 6
+    }));
+
+    let startTime = performance.now();
+    function animate(now) {
+      if (now - startTime > 3800) {
+        canvas.remove();
+        return;
+      }
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      pieces.forEach(p => {
+        p.y += p.speedY;
+        p.x += p.speedX;
+        p.rotation += p.rotSpeed;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+        ctx.restore();
+      });
+      requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+  }
+
+  /* 3. Tale of the Tape (H2H) Rivalry Modal */
+  async function openH2HModal(sideA, sideB) {
+    if (!sideA || !sideB || sideA === sideB) return;
+    const overlay = document.createElement("div");
+    overlay.className = "h2h-modal-overlay";
+    overlay.innerHTML = `
+      <div class="h2h-modal-card">
+        <button class="h2h-close-btn" id="h2hClose">&times;</button>
+        <div style="font-size:11px; font-weight:800; color:var(--accent); text-transform:uppercase; letter-spacing:1px; text-align:center;">
+          Tale of the Tape &middot; All-Time H2H
+        </div>
+        <div class="h2h-header-grid">
+          <div class="h2h-side">
+            ${renderPlayerBadge(sideA)}
+          </div>
+          <div style="font-family:var(--font-heading); font-weight:900; font-size:18px; color:var(--text-muted);">VS</div>
+          <div class="h2h-side">
+            ${renderPlayerBadge(sideB)}
+          </div>
+        </div>
+        <div id="h2hStatsLoading" style="text-align:center; font-size:12px; color:var(--text-muted);">Calculating lifetime meetings...</div>
+        <div id="h2hStatsBody" style="display:none;"></div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.querySelector("#h2hClose").addEventListener("click", () => overlay.remove());
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
+
+    let winsA = 0, winsB = 0, draws = 0, gfA = 0, gfB = 0, totalMatches = 0;
+
+    try {
+      const snap = await getDocs(collection(db, "tournaments"));
+      snap.forEach(docSnap => {
+        const t = docSnap.data();
+        const allMatches = [];
+        if (Array.isArray(t.matches)) allMatches.push(...t.matches);
+        if (t.knockout && Array.isArray(t.knockout.stages)) {
+          t.knockout.stages.forEach(st => { if (Array.isArray(st.matches)) allMatches.push(...st.matches); });
+        }
+        if (t.finalScore && t.teams) {
+          allMatches.push({ sideA: t.teams[0].teamName, sideB: t.teams[1].teamName, scoreA: t.finalScore.side1, scoreB: t.finalScore.side2 });
+        }
+
+        allMatches.forEach(m => {
+          if (m.scoreA === null || m.scoreB === null) return;
+          const matchIsA_vs_B = (m.sideA === sideA && m.sideB === sideB);
+          const matchIsB_vs_A = (m.sideA === sideB && m.sideB === sideA);
+          if (!matchIsA_vs_B && !matchIsB_vs_A) return;
+
+          totalMatches++;
+          const scoreForA = matchIsA_vs_B ? m.scoreA : m.scoreB;
+          const scoreForB = matchIsA_vs_B ? m.scoreB : m.scoreA;
+          gfA += scoreForA; gfB += scoreForB;
+
+          if (scoreForA > scoreForB) winsA++;
+          else if (scoreForB > scoreForA) winsB++;
+          else draws++;
+        });
+      });
+
+      const bodyEl = overlay.querySelector("#h2hStatsBody");
+      const loadEl = overlay.querySelector("#h2hStatsLoading");
+      loadEl.style.display = "none";
+      bodyEl.style.display = "block";
+
+      const pctA = totalMatches > 0 ? (winsA / totalMatches) * 100 : 50;
+      const pctB = totalMatches > 0 ? (winsB / totalMatches) * 100 : 50;
+
+      bodyEl.innerHTML = `
+        <div class="h2h-stat-bar">
+          <div class="h2h-bar-labels">
+            <span style="color:var(--accent);">${winsA} WINS</span>
+            <span style="color:var(--text-muted); font-size:11px;">${draws} DRAWS</span>
+            <span style="color:#ff5252;">${winsB} WINS</span>
+          </div>
+          <div class="h2h-bar-track">
+            <div class="h2h-bar-fill-a" style="width:${pctA}%;"></div>
+            <div class="h2h-bar-fill-b" style="width:${pctB}%;"></div>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px; text-align:center;">
+          <div class="card" style="padding:8px; margin:0;">
+            <div style="font-size:10px; color:var(--text-muted);">TOTAL GOALS</div>
+            <div style="font-size:16px; font-weight:800;">${gfA} &ndash; ${gfB}</div>
+          </div>
+          <div class="card" style="padding:8px; margin:0;">
+            <div style="font-size:10px; color:var(--text-muted);">GAMES PLAYED</div>
+            <div style="font-size:16px; font-weight:800;">${totalMatches}</div>
+          </div>
+        </div>
+      `;
+    } catch (e) {
+      overlay.querySelector("#h2hStatsLoading").textContent = "Could not fetch rival history.";
+    }
+  }
+
+  /* 4. Matchday Story 9:16 Canvas Graphic Generator */
+  async function generateMatchdayStory(tid, data) {
+    showToast("Generating official matchday story...", "info");
+    const canvas = document.createElement("canvas");
+    canvas.width = 1080;
+    canvas.height = 1920;
+    const ctx = canvas.getContext("2d");
+
+    // Carbon fiber broadcast background
+    const bgGrad = ctx.createLinearGradient(0, 0, 1080, 1920);
+    bgGrad.addColorStop(0, "#080d16");
+    bgGrad.addColorStop(0.5, "#0d1726");
+    bgGrad.addColorStop(1, "#05080e");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 1080, 1920);
+
+    // Neon frame borders
+    ctx.strokeStyle = "rgba(0, 230, 118, 0.45)";
+    ctx.lineWidth = 14;
+    ctx.strokeRect(30, 30, 1020, 1860);
+
+    // Corner targeting brackets
+    ctx.strokeStyle = "#00e676";
+    ctx.lineWidth = 18;
+    ctx.beginPath();
+    ctx.moveTo(30, 140); ctx.lineTo(30, 30); ctx.lineTo(140, 30);
+    ctx.moveTo(940, 30); ctx.lineTo(1050, 30); ctx.lineTo(1050, 140);
+    ctx.moveTo(30, 1780); ctx.lineTo(30, 1890); ctx.lineTo(140, 1890);
+    ctx.moveTo(940, 1890); ctx.lineTo(1050, 1890); ctx.lineTo(1050, 1780);
+    ctx.stroke();
+
+    // Tournament Header
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#00e676";
+    ctx.font = "900 38px monospace";
+    ctx.fillText("★ EA SPORTS FC TOURNAMENT RECORD ★", 540, 160);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "800 56px monospace";
+    ctx.fillText((data.name || "CHAMPIONSHIP FINALS").toUpperCase(), 540, 240);
+
+    // Champion Spotlight Section
+    ctx.font = "900 110px monospace";
+    ctx.fillText("👑", 540, 480);
+
+    // Draw Champion Gold Halo Ring
+    ctx.beginPath();
+    ctx.arc(540, 680, 170, 0, Math.PI * 2);
+    ctx.fillStyle = "#101928";
+    ctx.fill();
+    ctx.strokeStyle = "#ffd700";
+    ctx.lineWidth = 16;
+    ctx.stroke();
+
+    // Champion Initial Badge
+    ctx.fillStyle = "#ffd700";
+    ctx.font = "900 130px monospace";
+    ctx.fillText(getInitials(data.winner), 540, 725);
+
+    // Champion Ribbon
+    ctx.fillStyle = "#ffd700";
+    ctx.fillRect(340, 890, 400, 64);
+    ctx.fillStyle = "#000000";
+    ctx.font = "900 36px monospace";
+    ctx.fillText("CHAMPION", 540, 936);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 68px monospace";
+    ctx.fillText(data.winner, 540, 1030);
+
+    // Final Score Capsule
+    let scoreDisplay = "DECISIVE VICTORY";
+    if (data.finalScore) {
+      scoreDisplay = `${data.finalScore.side1} : ${data.finalScore.side2}`;
+      if (data.finalScore.penalty1 !== undefined) scoreDisplay += ` (${data.finalScore.penalty1}-${data.finalScore.penalty2} PENS)`;
+    } else if (data.knockout) {
+      const finalM = data.knockout.stages[data.knockout.stages.length - 1]?.matches[0];
+      if (finalM && finalM.scoreA !== null) {
+        scoreDisplay = `${finalM.scoreA} : ${finalM.scoreB}`;
+        if (finalM.penaltyA !== undefined && finalM.penaltyA !== null) scoreDisplay += ` (${finalM.penaltyA}-${finalM.penaltyB} PENS)`;
+      }
+    }
+    ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+    ctx.fillRect(260, 1110, 560, 110);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(260, 1110, 560, 110);
+
+    ctx.fillStyle = "#00e676";
+    ctx.font = "900 60px monospace";
+    ctx.fillText(scoreDisplay, 540, 1188);
+
+    // Runner-up Section
+    ctx.fillStyle = "#8899a6";
+    ctx.font = "800 34px monospace";
+    ctx.fillText("RUNNER-UP", 540, 1310);
+
+    ctx.fillStyle = "#cfd8dc";
+    ctx.font = "800 52px monospace";
+    ctx.fillText(data.runnerUp || "FINALIST", 540, 1375);
+
+    // Golden Boot / Highlights (if present)
+    const goldenBoot = computeGoldenBoot(data);
+    if (goldenBoot) {
+      ctx.fillStyle = "rgba(255, 215, 0, 0.12)";
+      ctx.fillRect(220, 1470, 640, 90);
+      ctx.strokeStyle = "rgba(255, 215, 0, 0.4)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(220, 1470, 640, 90);
+
+      ctx.fillStyle = "#ffd700";
+      ctx.font = "800 34px monospace";
+      ctx.fillText(`⚽ GOLDEN BOOT: ${goldenBoot.name} (${goldenBoot.goals} G)`, 540, 1528);
+    }
+
+    // Footer
+    ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+    ctx.font = "700 28px monospace";
+    ctx.fillText("OFFICIAL HUD ESPORTS BROADCAST • VERIFIED", 540, 1780);
+
+    canvas.toBlob(async (blob) => {
+      const fileName = `FC26_Story_${(data.name || "Tournament").replace(/\s+/g, "_")}.png`;
+      const file = new File([blob], fileName, { type: "image/png" });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: data.name || "Tournament Champion",
+            text: `👑 Champion: ${data.winner} | Runner-up: ${data.runnerUp}`
+          });
+          return;
+        } catch (err) {
+          if (err.name === "AbortError") return;
+        }
+      }
+
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = fileName;
+      a.click();
+      showToast("Story graphic saved to Downloads!");
+    }, "image/png");
+  }
+
+  /* Enhanced Winner Banner with Fanfare & Confetti Triggers */
+  function showWinnerBanner(container, winnerName, data, tid) {
+    let banner = document.getElementById("winnerBanner");
+    if (!banner) {
+      banner = document.createElement("div");
+      banner.id = "winnerBanner";
+      container.prepend(banner);
+    }
+    banner.style.display = "block";
+    banner.innerHTML = `
+      <div style="font-size:20px; font-weight:900; color:#00e676;">&#127942; TOURNAMENT COMPLETED!</div>
+      <div style="font-size:16px; margin-top:4px;">CHAMPION: <strong style="color:#ffffff;">${winnerName}</strong></div>
+      ${data ? `<button class="share-story-btn" id="bannerShareStory">&#128248; Share Matchday Story</button>` : ""}
+    `;
+
+    if (data) {
+      banner.querySelector("#bannerShareStory").addEventListener("click", () => {
+        generateMatchdayStory(tid, data);
+      });
+    }
+
+    launchConfetti();
+    playVictoryFanfare();
+  }
+// comment ==> 39. Audio Fanfare, Confetti & Matchday Story Engine ends here 
+
+
 </script>
 
 </body>
