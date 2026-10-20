@@ -183,12 +183,12 @@
   }
   .streak-icon { font-size: 11px; margin-left: 2px; vertical-align: middle; }
 
-  /* 4. 3D Gyroscope & Holographic Foil Card with True SVG Fluid Border */
+  /* 4. 3D Gyroscope & Holographic Foil Card with Living Fluid Canvas Engine */
   .holo-card-stage {
     perspective: 1100px;
     display: flex;
     justify-content: center;
-    margin: 16px 0 22px;
+    margin: 18px 0 26px;
   }
   .holo-card {
     position: relative;
@@ -196,68 +196,50 @@
     height: 410px;
     border-radius: 20px;
     transform-style: preserve-3d;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.88), 0 0 35px rgba(0, 230, 118, 0.25);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
     cursor: grab;
     transition: transform 0.12s ease-out;
-    overflow: visible;
     user-select: none;
-    background: #06090e;
-  }
-
-  /* SVG Liquid Stream Border Engine */
-  .holo-liquid-svg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 20px;
-    pointer-events: none;
-    z-index: 5;
+    background: transparent;
     overflow: visible;
   }
-  .holo-liquid-track {
-    fill: none;
-    stroke: rgba(0, 230, 118, 0.16);
-    stroke-width: 2.5;
-  }
-  .holo-liquid-stream {
-    fill: none;
-    stroke: url(#neonLiquidStreamGrad);
-    stroke-width: 4.5;
-    stroke-linecap: round;
-    stroke-dasharray: 28 72;
-    stroke-dashoffset: 0;
-    animation: liquidBorderFlow 3.2s linear infinite;
-    filter: drop-shadow(0 0 8px #00e676) drop-shadow(0 0 16px #00e5ff);
-  }
-  @keyframes liquidBorderFlow {
-    0% { stroke-dashoffset: 100; }
-    100% { stroke-dashoffset: 0; }
+
+  /* Full-bleed Canvas Behind Card for Fluid Physics */
+  #holoLiquidCanvas {
+    position: absolute;
+    top: -50px;
+    left: -50px;
+    width: 370px;
+    height: 510px;
+    pointer-events: none;
+    z-index: 1;
+    transform: translateZ(6px);
   }
 
-  /* Iridescent Rainbow Hologram Glare Sheen */
+  /* Iridescent Rainbow Hologram Glare Sheen (Restored Above Content) */
   .holo-card-glare {
     position: absolute;
     inset: 4px;
-    border-radius: 17px;
+    border-radius: 16px;
     background: linear-gradient(
       125deg,
       transparent 15%,
-      rgba(255, 0, 128, 0.38) 32%,
-      rgba(0, 229, 255, 0.42) 48%,
-      rgba(255, 235, 59, 0.48) 54%,
-      transparent 75%
+      rgba(255, 0, 128, 0.42) 30%,
+      rgba(0, 229, 255, 0.48) 45%,
+      rgba(255, 235, 59, 0.52) 55%,
+      rgba(0, 230, 118, 0.4) 70%,
+      transparent 85%
     );
     background-size: 260% 260%;
     background-position: 50% 50%;
     mix-blend-mode: color-dodge;
     pointer-events: none;
-    z-index: 6;
-    opacity: 0.75;
+    z-index: 12;
+    opacity: 0.85;
     transition: opacity 0.3s ease;
   }
 
-  /* Inset Inner Container so it doesn't cover the SVG border */
+  /* Solid Inner Card Face Mounted Above Liquid Canvas */
   .holo-card-inner {
     position: absolute;
     inset: 4px;
@@ -270,6 +252,8 @@
     transform: translateZ(28px);
     z-index: 7;
     overflow: hidden;
+    border: 1.5px solid rgba(0, 230, 118, 0.35);
+    box-shadow: inset 0 0 22px rgba(0, 230, 118, 0.12);
   }
   .holo-card-tier-gold .holo-card-inner {
     background: radial-gradient(circle at 50% 18%, #3a2a0a 0%, #161208 60%, #0a0804 100%);
@@ -4782,11 +4766,10 @@
     requestAnimationFrame(render);
   }
 
-  /* Attach 3D Gyroscope (Mobile) & Cursor Hover (Desktop) Tilt Handlers */
+  /* 3D Gyroscope (Mobile) & Cursor Hover (Desktop) Tilt Handlers */
   function attachCard3DTilt(cardEl, glareEl) {
     if (!cardEl) return;
 
-    // Desktop: Cursor tracking tilt
     cardEl.addEventListener("mousemove", (e) => {
       const rect = cardEl.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -4814,7 +4797,6 @@
       }
     });
 
-    // Mobile: Gyroscope tilt
     const handleOrientation = (e) => {
       if (!cardEl || !document.body.contains(cardEl)) {
         window.removeEventListener("deviceorientation", handleOrientation);
@@ -4838,6 +4820,262 @@
     if (window.DeviceOrientationEvent) {
       window.addEventListener("deviceorientation", handleOrientation, { passive: true });
     }
+  }
+
+  /* -------------------------------------------------------------
+     Living Liquid Canvas Engine (Real-Time Fluid, Swirls & Spray)
+     ------------------------------------------------------------- */
+  function initHoloLiquidCanvas() {
+    const canvas = document.getElementById("holoLiquidCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+
+    if (window.__holoLiquidLoopId) {
+      cancelAnimationFrame(window.__holoLiquidLoopId);
+    }
+
+    const W = 370, H = 510;
+    canvas.width = W;
+    canvas.height = H;
+
+    const offX = 50, offY = 50;
+    const cardW = 270, cardH = 410, cardR = 20;
+
+    const segTop = cardW - 2 * cardR;
+    const segRight = cardH - 2 * cardR;
+    const segBottom = cardW - 2 * cardR;
+    const segLeft = cardH - 2 * cardR;
+    const arcLen = (Math.PI / 2) * cardR;
+    const totalLen = (2 * segTop) + (2 * segRight) + (4 * arcLen);
+
+    function getPerimeterPoint(s) {
+      s = ((s % totalLen) + totalLen) % totalLen;
+      let d = s;
+
+      if (d < segTop) {
+        return { x: offX + cardR + d, y: offY, nx: 0, ny: -1, tx: 1, ty: 0 };
+      }
+      d -= segTop;
+
+      if (d < arcLen) {
+        const a = -Math.PI / 2 + (d / arcLen) * (Math.PI / 2);
+        return {
+          x: offX + cardW - cardR + cardR * Math.cos(a),
+          y: offY + cardR + cardR * Math.sin(a),
+          nx: Math.cos(a), ny: Math.sin(a),
+          tx: -Math.sin(a), ty: Math.cos(a)
+        };
+      }
+      d -= arcLen;
+
+      if (d < segRight) {
+        return { x: offX + cardW, y: offY + cardR + d, nx: 1, ny: 0, tx: 0, ty: 1 };
+      }
+      d -= segRight;
+
+      if (d < arcLen) {
+        const a = (d / arcLen) * (Math.PI / 2);
+        return {
+          x: offX + cardW - cardR + cardR * Math.cos(a),
+          y: offY + cardH - cardR + cardR * Math.sin(a),
+          nx: Math.cos(a), ny: Math.sin(a),
+          tx: -Math.sin(a), ty: Math.cos(a)
+        };
+      }
+      d -= arcLen;
+
+      if (d < segBottom) {
+        return { x: offX + cardW - cardR - d, y: offY + cardH, nx: 0, ny: 1, tx: -1, ty: 0 };
+      }
+      d -= segBottom;
+
+      if (d < arcLen) {
+        const a = Math.PI / 2 + (d / arcLen) * (Math.PI / 2);
+        return {
+          x: offX + cardR + cardR * Math.cos(a),
+          y: offY + cardH - cardR + cardR * Math.sin(a),
+          nx: Math.cos(a), ny: Math.sin(a),
+          tx: -Math.sin(a), ty: Math.cos(a)
+        };
+      }
+      d -= arcLen;
+
+      if (d < segLeft) {
+        return { x: offX, y: offY + cardH - cardR - d, nx: -1, ny: 0, tx: 0, ty: -1 };
+      }
+      d -= segLeft;
+
+      const a = Math.PI + (d / arcLen) * (Math.PI / 2);
+      return {
+        x: offX + cardR + cardR * Math.cos(a),
+        y: offY + cardR + cardR * Math.sin(a),
+        nx: Math.cos(a), ny: Math.sin(a),
+        tx: -Math.sin(a), ty: Math.cos(a)
+      };
+    }
+
+    const particles = [];
+    let streamHead = 0;
+    const streamLength = 480;
+    let lastTime = performance.now();
+
+    function loop(now) {
+      if (!document.body.contains(canvas)) return;
+
+      const dt = Math.min((now - lastTime) / 1000, 0.05);
+      lastTime = now;
+      const t = now * 0.0018;
+
+      ctx.clearRect(0, 0, W, H);
+
+      streamHead = (streamHead + 340 * dt) % totalLen;
+      const headPt = getPerimeterPoint(streamHead);
+      const tailPt = getPerimeterPoint(streamHead - streamLength);
+
+      // 1. Capillary glass guide track
+      ctx.beginPath();
+      ctx.roundRect(offX, offY, cardW, cardH, cardR);
+      ctx.strokeStyle = "rgba(0, 230, 118, 0.14)";
+      ctx.lineWidth = 3;
+      ctx.shadowBlur = 0;
+      ctx.stroke();
+
+      // 2. Main Fluid Stream Body
+      const numSteps = 42;
+      const outerPts = [];
+      const innerPts = [];
+
+      for (let i = 0; i <= numSteps; i++) {
+        const u = i / numSteps;
+        const s = streamHead - streamLength * (1 - u);
+        const pt = getPerimeterPoint(s);
+
+        const wave = Math.sin(u * Math.PI);
+        const wobble = Math.sin(t * 6 + u * 10) * 3.5;
+        const thick = Math.max(2, wave * (12 + wobble));
+
+        outerPts.push({ x: pt.x + pt.nx * (thick * 0.95), y: pt.y + pt.ny * (thick * 0.95) });
+        innerPts.push({ x: pt.x - pt.nx * (thick * 0.45), y: pt.y - pt.ny * (thick * 0.45) });
+      }
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(outerPts[0].x, outerPts[0].y);
+      for (let i = 1; i < outerPts.length; i++) ctx.lineTo(outerPts[i].x, outerPts[i].y);
+      for (let i = innerPts.length - 1; i >= 0; i--) ctx.lineTo(innerPts[i].x, innerPts[i].y);
+      ctx.closePath();
+
+      const streamGrad = ctx.createLinearGradient(tailPt.x, tailPt.y, headPt.x, headPt.y);
+      streamGrad.addColorStop(0, "rgba(0, 230, 118, 0)");
+      streamGrad.addColorStop(0.35, "rgba(0, 230, 118, 0.65)");
+      streamGrad.addColorStop(0.72, "#00f0ff");
+      streamGrad.addColorStop(0.94, "#ffffff");
+      streamGrad.addColorStop(1, "#00e5ff");
+
+      ctx.fillStyle = streamGrad;
+      ctx.shadowColor = "#00f0ff";
+      ctx.shadowBlur = 18;
+      ctx.fill();
+
+      // Core white filament
+      ctx.beginPath();
+      for (let i = 0; i <= numSteps; i++) {
+        const u = i / numSteps;
+        const s = streamHead - streamLength * (1 - u);
+        const pt = getPerimeterPoint(s);
+        if (i === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      }
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
+      ctx.lineWidth = 2.4;
+      ctx.shadowColor = "#ffffff";
+      ctx.shadowBlur = 10;
+      ctx.stroke();
+      ctx.restore();
+
+      // 3. Curling Water Tendrils
+      const tendrilPositions = [0.45, 0.82];
+      tendrilPositions.forEach((pos, idx) => {
+        const s = streamHead - streamLength * (1 - pos);
+        const base = getPerimeterPoint(s);
+
+        const curlDir = idx === 0 ? 1 : -1;
+        const curlMag = 36 + Math.sin(t * 4 + idx) * 16;
+        const tipX = base.x + base.nx * curlMag + base.tx * (curlDir * 32);
+        const tipY = base.y + base.ny * curlMag + base.ty * (curlDir * 32);
+
+        const cp1X = base.x + base.nx * (curlMag * 0.7);
+        const cp1Y = base.y + base.ny * (curlMag * 0.7);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(base.x, base.y);
+        ctx.quadraticCurveTo(cp1X, cp1Y, tipX, tipY);
+        ctx.strokeStyle = idx === 0 ? "#00e676" : "#00f0ff";
+        ctx.lineWidth = 3.5;
+        ctx.shadowColor = idx === 0 ? "#00e676" : "#00f0ff";
+        ctx.shadowBlur = 14;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(tipX, tipY, 4, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.shadowColor = "#00f0ff";
+        ctx.shadowBlur = 12;
+        ctx.fill();
+        ctx.restore();
+      });
+
+      // 4. Floating Droplets & Bubbles
+      if (Math.random() < 0.85) {
+        particles.push({
+          x: headPt.x + (Math.random() - 0.5) * 8,
+          y: headPt.y + (Math.random() - 0.5) * 8,
+          vx: headPt.nx * (Math.random() * 2.2 + 0.8) + (Math.random() - 0.5) * 0.9,
+          vy: headPt.ny * (Math.random() * 2.2 + 0.8) + (Math.random() - 0.5) * 0.9,
+          radius: Math.random() * 3.6 + 1.4,
+          alpha: 1,
+          decay: Math.random() * 0.02 + 0.012,
+          isRing: Math.random() > 0.55
+        });
+      }
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.alpha -= p.decay;
+
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = p.alpha;
+        if (p.isRing) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.strokeStyle = "#00f0ff";
+          ctx.lineWidth = 1.4;
+          ctx.shadowColor = "#00f0ff";
+          ctx.shadowBlur = 8;
+          ctx.stroke();
+        } else {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = p.radius > 3 ? "#ffffff" : "#00e676";
+          ctx.shadowColor = "#00e676";
+          ctx.shadowBlur = 10;
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      window.__holoLiquidLoopId = requestAnimationFrame(loop);
+    }
+
+    window.__holoLiquidLoopId = requestAnimationFrame(loop);
   }
 
   /* Render Full Player Profile Screen */
@@ -4878,28 +5116,17 @@
     body.innerHTML = `
       <button id="backToPlayers">&larr; Back to players</button>
 
-      <!-- 1. Interactive 3D Holographic Foil Card with True SVG Neon Liquid Stream -->
+      <!-- 1. Interactive 3D Holographic Foil Card with Living Fluid Canvas Engine -->
       <div class="holo-card-stage">
         <div class="holo-card holo-card-tier-${tier}" id="holoFoilCard">
           
-          <!-- Liquid Stream Perimeter Engine -->
-          <svg class="holo-liquid-svg" viewBox="0 0 270 410">
-            <defs>
-              <linearGradient id="neonLiquidStreamGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#ffffff" />
-                <stop offset="30%" stop-color="#00e5ff" />
-                <stop offset="75%" stop-color="#00e676" />
-                <stop offset="100%" stop-color="rgba(0, 230, 118, 0)" />
-              </linearGradient>
-            </defs>
-            <!-- Guide Glass Tube Rail -->
-            <rect x="2" y="2" width="266" height="406" rx="18" class="holo-liquid-track" />
-            <!-- Continuous Fluid Liquid Stream -->
-            <rect x="2" y="2" width="266" height="406" rx="18" class="holo-liquid-stream" pathLength="100" />
-          </svg>
-
+          <!-- Dynamic Fluid Physics Canvas (Swirls, Waves & Bubbles) -->
+          <canvas id="holoLiquidCanvas" width="370" height="510"></canvas>
+          
+          <!-- Rainbow Hologram Glare Sheen Layer -->
           <div class="holo-card-glare" id="holoCardGlare"></div>
           
+          <!-- Inner Card Body Mounted Above Liquid Canvas -->
           <div class="holo-card-inner">
             <div class="holo-header-row">
               <div style="text-align:center;">
@@ -4983,11 +5210,16 @@
     `;
 
     document.getElementById("backToPlayers").addEventListener("click", () => {
+      if (window.__holoLiquidLoopId) cancelAnimationFrame(window.__holoLiquidLoopId);
       viewingPlayerId = null;
       renderRecordsBody();
     });
 
+    // Attach 3D tilt engine & start liquid animation
     attachCard3DTilt(document.getElementById("holoFoilCard"), document.getElementById("holoCardGlare"));
+    initHoloLiquidCanvas();
+
+    // Fetch stats and render Hexagon Radar
     loadRecentFormAndDrawRadar(p, playerId);
   }
 
