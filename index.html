@@ -4861,10 +4861,11 @@
     else if (phase === "final") document.body.classList.add("lighting-final");
   }
 
-  /* 2. Streak Analyzer & Live News Ticker Engine */
+  /* 2. Streak Analyzer & Live News Ticker Engine (All Tournament Formats) */
   async function refreshBroadcastStreaksAndTicker() {
     try {
-      const snap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "single"), where("status", "==", "completed")));
+      // 1. Fetch ALL completed tournaments (Single, Tag Regular, Tag Multi)
+      const snap = await getDocs(query(collection(db, "tournaments"), where("status", "==", "completed")));
       const allTournaments = [];
       snap.forEach(d => allTournaments.push(d.data()));
       allTournaments.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
@@ -4874,18 +4875,51 @@
 
       allTournaments.forEach(t => {
         const matches = [];
-        if (t.matches) matches.push(...t.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
-        if (t.knockout && Array.isArray(t.knockout.stages)) {
-          t.knockout.stages.forEach(st => { if (Array.isArray(st.matches)) matches.push(...st.matches.filter(m => m.scoreA !== null)); });
+
+        // Single Match or Tag-Team Regular controller finalScore
+        if (t.finalScore) {
+          const nameA = t.teams ? t.teams[0].teamName : (t.participants ? t.participants[0].name : "");
+          const nameB = t.teams ? t.teams[1].teamName : (t.participants ? t.participants[1].name : "");
+          if (nameA && nameB && t.finalScore.side1 !== null && t.finalScore.side2 !== null) {
+            matches.push({ sideA: nameA, sideB: nameB, scoreA: t.finalScore.side1, scoreB: t.finalScore.side2 });
+          }
         }
+
+        // Group stage fixtures (Single & Tag Multi)
+        if (Array.isArray(t.matches)) {
+          matches.push(...t.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
+        }
+
+        // Knockout matches (Single & Tag Multi)
+        if (t.knockout && Array.isArray(t.knockout.stages)) {
+          t.knockout.stages.forEach(st => {
+            if (Array.isArray(st.matches)) {
+              matches.push(...st.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
+            }
+          });
+        }
+
         matches.forEach(m => {
           totalMatches++;
-          totalGoals += (m.scoreA + m.scoreB);
-          [m.sideA, m.sideB].forEach(name => {
+          totalGoals += (Number(m.scoreA) + Number(m.scoreB));
+
+          // Break duo/team names down to track individual player streaks
+          const sideAPlayers = (m.sideA || "").split(" & ").map(s => s.trim()).filter(Boolean);
+          const sideBPlayers = (m.sideB || "").split(" & ").map(s => s.trim()).filter(Boolean);
+
+          const aWon = m.scoreA > m.scoreB;
+          const bWon = m.scoreB > m.scoreA;
+
+          sideAPlayers.forEach(name => {
+            if (!name || name.startsWith("TBD")) return;
             if (!playerHistory[name]) playerHistory[name] = [];
-            const myScore = m.sideA === name ? m.scoreA : m.scoreB;
-            const oppScore = m.sideA === name ? m.scoreB : m.scoreA;
-            playerHistory[name].push({ win: myScore > oppScore, loss: myScore < oppScore, goals: myScore });
+            playerHistory[name].push({ win: aWon, loss: bWon, goals: m.scoreA });
+          });
+
+          sideBPlayers.forEach(name => {
+            if (!name || name.startsWith("TBD")) return;
+            if (!playerHistory[name]) playerHistory[name] = [];
+            playerHistory[name].push({ win: bWon, loss: aWon, goals: m.scoreB });
           });
         });
       });
@@ -4893,27 +4927,40 @@
       window.__playerStreaksCache = {};
       const tickerItems = [];
 
+      // Reigning champions from all 3 formats
+      try {
+        const [cSingle, cReg, cMulti] = await Promise.all([
+          getDoc(doc(db, "champions", "single_none")),
+          getDoc(doc(db, "champions", "tagteam_regular")),
+          getDoc(doc(db, "champions", "tagteam_multi"))
+        ]);
+
+        if (cSingle.exists() && cSingle.data().winner) {
+          tickerItems.push(`👑 Single Player Champion:&nbsp;<strong>${cSingle.data().winner}</strong>`);
+        }
+        if (cReg.exists() && cReg.data().winner) {
+          tickerItems.push(`🛡️ Tag Regular Champions:&nbsp;<strong>${cReg.data().winner}</strong>`);
+        }
+        if (cMulti.exists() && cMulti.data().winner) {
+          tickerItems.push(`🎮 Tag Multi Champions:&nbsp;<strong>${cMulti.data().winner}</strong>`);
+        }
+      } catch (cErr) {}
+
+      // Streaks across all formats with guaranteed spaces
       Object.entries(playerHistory).forEach(([name, hist]) => {
         const last3 = hist.slice(-3);
         if (last3.length >= 3 && last3.every(h => h.win)) {
           window.__playerStreaksCache[name.toUpperCase()] = "fire";
-          tickerItems.push(`🔥 <strong>${name}</strong> is ON FIRE with an active winning streak!`);
+          tickerItems.push(`🔥&nbsp;<strong>${name}</strong>&nbsp;is ON FIRE with an active winning streak!`);
         } else if (last3.length >= 3 && last3.every(h => h.loss)) {
           window.__playerStreaksCache[name.toUpperCase()] = "ice";
-          tickerItems.push(`❄️ <strong>${name}</strong> is in a slump, looking to bounce back.`);
+          tickerItems.push(`❄️&nbsp;<strong>${name}</strong>&nbsp;is in a slump, looking to bounce back.`);
         }
       });
 
       if (totalMatches > 0) {
         const avg = (totalGoals / totalMatches).toFixed(1);
-        tickerItems.push(`⚽ Tournament scoring average: <strong>${avg} goals per match</strong>.`);
-      }
-
-      if (poolPlayers.length > 0) {
-        const topChamp = [...poolPlayers].sort((a, b) => (b.singleChampionships || 0) - (a.singleChampionships || 0))[0];
-        if (topChamp && (topChamp.singleChampionships || 0) > 0) {
-          tickerItems.push(`🏆 All-Time Record: <strong>${topChamp.name}</strong> leads with ${topChamp.singleChampionships} titles.`);
-        }
+        tickerItems.push(`⚽ Overall Scoring Average:&nbsp;<strong>${avg} goals/match</strong> across all tournaments.`);
       }
 
       const tickerBar = document.getElementById("broadcastTicker");
