@@ -126,107 +126,45 @@
   th, td { text-align: left; padding: 6px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
   th { color: var(--text-secondary); font-weight: normal; }
 
-  /* 1. Dynamic Stadium Atmospheric Lighting (Feature 5) */
-  body {
-    transition: background 0.4s ease, box-shadow 0.4s ease;
-  }
-  body.lighting-group {
-    background: radial-gradient(circle at 50% -15%, rgba(0, 230, 118, 0.12) 0%, transparent 65%), var(--bg-page);
-  }
-  body.lighting-knockout {
-    background: radial-gradient(circle at 50% -15%, rgba(0, 229, 255, 0.16) 0%, transparent 68%), var(--bg-page);
-  }
-  body.lighting-final {
-    background: radial-gradient(circle at 50% -15%, rgba(255, 215, 0, 0.22) 0%, transparent 72%), var(--bg-page);
-  }
+  /* 1. Dynamic Stadium Atmospheric Lighting */
+  body { transition: background 0.4s ease, box-shadow 0.4s ease; }
+  body.lighting-group { background: radial-gradient(circle at 50% -15%, rgba(0, 230, 118, 0.12) 0%, transparent 65%), var(--bg-page); }
+  body.lighting-knockout { background: radial-gradient(circle at 50% -15%, rgba(0, 229, 255, 0.16) 0%, transparent 68%), var(--bg-page); }
+  body.lighting-final { background: radial-gradient(circle at 50% -15%, rgba(255, 215, 0, 0.22) 0%, transparent 72%), var(--bg-page); }
 
-  /* 2. Broadcast Lower-Third News Ticker (Feature 2) */
+  /* 2. Broadcast Lower-Third News Ticker */
   .broadcast-ticker-bar {
-    display: flex;
-    align-items: center;
-    background: rgba(10, 14, 22, 0.88);
-    backdrop-filter: blur(8px);
-    border: 1px solid var(--border-strong);
-    border-radius: 20px;
-    margin: 8px 0 14px 0;
-    overflow: hidden;
-    height: 32px;
+    display: flex; align-items: center; background: rgba(10, 14, 22, 0.92);
+    backdrop-filter: blur(8px); border: 1px solid var(--border-strong);
+    border-radius: 20px; margin: 8px 0 14px 0; overflow: hidden; height: 32px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   }
   .ticker-badge {
-    background: var(--accent);
-    color: var(--accent-contrast);
-    font-family: var(--font-heading);
-    font-size: 11px;
-    font-weight: 900;
-    letter-spacing: 1px;
-    padding: 0 12px;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-    text-transform: uppercase;
+    background: var(--accent); color: var(--accent-contrast); font-family: var(--font-heading);
+    font-size: 11px; font-weight: 900; letter-spacing: 1px; padding: 0 12px;
+    height: 100%; display: flex; align-items: center; flex-shrink: 0; text-transform: uppercase;
   }
-  .ticker-track {
-    flex: 1;
-    overflow: hidden;
-    white-space: nowrap;
-    position: relative;
-  }
-  .ticker-content {
-    display: inline-block;
-    padding-left: 100%;
-    animation: tickerCrawl 26s linear infinite;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--text-primary);
-  }
-  .ticker-track:hover .ticker-content {
-    animation-play-state: paused;
-  }
-  @keyframes tickerCrawl {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-100%); }
-  }
-  .ticker-item {
-    display: inline-flex;
-    align-items: center;
-    margin-right: 32px;
-  }
-  .ticker-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--accent);
-    margin-right: 8px;
-    box-shadow: 0 0 6px var(--accent);
-  }
+  .ticker-track { flex: 1; overflow: hidden; white-space: nowrap; position: relative; }
+  .ticker-content { display: inline-block; padding-left: 100%; animation: tickerCrawl 26s linear infinite; font-size: 12px; font-weight: 700; color: var(--text-primary); }
+  .ticker-track:hover .ticker-content { animation-play-state: paused; }
+  @keyframes tickerCrawl { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+  .ticker-item { display: inline-flex; align-items: center; margin-right: 32px; }
+  .ticker-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-right: 8px; box-shadow: 0 0 6px var(--accent); }
 
-  /* 3. In-Form 🔥 & Ice Cold ❄️ Card Streaks (Feature 1) */
+  /* 3. In-Form & Ice Cold Card Streaks */
   .fut-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 18px;
-    border-radius: 3px;
-    font-size: 10px;
-    font-weight: 900;
-    font-family: var(--font-heading);
-    line-height: 1;
-    margin-right: 4px;
-    flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 18px; border-radius: 3px; font-size: 10px; font-weight: 900;
+    font-family: var(--font-heading); line-height: 1; margin-right: 4px; flex-shrink: 0;
     clip-path: polygon(0% 0%, 100% 0%, 100% 75%, 50% 100%, 0% 75%);
   }
   .fut-gold { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); color: #3d2c00; }
   .fut-silver { background: linear-gradient(135deg, #e0e0e0 0%, #9e9e9e 100%); color: #212121; }
   .fut-bronze { background: linear-gradient(135deg, #c79061 0%, #8d5524 100%); color: #2a1505; }
 
-  /* In-Form Fire Shimmer */
   .streak-fire .player-avatar-circle,
   .streak-fire .player-avatar-placeholder {
-    border-color: #ff5722 !important;
-    box-shadow: 0 0 0 2px #ff5722, 0 0 16px rgba(255, 87, 34, 0.75) !important;
+    border-color: #ff5722 !important; box-shadow: 0 0 0 2px #ff5722, 0 0 16px rgba(255, 87, 34, 0.75) !important;
     animation: fireBreath 2s ease-in-out infinite alternate;
   }
   @keyframes fireBreath {
@@ -234,23 +172,16 @@
     to { box-shadow: 0 0 0 2.5px #ff9800, 0 0 20px rgba(255, 152, 0, 0.9); }
   }
 
-  /* Ice Cold Frost Shimmer */
   .streak-ice .player-avatar-circle,
   .streak-ice .player-avatar-placeholder {
-    border-color: #00e5ff !important;
-    box-shadow: 0 0 0 2px #00e5ff, 0 0 14px rgba(0, 229, 255, 0.65) !important;
+    border-color: #00e5ff !important; box-shadow: 0 0 0 2px #00e5ff, 0 0 14px rgba(0, 229, 255, 0.65) !important;
     animation: frostShiver 2.4s ease-in-out infinite alternate;
   }
   @keyframes frostShiver {
     from { box-shadow: 0 0 0 2px #00e5ff, 0 0 8px rgba(0, 229, 255, 0.4); }
     to { box-shadow: 0 0 0 2.5px #80d8ff, 0 0 18px rgba(128, 216, 255, 0.85); }
   }
-
-  .streak-icon {
-    font-size: 11px;
-    margin-left: 2px;
-    vertical-align: middle;
-  }
+  .streak-icon { font-size: 11px; margin-left: 2px; vertical-align: middle; }
 
   /* 4. Qualification & Elimination Strips */
   table tbody tr.row-qual td:first-child { border-left: 4.5px solid #00e676; font-weight: 800; color: #00e676; }
@@ -263,16 +194,9 @@
 
   /* 5. Scoreboard Capsule & Steppers */
   .scoreboard-capsule {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: rgba(0, 0, 0, 0.45);
-    padding: 5px 12px;
-    border-radius: 8px;
-    border: 1px solid var(--border-strong);
-    cursor: pointer;
-    transition: transform 0.15s ease, border-color 0.15s ease;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: rgba(0, 0, 0, 0.45); padding: 5px 12px; border-radius: 8px;
+    border: 1px solid var(--border-strong); cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease;
   }
   .scoreboard-capsule:hover { border-color: var(--accent); transform: scale(1.03); }
   .scoreboard-capsule .score-num { font-family: var(--font-heading); font-size: 17px; font-weight: 800; color: var(--text-primary); }
@@ -317,51 +241,109 @@
   .filter-pill { padding: 5px 12px; font-size: 12px; font-weight: 700; border-radius: 14px; border: 1px solid var(--border-strong); background: var(--bg-surface-alt); color: var(--text-secondary); cursor: pointer; }
   .filter-pill.active { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
 
-  /* 8. Cinematic Face-Off Split-Screen Modal (Feature 3) */
+  /* 8. Cinematic Anime/Esports Clash Screen */
   .faceoff-modal-overlay {
-    position: fixed; inset: 0; background: rgba(5, 8, 14, 0.88);
-    backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center;
+    position: fixed; inset: 0; background: rgba(5, 7, 12, 0.92);
+    backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center;
     z-index: 99999; padding: 14px; animation: modalFadeIn 0.25s ease;
   }
   .faceoff-card {
-    position: relative; width: 100%; max-width: 620px;
-    background: #0a0e17; border: 2px solid var(--accent);
-    border-radius: 14px; overflow: hidden;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 30px color-mix(in srgb, var(--accent) 35%, transparent);
+    position: relative; width: 100%; max-width: 660px;
+    background: #080c14; border: 2px solid var(--accent);
+    border-radius: 16px; overflow: hidden;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.9), 0 0 30px color-mix(in srgb, var(--accent) 40%, transparent);
+  }
+  .faceoff-card::before {
+    content: ""; position: absolute; inset: 0;
+    background: repeating-linear-gradient(45deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 2px, transparent 2px, transparent 8px);
+    pointer-events: none;
   }
   .faceoff-header {
-    text-align: center; padding: 12px; background: rgba(0,0,0,0.5);
+    text-align: center; padding: 12px; background: rgba(0,0,0,0.65);
     border-bottom: 1px solid var(--border-strong);
     font-family: var(--font-heading); font-size: 13px; font-weight: 900;
-    letter-spacing: 1.5px; color: var(--accent); text-transform: uppercase;
+    letter-spacing: 2px; color: var(--accent); text-transform: uppercase;
   }
   .faceoff-split {
-    display: flex; position: relative; min-height: 240px;
+    display: flex; position: relative; min-height: 270px; overflow: hidden;
   }
   .faceoff-side {
     flex: 1; display: flex; flex-direction: column; align-items: center;
-    justify-content: center; padding: 20px 14px; text-align: center; gap: 8px;
-    z-index: 1;
+    justify-content: center; padding: 22px 14px; text-align: center; gap: 10px;
+    position: relative; z-index: 1;
   }
+  /* Fighter Slide-In Entrances */
   .faceoff-left {
-    background: linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, transparent 80%);
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.22) 0%, rgba(0, 0, 0, 0.7) 100%);
+    animation: animeSlideLeft 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
   .faceoff-right {
-    background: linear-gradient(225deg, rgba(255, 82, 82, 0.15) 0%, transparent 80%);
+    background: linear-gradient(225deg, rgba(255, 68, 68, 0.22) 0%, rgba(0, 0, 0, 0.7) 100%);
+    animation: animeSlideRight 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
+  @keyframes animeSlideLeft {
+    0% { transform: translateX(-120px) skewX(-8deg); opacity: 0; }
+    70% { transform: translateX(8px) skewX(2deg); opacity: 1; }
+    100% { transform: translateX(0) skewX(0); opacity: 1; }
+  }
+  @keyframes animeSlideRight {
+    0% { transform: translateX(120px) skewX(8deg); opacity: 0; }
+    70% { transform: translateX(-8px) skewX(-2deg); opacity: 1; }
+    100% { transform: translateX(0) skewX(0); opacity: 1; }
+  }
+
+  /* Dramatic Center VS Slam & Shockwave */
   .faceoff-vs-shield {
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    width: 54px; height: 54px; border-radius: 50%;
-    background: #0c121e; border: 2px solid var(--accent);
+    width: 60px; height: 60px; border-radius: 50%;
+    background: radial-gradient(circle, #1a2234 0%, #080c14 100%);
+    border: 2.5px solid var(--accent);
     display: flex; align-items: center; justify-content: center;
-    font-family: var(--font-heading); font-size: 17px; font-weight: 900;
-    color: var(--accent); z-index: 2;
-    box-shadow: 0 0 18px var(--accent);
+    font-family: var(--font-heading); font-size: 20px; font-weight: 900;
+    color: var(--accent); z-index: 3;
+    animation: vsSlamImpact 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) 0.35s both;
   }
+  .faceoff-vs-shield::after {
+    content: ""; position: absolute; inset: -10px; border-radius: 50%;
+    border: 2px solid var(--accent);
+    animation: shockwaveBurst 1.8s ease-out 0.8s infinite;
+  }
+  @keyframes vsSlamImpact {
+    0% { transform: translate(-50%, -50%) scale(3.8); opacity: 0; filter: blur(8px); }
+    60% { transform: translate(-50%, -50%) scale(0.85); opacity: 1; filter: blur(0); }
+    85% { transform: translate(-50%, -50%) scale(1.15); }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  }
+  @keyframes shockwaveBurst {
+    0% { transform: scale(0.8); opacity: 1; }
+    100% { transform: scale(2.2); opacity: 0; }
+  }
+
+  .faceoff-ovr-box {
+    font-family: var(--font-heading); font-size: 28px; font-weight: 900;
+    animation: ovrPowerUp 0.6s ease-out 0.5s both;
+  }
+  @keyframes ovrPowerUp {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
   .faceoff-stat-strip {
-    background: rgba(0,0,0,0.4); padding: 12px 18px;
-    border-top: 1px solid var(--border);
+    background: rgba(0,0,0,0.55); padding: 14px 20px;
+    border-top: 1px solid var(--border-strong);
+  }
+  .faceoff-prob-bar {
+    display: flex; height: 8px; border-radius: 4px; overflow: hidden;
+    background: #141a24; margin-top: 6px;
+  }
+  .faceoff-prob-fill-a {
+    background: linear-gradient(90deg, #00e5ff, var(--accent));
+    transition: width 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .faceoff-prob-fill-b {
+    background: linear-gradient(90deg, #ff5252, #ff7979);
+    transition: width 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
   /* 9. Tale of the Tape H2H Modal */
@@ -1526,6 +1508,13 @@
  
 // comment ==> 18. View Router (renderView) starts from here
   function renderView() {
+    // Only display Live News on Homepage
+    const tickerBar = document.getElementById("broadcastTicker");
+    if (tickerBar) {
+      const hasItems = tickerBar.dataset.hasItems === "true";
+      tickerBar.style.display = (currentView === "home" && hasItems) ? "flex" : "none";
+    }
+
     if (currentView === "home") return renderHome();
     if (currentView === "records") return renderRecords();
     if (currentView === "rankings") return renderRankings();
@@ -1537,7 +1526,7 @@
     if (currentView === "playerPool") return renderPlayerPool();
   }
 // comment ==> 18. View Router (renderView) ends here
-
+ 
 // comment ==> 19. Home View & Champions Box starts from here
   async function renderHome() {
     viewArea.innerHTML = "<h2>Recent champions</h2><div class='champ-grid' id='champGrid'>Loading...</div>";
@@ -4861,22 +4850,50 @@
     else if (phase === "final") document.body.classList.add("lighting-final");
   }
 
-  /* 2. Streak Analyzer & Live News Ticker Engine (All Tournament Formats) */
+  /* 2. Banter-Driven News Ticker Engine (Recent Participants Only) */
   async function refreshBroadcastStreaksAndTicker() {
     try {
-      // 1. Fetch ALL completed tournaments (Single, Tag Regular, Tag Multi)
       const snap = await getDocs(query(collection(db, "tournaments"), where("status", "==", "completed")));
       const allTournaments = [];
       snap.forEach(d => allTournaments.push(d.data()));
       allTournaments.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
 
+      if (allTournaments.length === 0) return;
+
+      // 1. Identify latest tournament in each of the three formats
+      let latestSingle = null, latestReg = null, latestMulti = null;
+      for (let i = allTournaments.length - 1; i >= 0; i--) {
+        const t = allTournaments[i];
+        if (t.format === "single" && !latestSingle) latestSingle = t;
+        if (t.format === "tagteam" && t.subMode === "regular" && !latestReg) latestReg = t;
+        if (t.format === "tagteam" && t.subMode === "multi" && !latestMulti) latestMulti = t;
+        if (latestSingle && latestReg && latestMulti) break;
+      }
+
+      // 2. Build whitelist of players who actually played in those latest tournaments
+      const recentActivePlayers = new Set();
+      const extractParticipants = (t) => {
+        if (!t) return;
+        if (Array.isArray(t.participants)) {
+          t.participants.forEach(p => { if (p && p.name) recentActivePlayers.add(p.name.trim().toUpperCase()); });
+        }
+        if (Array.isArray(t.teams)) {
+          t.teams.forEach(team => {
+            (team.members || []).forEach(m => { if (m && m.name) recentActivePlayers.add(m.name.trim().toUpperCase()); });
+          });
+        }
+      };
+      extractParticipants(latestSingle);
+      extractParticipants(latestReg);
+      extractParticipants(latestMulti);
+
+      // 3. Aggregate match history across all formats for streak detection
       const playerHistory = {};
       let totalGoals = 0, totalMatches = 0;
 
       allTournaments.forEach(t => {
         const matches = [];
 
-        // Single Match or Tag-Team Regular controller finalScore
         if (t.finalScore) {
           const nameA = t.teams ? t.teams[0].teamName : (t.participants ? t.participants[0].name : "");
           const nameB = t.teams ? t.teams[1].teamName : (t.participants ? t.participants[1].name : "");
@@ -4884,13 +4901,9 @@
             matches.push({ sideA: nameA, sideB: nameB, scoreA: t.finalScore.side1, scoreB: t.finalScore.side2 });
           }
         }
-
-        // Group stage fixtures (Single & Tag Multi)
         if (Array.isArray(t.matches)) {
           matches.push(...t.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
         }
-
-        // Knockout matches (Single & Tag Multi)
         if (t.knockout && Array.isArray(t.knockout.stages)) {
           t.knockout.stages.forEach(st => {
             if (Array.isArray(st.matches)) {
@@ -4903,71 +4916,113 @@
           totalMatches++;
           totalGoals += (Number(m.scoreA) + Number(m.scoreB));
 
-          // Break duo/team names down to track individual player streaks
           const sideAPlayers = (m.sideA || "").split(" & ").map(s => s.trim()).filter(Boolean);
           const sideBPlayers = (m.sideB || "").split(" & ").map(s => s.trim()).filter(Boolean);
-
           const aWon = m.scoreA > m.scoreB;
           const bWon = m.scoreB > m.scoreA;
 
           sideAPlayers.forEach(name => {
             if (!name || name.startsWith("TBD")) return;
-            if (!playerHistory[name]) playerHistory[name] = [];
-            playerHistory[name].push({ win: aWon, loss: bWon, goals: m.scoreA });
+            const up = name.toUpperCase();
+            if (!playerHistory[up]) playerHistory[up] = { originalName: name, matches: [] };
+            playerHistory[up].matches.push({ win: aWon, loss: bWon, goals: m.scoreA });
           });
 
           sideBPlayers.forEach(name => {
             if (!name || name.startsWith("TBD")) return;
-            if (!playerHistory[name]) playerHistory[name] = [];
-            playerHistory[name].push({ win: bWon, loss: aWon, goals: m.scoreB });
+            const up = name.toUpperCase();
+            if (!playerHistory[up]) playerHistory[up] = { originalName: name, matches: [] };
+            playerHistory[up].matches.push({ win: bWon, loss: aWon, goals: m.scoreB });
           });
         });
       });
 
+      // 4. Update the global streaks cache for visual auras
       window.__playerStreaksCache = {};
-      const tickerItems = [];
+      Object.entries(playerHistory).forEach(([upName, pData]) => {
+        const last3 = pData.matches.slice(-3);
+        if (last3.length >= 3 && last3.every(h => h.win)) {
+          window.__playerStreaksCache[upName] = "fire";
+        } else if (last3.length >= 3 && last3.every(h => h.loss)) {
+          window.__playerStreaksCache[upName] = "ice";
+        }
+      });
 
-      // Reigning champions from all 3 formats
+      // 5. Unique, non-repeating banter pools
+      const fireBanterPool = [
+        (n) => `🔥&nbsp;<strong>${n}</strong>&nbsp;is cooking on the sticks right now.`,
+        (n) => `🔥&nbsp;Someone check&nbsp;<strong>${n}'s</strong>&nbsp;controller, he can't stop winning.`,
+        (n) => `🔥&nbsp;<strong>${n}</strong>&nbsp;has officially put the whole group on fraud watch.`,
+        (n) => `🔥&nbsp;Pure clinic:&nbsp;<strong>${n}</strong>&nbsp;is running riot and taking no prisoners.`,
+        (n) => `🔥&nbsp;<strong>${n}</strong>&nbsp;is playing like prime Barcelona right now.`,
+        (n) => `🔥&nbsp;Unstoppable momentum from&nbsp;<strong>${n}</strong>&nbsp;&mdash; nobody wants that matchup next.`
+      ].sort(() => Math.random() - 0.5);
+
+      const iceBanterPool = [
+        (n) => `❄️&nbsp;<strong>${n}</strong>&nbsp;is currently in the mud and blaming stick drift.`,
+        (n) => `❄️&nbsp;Tough scenes for&nbsp;<strong>${n}</strong>&nbsp;&mdash; the vibes are fully compromised.`,
+        (n) => `❄️&nbsp;<strong>${n}</strong>&nbsp;has gone ghost mode, desperate for a redemption arc.`,
+        (n) => `❄️&nbsp;<strong>${n}</strong>&nbsp;needs to delete the tactical sheet and start fresh.`,
+        (n) => `❄️&nbsp;Down bad:&nbsp;<strong>${n}</strong>&nbsp;looking to break out of an uncharacteristic slump.`,
+        (n) => `❄️&nbsp;Defense has left the chat for&nbsp;<strong>${n}</strong>&nbsp;lately.`
+      ].sort(() => Math.random() - 0.5);
+
+      const neutralBanterPool = [
+        (n) => `👀&nbsp;Keep an eye on&nbsp;<strong>${n}</strong>&nbsp;&mdash; unpredictable on matchday.`,
+        (n) => `⚽&nbsp;<strong>${n}</strong>&nbsp;is hunting for goals after the latest tournament run.`,
+        (n) => `🎮&nbsp;<strong>${n}</strong>&nbsp;staying active on the pitch, looking to climb the ladder.`
+      ].sort(() => Math.random() - 0.5);
+
+      const tickerItems = [];
+      let fireIdx = 0, iceIdx = 0, neutralIdx = 0;
+
+      // 6. Reigning Champions Headliner
       try {
         const [cSingle, cReg, cMulti] = await Promise.all([
           getDoc(doc(db, "champions", "single_none")),
           getDoc(doc(db, "champions", "tagteam_regular")),
           getDoc(doc(db, "champions", "tagteam_multi"))
         ]);
-
         if (cSingle.exists() && cSingle.data().winner) {
-          tickerItems.push(`👑 Single Player Champion:&nbsp;<strong>${cSingle.data().winner}</strong>`);
+          tickerItems.push(`👑 Single Player Champ:&nbsp;<strong>${cSingle.data().winner}</strong>`);
         }
         if (cReg.exists() && cReg.data().winner) {
-          tickerItems.push(`🛡️ Tag Regular Champions:&nbsp;<strong>${cReg.data().winner}</strong>`);
+          tickerItems.push(`🛡️ Tag Regular Champs:&nbsp;<strong>${cReg.data().winner}</strong>`);
         }
         if (cMulti.exists() && cMulti.data().winner) {
-          tickerItems.push(`🎮 Tag Multi Champions:&nbsp;<strong>${cMulti.data().winner}</strong>`);
+          tickerItems.push(`🎮 Tag Multi Champs:&nbsp;<strong>${cMulti.data().winner}</strong>`);
         }
       } catch (cErr) {}
 
-      // Streaks across all formats with guaranteed spaces
-      Object.entries(playerHistory).forEach(([name, hist]) => {
-        const last3 = hist.slice(-3);
-        if (last3.length >= 3 && last3.every(h => h.win)) {
-          window.__playerStreaksCache[name.toUpperCase()] = "fire";
-          tickerItems.push(`🔥&nbsp;<strong>${name}</strong>&nbsp;is ON FIRE with an active winning streak!`);
-        } else if (last3.length >= 3 && last3.every(h => h.loss)) {
-          window.__playerStreaksCache[name.toUpperCase()] = "ice";
-          tickerItems.push(`❄️&nbsp;<strong>${name}</strong>&nbsp;is in a slump, looking to bounce back.`);
+      // 7. Inject banter ONLY for players who played in the latest tournaments
+      recentActivePlayers.forEach(upName => {
+        const pData = playerHistory[upName];
+        if (!pData) return;
+        const displayName = pData.originalName;
+        const streak = window.__playerStreaksCache[upName];
+
+        if (streak === "fire" && fireIdx < fireBanterPool.length) {
+          tickerItems.push(fireBanterPool[fireIdx++](displayName));
+        } else if (streak === "ice" && iceIdx < iceBanterPool.length) {
+          tickerItems.push(iceBanterPool[iceIdx++](displayName));
+        } else if (neutralIdx < neutralBanterPool.length && Math.random() > 0.4) {
+          tickerItems.push(neutralBanterPool[neutralIdx++](displayName));
         }
       });
 
+      // 8. General matchday stats banter
       if (totalMatches > 0) {
         const avg = (totalGoals / totalMatches).toFixed(1);
-        tickerItems.push(`⚽ Overall Scoring Average:&nbsp;<strong>${avg} goals/match</strong> across all tournaments.`);
+        tickerItems.push(`⚽ Average Scoreline:&nbsp;<strong>${avg} goals/match</strong>&nbsp;&mdash; defending is officially optional.`);
       }
 
+      // 9. Mount to DOM & restrict to Home view only
       const tickerBar = document.getElementById("broadcastTicker");
       const tickerContent = document.getElementById("tickerContent");
       if (tickerItems.length > 0 && tickerContent) {
         tickerContent.innerHTML = tickerItems.map(item => `<span class="ticker-item"><span class="ticker-dot"></span>${item}</span>`).join("");
-        tickerBar.style.display = "flex";
+        tickerBar.dataset.hasItems = "true";
+        tickerBar.style.display = currentView === "home" ? "flex" : "none";
       }
     } catch (e) {
       console.warn("Broadcast ticker refresh skipped:", e);
@@ -4976,7 +5031,7 @@
 
   setTimeout(() => refreshBroadcastStreaksAndTicker(), 1000);
 
-  /* 3. Cinematic Split-Screen "Face-Off" View */
+  /* 3. Cinematic Anime/Esports Clash Screen */
   function openFaceOffModal(sideA, sideB, matchLabel = "CHAMPIONSHIP FACE-OFF") {
     if (!sideA || !sideB || sideA === sideB) return;
     const overlay = document.createElement("div");
@@ -4994,25 +5049,25 @@
         <div class="faceoff-split">
           <div class="faceoff-side faceoff-left">
             ${renderPlayerBadge(sideA)}
-            <div style="font-family:var(--font-heading); font-size:24px; font-weight:900; color:var(--accent);">${ovrA} OVR</div>
-            <div style="font-size:11px; color:#8899a6; text-transform:uppercase;">WIN PROBABILITY: ${probA}%</div>
+            <div class="faceoff-ovr-box" style="color:var(--accent);">${ovrA} OVR</div>
+            <div style="font-size:11px; font-weight:800; color:#8899a6; text-transform:uppercase;">PREDICTED: ${probA}%</div>
           </div>
           <div class="faceoff-vs-shield">VS</div>
           <div class="faceoff-side faceoff-right">
             ${renderPlayerBadge(sideB)}
-            <div style="font-family:var(--font-heading); font-size:24px; font-weight:900; color:#ff5252;">${ovrB} OVR</div>
-            <div style="font-size:11px; color:#8899a6; text-transform:uppercase;">WIN PROBABILITY: ${probB}%</div>
+            <div class="faceoff-ovr-box" style="color:#ff5252;">${ovrB} OVR</div>
+            <div style="font-size:11px; font-weight:800; color:#8899a6; text-transform:uppercase;">PREDICTED: ${probB}%</div>
           </div>
         </div>
         <div class="faceoff-stat-strip">
-          <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:800; margin-bottom:4px;">
+          <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:900; letter-spacing:0.5px;">
             <span style="color:var(--accent);">${sideA}</span>
-            <span style="color:#8899a6;">HEAD-TO-HEAD WIN PROBABILITY</span>
+            <span style="color:#8899a6; text-transform:uppercase;">MATCHDAY CLASH PROBABILITY</span>
             <span style="color:#ff5252;">${sideB}</span>
           </div>
-          <div style="display:flex; height:6px; border-radius:3px; overflow:hidden; background:#1c2430;">
-            <div style="width:${probA}%; background:var(--accent);"></div>
-            <div style="width:${probB}%; background:#ff5252;"></div>
+          <div class="faceoff-prob-bar">
+            <div class="faceoff-prob-fill-a" style="width:${probA}%;"></div>
+            <div class="faceoff-prob-fill-b" style="width:${probB}%;"></div>
           </div>
         </div>
       </div>
@@ -5327,7 +5382,7 @@
     }, "image/png");
   }
 
-  /* 8. Single Unified showWinnerBanner (Celebration + Fanfare) */
+  /* 8. Unified showWinnerBanner (Celebration + Fanfare) */
   function showWinnerBanner(container, winnerName, data, tid) {
     let banner = document.getElementById("winnerBanner");
     if (!banner) {
