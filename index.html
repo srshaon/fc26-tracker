@@ -133,24 +133,7 @@
   body.lighting-final { background: radial-gradient(circle at 50% -15%, rgba(255, 215, 0, 0.22) 0%, transparent 72%), var(--bg-page); }
 
   /* Broadcast Lower-Third News Ticker */
-  .broadcast-ticker-bar {
-    display: flex; align-items: center; background: rgba(10, 14, 22, 0.92);
-    backdrop-filter: blur(8px); border: 1px solid var(--border-strong);
-    border-radius: 20px; margin: 8px 0 14px 0; overflow: hidden; height: 32px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  }
-  .ticker-badge {
-    background: var(--accent); color: var(--accent-contrast); font-family: var(--font-heading);
-    font-size: 11px; font-weight: 900; letter-spacing: 1px; padding: 0 12px;
-    height: 100%; display: flex; align-items: center; flex-shrink: 0; text-transform: uppercase;
-  }
-  .ticker-track { flex: 1; overflow: hidden; white-space: nowrap; position: relative; }
-  .ticker-content { display: inline-block; padding-left: 100%; animation: tickerCrawl 26s linear infinite; font-size: 12px; font-weight: 700; color: var(--text-primary); }
-  .ticker-track:hover .ticker-content { animation-play-state: paused; }
-  @keyframes tickerCrawl { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
-  .ticker-item { display: inline-flex; align-items: center; margin-right: 32px; }
-  .ticker-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-right: 8px; box-shadow: 0 0 6px var(--accent); }
-
+  
   /* FUT Streaks */
   .fut-badge {
     display: inline-flex; align-items: center; justify-content: center;
@@ -1279,12 +1262,7 @@
 <nav id="mainNav"></nav>
 
 <!-- Lower-Third Broadcast News Ticker Container -->
-<div id="broadcastTicker" class="broadcast-ticker-bar" style="display:none;">
-  <div class="ticker-badge">LIVE NEWS</div>
-  <div class="ticker-track">
-    <div class="ticker-content" id="tickerContent"></div>
-  </div>
-</div>
+
 
 <div id="viewArea"></div>
 
@@ -1689,13 +1667,6 @@
  
 // comment ==> 18. View Router (renderView) starts from here
   function renderView() {
-    // Only display Live News on Homepage
-    const tickerBar = document.getElementById("broadcastTicker");
-    if (tickerBar) {
-      const hasItems = tickerBar.dataset.hasItems === "true";
-      tickerBar.style.display = (currentView === "home" && hasItems) ? "flex" : "none";
-    }
-
     if (currentView === "home") return renderHome();
     if (currentView === "records") return renderRecords();
     if (currentView === "rankings") return renderRankings();
@@ -5313,7 +5284,7 @@
   }
 // comment ==> 38. Rankings & Duo Leaderboard ends here 
 
-// comment ==> 39. Esports Broadcast Engine (Streaks, Ticker, Face-Off & Story) starts from here
+// comment ==> 39. Esports Broadcast Engine (Streaks, Face-Off & Story) starts from here
   window.__playerStreaksCache = {};
 
   /* 1. Dynamic Stadium Lighting Phase Detector */
@@ -5324,8 +5295,8 @@
     else if (phase === "final") document.body.classList.add("lighting-final");
   }
 
-  /* 2. Banter-Driven News Ticker Engine (Recent Participants Only) */
-  async function refreshBroadcastStreaksAndTicker() {
+  /* 2. Streak Detection Engine (In-Form Fire / Ice Slump Auras) */
+  async function refreshPlayerStreaks() {
     try {
       const snap = await getDocs(query(collection(db, "tournaments"), where("status", "==", "completed")));
       const allTournaments = [];
@@ -5334,36 +5305,7 @@
 
       if (allTournaments.length === 0) return;
 
-      // 1. Identify latest tournament in each of the three formats
-      let latestSingle = null, latestReg = null, latestMulti = null;
-      for (let i = allTournaments.length - 1; i >= 0; i--) {
-        const t = allTournaments[i];
-        if (t.format === "single" && !latestSingle) latestSingle = t;
-        if (t.format === "tagteam" && t.subMode === "regular" && !latestReg) latestReg = t;
-        if (t.format === "tagteam" && t.subMode === "multi" && !latestMulti) latestMulti = t;
-        if (latestSingle && latestReg && latestMulti) break;
-      }
-
-      // 2. Build whitelist of players who actually played in those latest tournaments
-      const recentActivePlayers = new Set();
-      const extractParticipants = (t) => {
-        if (!t) return;
-        if (Array.isArray(t.participants)) {
-          t.participants.forEach(p => { if (p && p.name) recentActivePlayers.add(p.name.trim().toUpperCase()); });
-        }
-        if (Array.isArray(t.teams)) {
-          t.teams.forEach(team => {
-            (team.members || []).forEach(m => { if (m && m.name) recentActivePlayers.add(m.name.trim().toUpperCase()); });
-          });
-        }
-      };
-      extractParticipants(latestSingle);
-      extractParticipants(latestReg);
-      extractParticipants(latestMulti);
-
-      // 3. Aggregate match history across all formats for streak detection
       const playerHistory = {};
-      let totalGoals = 0, totalMatches = 0;
 
       allTournaments.forEach(t => {
         const matches = [];
@@ -5387,9 +5329,6 @@
         }
 
         matches.forEach(m => {
-          totalMatches++;
-          totalGoals += (Number(m.scoreA) + Number(m.scoreB));
-
           const sideAPlayers = (m.sideA || "").split(" & ").map(s => s.trim()).filter(Boolean);
           const sideBPlayers = (m.sideB || "").split(" & ").map(s => s.trim()).filter(Boolean);
           const aWon = m.scoreA > m.scoreB;
@@ -5398,20 +5337,20 @@
           sideAPlayers.forEach(name => {
             if (!name || name.startsWith("TBD")) return;
             const up = name.toUpperCase();
-            if (!playerHistory[up]) playerHistory[up] = { originalName: name, matches: [] };
-            playerHistory[up].matches.push({ win: aWon, loss: bWon, goals: m.scoreA });
+            if (!playerHistory[up]) playerHistory[up] = { matches: [] };
+            playerHistory[up].matches.push({ win: aWon, loss: bWon });
           });
 
           sideBPlayers.forEach(name => {
             if (!name || name.startsWith("TBD")) return;
             const up = name.toUpperCase();
-            if (!playerHistory[up]) playerHistory[up] = { originalName: name, matches: [] };
-            playerHistory[up].matches.push({ win: bWon, loss: aWon, goals: m.scoreB });
+            if (!playerHistory[up]) playerHistory[up] = { matches: [] };
+            playerHistory[up].matches.push({ win: bWon, loss: aWon });
           });
         });
       });
 
-      // 4. Update the global streaks cache for visual auras
+      // Update the global streaks cache
       window.__playerStreaksCache = {};
       Object.entries(playerHistory).forEach(([upName, pData]) => {
         const last3 = pData.matches.slice(-3);
@@ -5421,89 +5360,12 @@
           window.__playerStreaksCache[upName] = "ice";
         }
       });
-
-      // 5. Unique, non-repeating banter pools
-      const fireBanterPool = [
-        (n) => `🔥&nbsp;<strong>${n}</strong>&nbsp;is cooking on the sticks right now.`,
-        (n) => `🔥&nbsp;Someone check&nbsp;<strong>${n}'s</strong>&nbsp;controller, he can't stop winning.`,
-        (n) => `🔥&nbsp;<strong>${n}</strong>&nbsp;has officially put the whole group on fraud watch.`,
-        (n) => `🔥&nbsp;Pure clinic:&nbsp;<strong>${n}</strong>&nbsp;is running riot and taking no prisoners.`,
-        (n) => `🔥&nbsp;<strong>${n}</strong>&nbsp;is playing like prime Barcelona right now.`,
-        (n) => `🔥&nbsp;Unstoppable momentum from&nbsp;<strong>${n}</strong>&nbsp;&mdash; nobody wants that matchup next.`
-      ].sort(() => Math.random() - 0.5);
-
-      const iceBanterPool = [
-        (n) => `❄️&nbsp;<strong>${n}</strong>&nbsp;is currently in the mud and blaming stick drift.`,
-        (n) => `❄️&nbsp;Tough scenes for&nbsp;<strong>${n}</strong>&nbsp;&mdash; the vibes are fully compromised.`,
-        (n) => `❄️&nbsp;<strong>${n}</strong>&nbsp;has gone ghost mode, desperate for a redemption arc.`,
-        (n) => `❄️&nbsp;<strong>${n}</strong>&nbsp;needs to delete the tactical sheet and start fresh.`,
-        (n) => `❄️&nbsp;Down bad:&nbsp;<strong>${n}</strong>&nbsp;looking to break out of an uncharacteristic slump.`,
-        (n) => `❄️&nbsp;Defense has left the chat for&nbsp;<strong>${n}</strong>&nbsp;lately.`
-      ].sort(() => Math.random() - 0.5);
-
-      const neutralBanterPool = [
-        (n) => `👀&nbsp;Keep an eye on&nbsp;<strong>${n}</strong>&nbsp;&mdash; unpredictable on matchday.`,
-        (n) => `⚽&nbsp;<strong>${n}</strong>&nbsp;is hunting for goals after the latest tournament run.`,
-        (n) => `🎮&nbsp;<strong>${n}</strong>&nbsp;staying active on the pitch, looking to climb the ladder.`
-      ].sort(() => Math.random() - 0.5);
-
-      const tickerItems = [];
-      let fireIdx = 0, iceIdx = 0, neutralIdx = 0;
-
-      // 6. Reigning Champions Headliner
-      try {
-        const [cSingle, cReg, cMulti] = await Promise.all([
-          getDoc(doc(db, "champions", "single_none")),
-          getDoc(doc(db, "champions", "tagteam_regular")),
-          getDoc(doc(db, "champions", "tagteam_multi"))
-        ]);
-        if (cSingle.exists() && cSingle.data().winner) {
-          tickerItems.push(`👑 Single Player Champ:&nbsp;<strong>${cSingle.data().winner}</strong>`);
-        }
-        if (cReg.exists() && cReg.data().winner) {
-          tickerItems.push(`🛡️ Tag Regular Champs:&nbsp;<strong>${cReg.data().winner}</strong>`);
-        }
-        if (cMulti.exists() && cMulti.data().winner) {
-          tickerItems.push(`🎮 Tag Multi Champs:&nbsp;<strong>${cMulti.data().winner}</strong>`);
-        }
-      } catch (cErr) {}
-
-      // 7. Inject banter ONLY for players who played in the latest tournaments
-      recentActivePlayers.forEach(upName => {
-        const pData = playerHistory[upName];
-        if (!pData) return;
-        const displayName = pData.originalName;
-        const streak = window.__playerStreaksCache[upName];
-
-        if (streak === "fire" && fireIdx < fireBanterPool.length) {
-          tickerItems.push(fireBanterPool[fireIdx++](displayName));
-        } else if (streak === "ice" && iceIdx < iceBanterPool.length) {
-          tickerItems.push(iceBanterPool[iceIdx++](displayName));
-        } else if (neutralIdx < neutralBanterPool.length && Math.random() > 0.4) {
-          tickerItems.push(neutralBanterPool[neutralIdx++](displayName));
-        }
-      });
-
-      // 8. General matchday stats banter
-      if (totalMatches > 0) {
-        const avg = (totalGoals / totalMatches).toFixed(1);
-        tickerItems.push(`⚽ Average Scoreline:&nbsp;<strong>${avg} goals/match</strong>&nbsp;&mdash; defending is officially optional.`);
-      }
-
-      // 9. Mount to DOM & restrict to Home view only
-      const tickerBar = document.getElementById("broadcastTicker");
-      const tickerContent = document.getElementById("tickerContent");
-      if (tickerItems.length > 0 && tickerContent) {
-        tickerContent.innerHTML = tickerItems.map(item => `<span class="ticker-item"><span class="ticker-dot"></span>${item}</span>`).join("");
-        tickerBar.dataset.hasItems = "true";
-        tickerBar.style.display = currentView === "home" ? "flex" : "none";
-      }
     } catch (e) {
-      console.warn("Broadcast ticker refresh skipped:", e);
+      console.warn("Streaks refresh skipped:", e);
     }
   }
 
-  setTimeout(() => refreshBroadcastStreaksAndTicker(), 1000);
+  setTimeout(() => refreshPlayerStreaks(), 1000);
 
   /* Helper: Real-time probability digital counter */
   function runDigitalCounter(el, targetVal, duration = 1200) {
@@ -5520,19 +5382,17 @@
     requestAnimationFrame(step);
   }
 
-  /* 3. Cinematic Anime Clash Screen with Multi-Factor Predictions & Clean Mobile Layout */
+  /* 3. Cinematic Anime Clash Screen with Multi-Factor Predictions */
   async function openFaceOffModal(sideA, sideB, matchLabel = "CHAMPIONSHIP FACE-OFF") {
     if (!sideA || !sideB || sideA === sideB) return;
     const overlay = document.createElement("div");
     overlay.className = "faceoff-modal-overlay";
 
-    // 1. Base Elo calculation from dynamic OVR
     const ovrA = computePlayerOVR(sideA);
     const ovrB = computePlayerOVR(sideB);
     const ovrDiff = ovrA - ovrB;
     const pElo = 1 / (1 + Math.pow(10, -ovrDiff / 14));
 
-    // 2. Fetch Lifetime H2H Record between these two sides
     let winsA = 0, winsB = 0, draws = 0, totalH2H = 0;
     try {
       const snap = await getDocs(collection(db, "tournaments"));
@@ -5563,7 +5423,6 @@
       });
     } catch (err) {}
 
-    // 3. Form factor from hot/cold streak
     let pForm = 0.50;
     const streakA = window.__playerStreaksCache ? window.__playerStreaksCache[sideA.toUpperCase()] : null;
     const streakB = window.__playerStreaksCache ? window.__playerStreaksCache[sideB.toUpperCase()] : null;
@@ -5572,7 +5431,6 @@
     if (streakB === "fire") pForm -= 0.12;
     if (streakB === "ice") pForm += 0.12;
 
-    // 4. Multi-Factor Formula
     let finalProbRatio;
     if (totalH2H >= 1) {
       const pH2H = (winsA + 1) / (winsA + winsB + 2);
@@ -5584,7 +5442,6 @@
     const probA = Math.round(Math.max(0.07, Math.min(0.93, finalProbRatio)) * 100);
     const probB = 100 - probA;
 
-    // Clean top headline for the stat deck
     const h2hTopHeadline = totalH2H > 0
       ? `LIFETIME H2H &bull; ${totalH2H} MATCH${totalH2H === 1 ? '' : 'ES'} (${draws} DRAWS)`
       : `FIRST-TIME CLASH &bull; ELO RATED`;
@@ -5633,7 +5490,6 @@
     overlay.querySelector("#faceOffClose").addEventListener("click", () => overlay.remove());
     overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
 
-    // Sequenced Reveal: Charge probability bar and run digital counter at 1.8s
     setTimeout(() => {
       const barA = overlay.querySelector("#probBarA");
       const barB = overlay.querySelector("#probBarB");
@@ -5975,7 +5831,7 @@
     playVictoryFanfare();
     updateStadiumLighting("final");
   }
-// comment ==> 39. Esports Broadcast Engine (Streaks, Ticker, Face-Off & Story) ends here
+// comment ==> 39. Esports Broadcast Engine (Streaks, Face-Off & Story) ends here
 
 
 </script>
