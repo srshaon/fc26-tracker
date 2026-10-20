@@ -276,6 +276,26 @@
     position: relative;
     transform: translateZ(32px);
   }
+ /* Championship Jersey Stars on 3D Card */
+  .holo-stars-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 6px;
+    transform: translateZ(42px);
+  }
+  .holo-star {
+    font-size: 16px;
+    color: #ffd700;
+    line-height: 1;
+    filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.9));
+    animation: starTwinkle 2.5s ease-in-out infinite alternate;
+  }
+  @keyframes starTwinkle {
+    0% { transform: scale(0.95); opacity: 0.9; }
+    100% { transform: scale(1.15); opacity: 1; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 1)); }
+  }
   .holo-player-name {
     font-family: var(--font-heading);
     font-size: 19px;
@@ -4564,8 +4584,9 @@
     const wins = num(p.singleWins);
     const gf = num(p.singleGoalsFor);
     const ga = num(p.singleGoalsAgainst);
-    const champs = num(p.singleChampionships);
-    const totalTitles = champs + num(p.tagMultiChampionships) + num(p.tagRegularChampionships);
+    
+    // Only Single and Tag Multi count towards Pedigree
+    const totalTitles = num(p.singleChampionships) + num(p.tagMultiChampionships);
 
     // 1. Attack (Goals per match)
     const avgGf = matches > 0 ? (gf / matches) : 1.6;
@@ -4577,14 +4598,14 @@
 
     // 3. Clutch (Winning percentage & finals conversion)
     const winRate = matches > 0 ? (wins / matches) : 0.5;
-    const clu = Math.min(99, Math.max(50, Math.round(55 + (winRate * 28) + (champs * 2.5))));
+    const clu = Math.min(99, Math.max(50, Math.round(55 + (winRate * 28) + (num(p.singleChampionships) * 2.5))));
 
     // 4. Dominance (Average goal differential per game)
     const avgGd = matches > 0 ? ((gf - ga) / matches) : 0;
     const dom = Math.min(99, Math.max(50, Math.round(70 + (avgGd * 9))));
 
-    // 5. Pedigree (Total career trophies across all 3 formats)
-    const ped = Math.min(99, Math.max(50, Math.round(62 + (totalTitles * 5.5))));
+    // 5. Pedigree (Career trophies across Single & Tag Multi only)
+    const ped = Math.min(99, Math.max(50, Math.round(62 + (totalTitles * 6.5))));
 
     // 6. Form (Last 5 match points: W = +7, D = +2, L = -5)
     let formScore = 72;
@@ -4621,7 +4642,7 @@
 
     function render(now) {
       animProgress = Math.min((now - startTime) / duration, 1);
-      const ease = 1 - Math.pow(1 - animProgress, 3); // cubic ease-out
+      const ease = 1 - Math.pow(1 - animProgress, 3);
 
       ctx.clearRect(0, 0, width, height);
 
@@ -4643,7 +4664,7 @@
         ctx.stroke();
       });
 
-      // Draw spoke lines from center to outer vertices
+      // Spoke lines
       for (let i = 0; i < numAxes; i++) {
         const a = (i * angleStep) - (Math.PI / 2);
         ctx.beginPath();
@@ -4654,7 +4675,7 @@
         ctx.stroke();
       }
 
-      // Draw the animated data polygon
+      // Animated polygon
       ctx.beginPath();
       for (let i = 0; i < numAxes; i++) {
         const a = (i * angleStep) - (Math.PI / 2);
@@ -4667,7 +4688,6 @@
       }
       ctx.closePath();
 
-      // Glowing Neon Gradient Fill
       const grad = ctx.createRadialGradient(cx, cy, 10, cx, cy, maxRadius);
       grad.addColorStop(0, "rgba(0, 230, 118, 0.55)");
       grad.addColorStop(0.7, "rgba(0, 229, 255, 0.28)");
@@ -4682,7 +4702,7 @@
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Draw data point circles and vertex labels
+      // Data point vertices & labels
       for (let i = 0; i < numAxes; i++) {
         const a = (i * angleStep) - (Math.PI / 2);
         const normVal = (values[i] / 100) * ease;
@@ -4690,13 +4710,11 @@
         const x = cx + r * Math.cos(a);
         const y = cy + r * Math.sin(a);
 
-        // Dot
         ctx.beginPath();
         ctx.arc(x, y, 3.5, 0, Math.PI * 2);
         ctx.fillStyle = "#ffffff";
         ctx.fill();
 
-        // Outer Text Label & Value
         const labelR = maxRadius + 22;
         const lx = cx + labelR * Math.cos(a);
         const ly = cy + labelR * Math.sin(a);
@@ -4750,15 +4768,15 @@
       }
     });
 
-    // Mobile Phone: Gyroscope device orientation tilt
+    // Mobile: Gyroscope tilt
     const handleOrientation = (e) => {
       if (!cardEl || !document.body.contains(cardEl)) {
         window.removeEventListener("deviceorientation", handleOrientation);
         return;
       }
       if (e.gamma === null || e.beta === null) return;
-      const gamma = Math.max(-25, Math.min(25, e.gamma)); // tilt left/right (-25 to 25)
-      const beta = Math.max(15, Math.min(65, e.beta));    // normal holding angle ~40 deg
+      const gamma = Math.max(-25, Math.min(25, e.gamma));
+      const beta = Math.max(15, Math.min(65, e.beta));
       const rotY = (gamma / 25) * 18;
       const rotX = -((beta - 40) / 25) * 18;
 
@@ -4787,14 +4805,24 @@
     const multiWinPct = multiMatches > 0 ? Math.round((multiWins / multiMatches) * 100) : 0;
     const regMatches = num(p.tagRegularTournamentsPlayed), regWins = num(p.tagRegularChampionships);
     const regWinPct = regMatches > 0 ? Math.round((regWins / regMatches) * 100) : 0;
-const ovr = computePlayerOVR(p.name);
+
+    const ovr = computePlayerOVR(p.name);
     const tier = ovr >= 83 ? "gold" : (ovr >= 75 ? "silver" : "bronze");
     const photo = p.photoUrl || p.imageUrl;
 
-    // Dynamic Title & Rank Logic
-    const totalChamps = num(p.singleChampionships) + num(p.tagMultiChampionships) + num(p.tagRegularChampionships);
-    const crownIcon = totalChamps > 0 ? "👑" : "⚽";
+    // Title Stars, Crown & Rank Logic (Single & Tag Multi only)
+    const singleChamps = num(p.singleChampionships);
+    const multiChamps = num(p.tagMultiChampionships);
+    const totalCountedChamps = singleChamps + multiChamps;
+
+    const crownIcon = totalCountedChamps > 0 ? "👑" : "⚽";
     const rankTag = ovr >= 83 ? "ELITE" : (ovr >= 75 ? "PRO" : "CHAL");
+
+    let starsHtml = "";
+    if (totalCountedChamps > 0) {
+      const starIcons = Array.from({ length: totalCountedChamps }, () => `<span class="holo-star">★</span>`).join("");
+      starsHtml = `<div class="holo-stars-row" title="${totalCountedChamps}x Title Winner (Single & Tag Multi)">${starIcons}</div>`;
+    }
 
     const avatarCircleHtml = photo
       ? `<img src="${convertImageUrl(photo)}" class="player-avatar-circle" style="width:78px; height:78px; border-width:3px;" alt="${p.name}">`
@@ -4813,10 +4841,10 @@ const ovr = computePlayerOVR(p.name);
                 <div class="holo-ovr-num">${ovr}</div>
                 <div class="holo-pos-label">${rankTag}</div>
               </div>
-              <div style="font-size:18px;" title="${totalChamps > 0 ? `${totalChamps}x Champion` : 'Contender'}">${crownIcon}</div>
+              <div style="font-size:18px;" title="${totalCountedChamps > 0 ? `${totalCountedChamps}x Champion` : 'Contender'}">${crownIcon}</div>
             </div>
-    
             <div class="holo-avatar-wrap">
+              ${starsHtml}
               ${avatarCircleHtml}
             </div>
             <div class="holo-player-name">${p.name}</div>
@@ -4891,10 +4919,7 @@ const ovr = computePlayerOVR(p.name);
       renderRecordsBody();
     });
 
-    // Attach 3D tilt engine
     attachCard3DTilt(document.getElementById("holoFoilCard"), document.getElementById("holoCardGlare"));
-
-    // Fetch form and draw radar chart
     loadRecentFormAndDrawRadar(p, playerId);
   }
 
@@ -4932,7 +4957,6 @@ const ovr = computePlayerOVR(p.name);
       }
     }
 
-    // Compute 6 attributes and populate card values + canvas radar chart
     const attrs = computePlayerRadarAttributes(p, last5);
 
     const setCardStat = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
@@ -4947,7 +4971,6 @@ const ovr = computePlayerOVR(p.name);
     if (canvas) drawHexagonalRadar(canvas, attrs);
   }
 
-  // Backward compatibility alias
   const loadRecentForm = loadRecentFormAndDrawRadar;
 // comment ==> 36. Player Profile & Recent Form ends here
  
