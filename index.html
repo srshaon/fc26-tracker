@@ -126,7 +126,83 @@
   th, td { text-align: left; padding: 6px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
   th { color: var(--text-secondary); font-weight: normal; }
 
-  /* 1. FUT-Style OVR Badges */
+  /* 1. Dynamic Stadium Atmospheric Lighting (Feature 5) */
+  body {
+    transition: background 0.4s ease, box-shadow 0.4s ease;
+  }
+  body.lighting-group {
+    background: radial-gradient(circle at 50% -15%, rgba(0, 230, 118, 0.12) 0%, transparent 65%), var(--bg-page);
+  }
+  body.lighting-knockout {
+    background: radial-gradient(circle at 50% -15%, rgba(0, 229, 255, 0.16) 0%, transparent 68%), var(--bg-page);
+  }
+  body.lighting-final {
+    background: radial-gradient(circle at 50% -15%, rgba(255, 215, 0, 0.22) 0%, transparent 72%), var(--bg-page);
+  }
+
+  /* 2. Broadcast Lower-Third News Ticker (Feature 2) */
+  .broadcast-ticker-bar {
+    display: flex;
+    align-items: center;
+    background: rgba(10, 14, 22, 0.88);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-strong);
+    border-radius: 20px;
+    margin: 8px 0 14px 0;
+    overflow: hidden;
+    height: 32px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .ticker-badge {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    font-family: var(--font-heading);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    padding: 0 12px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    text-transform: uppercase;
+  }
+  .ticker-track {
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+  }
+  .ticker-content {
+    display: inline-block;
+    padding-left: 100%;
+    animation: tickerCrawl 26s linear infinite;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .ticker-track:hover .ticker-content {
+    animation-play-state: paused;
+  }
+  @keyframes tickerCrawl {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+  }
+  .ticker-item {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 32px;
+  }
+  .ticker-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-right: 8px;
+    box-shadow: 0 0 6px var(--accent);
+  }
+
+  /* 3. In-Form 🔥 & Ice Cold ❄️ Card Streaks (Feature 1) */
   .fut-badge {
     display: inline-flex;
     align-items: center;
@@ -140,14 +216,43 @@
     line-height: 1;
     margin-right: 4px;
     flex-shrink: 0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
     clip-path: polygon(0% 0%, 100% 0%, 100% 75%, 50% 100%, 0% 75%);
   }
-  .fut-gold { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); color: #3d2c00; border-top: 1px solid #fff2a3; }
-  .fut-silver { background: linear-gradient(135deg, #e0e0e0 0%, #9e9e9e 100%); color: #212121; border-top: 1px solid #ffffff; }
-  .fut-bronze { background: linear-gradient(135deg, #c79061 0%, #8d5524 100%); color: #2a1505; border-top: 1px solid #dfb088; }
+  .fut-gold { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); color: #3d2c00; }
+  .fut-silver { background: linear-gradient(135deg, #e0e0e0 0%, #9e9e9e 100%); color: #212121; }
+  .fut-bronze { background: linear-gradient(135deg, #c79061 0%, #8d5524 100%); color: #2a1505; }
 
-  /* 2. Qualification & Elimination Strips */
+  /* In-Form Fire Shimmer */
+  .streak-fire .player-avatar-circle,
+  .streak-fire .player-avatar-placeholder {
+    border-color: #ff5722 !important;
+    box-shadow: 0 0 0 2px #ff5722, 0 0 16px rgba(255, 87, 34, 0.75) !important;
+    animation: fireBreath 2s ease-in-out infinite alternate;
+  }
+  @keyframes fireBreath {
+    from { box-shadow: 0 0 0 2px #ff5722, 0 0 10px rgba(255, 87, 34, 0.5); }
+    to { box-shadow: 0 0 0 2.5px #ff9800, 0 0 20px rgba(255, 152, 0, 0.9); }
+  }
+
+  /* Ice Cold Frost Shimmer */
+  .streak-ice .player-avatar-circle,
+  .streak-ice .player-avatar-placeholder {
+    border-color: #00e5ff !important;
+    box-shadow: 0 0 0 2px #00e5ff, 0 0 14px rgba(0, 229, 255, 0.65) !important;
+    animation: frostShiver 2.4s ease-in-out infinite alternate;
+  }
+  @keyframes frostShiver {
+    from { box-shadow: 0 0 0 2px #00e5ff, 0 0 8px rgba(0, 229, 255, 0.4); }
+    to { box-shadow: 0 0 0 2.5px #80d8ff, 0 0 18px rgba(128, 216, 255, 0.85); }
+  }
+
+  .streak-icon {
+    font-size: 11px;
+    margin-left: 2px;
+    vertical-align: middle;
+  }
+
+  /* 4. Qualification & Elimination Strips */
   table tbody tr.row-qual td:first-child { border-left: 4.5px solid #00e676; font-weight: 800; color: #00e676; }
   table tbody tr.row-qual { background: linear-gradient(90deg, rgba(0, 230, 118, 0.12) 0%, rgba(0, 230, 118, 0.02) 100%); }
   table tbody tr.row-elim td:first-child { border-left: 4.5px solid rgba(255, 82, 82, 0.7); font-weight: 800; color: #ff5252; }
@@ -156,7 +261,43 @@
   .qual-tag-q { background: rgba(0, 230, 118, 0.2); color: #00e676; border: 1px solid rgba(0, 230, 118, 0.6); }
   .qual-tag-e { background: rgba(255, 82, 82, 0.18); color: #ff5252; border: 1px solid rgba(255, 82, 82, 0.5); }
 
-  /* 3. Stage Badges & Toggles */
+  /* 5. Scoreboard Capsule & Steppers */
+  .scoreboard-capsule {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.45);
+    padding: 5px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-strong);
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .scoreboard-capsule:hover { border-color: var(--accent); transform: scale(1.03); }
+  .scoreboard-capsule .score-num { font-family: var(--font-heading); font-size: 17px; font-weight: 800; color: var(--text-primary); }
+  .scoreboard-capsule .score-num.score-winner { color: var(--accent); }
+  .scoreboard-capsule .score-num.score-loser { color: var(--text-muted); opacity: 0.6; }
+  .scoreboard-capsule .score-divider { font-weight: 800; font-size: 14px; color: var(--text-muted); }
+  .score-display.clickable { cursor: pointer; transition: color 0.2s ease; }
+  .score-display.clickable:hover { color: var(--accent); }
+
+  .stepper-wrap { display: inline-flex; align-items: center; background: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: 7px; overflow: hidden; }
+  .stepper-btn { width: 26px; height: 32px; background: var(--bg-surface-alt); color: var(--text-primary); border: none; font-size: 15px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .stepper-btn:hover { background: var(--accent); color: var(--accent-contrast); }
+  .stepper-wrap input[type=number] { width: 34px !important; height: 32px !important; border: none !important; background: transparent !important; text-align: center; font-weight: 800; font-size: 15px; color: var(--text-primary); padding: 0 !important; }
+
+  /* 6. Winner Highlight & Loser Dimming */
+  .match-fixture .name.side-winner .player-avatar-circle,
+  .match-fixture .name.side-winner .player-avatar-placeholder {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 2.5px var(--accent), 0 0 14px color-mix(in srgb, var(--accent) 75%, transparent) !important;
+    transform: scale(1.06);
+  }
+  .match-fixture .name.side-winner .side-name { font-weight: 800; }
+  .match-fixture .name.side-loser { opacity: 0.55; filter: grayscale(25%); }
+
+  /* 7. Stage Badges & Filter Pills */
   .stage-badge {
     display: inline-flex; align-items: center; gap: 8px;
     background: var(--bg-surface-alt); border: 1px solid var(--border-strong);
@@ -172,45 +313,58 @@
     cursor: pointer;
   }
   .toggle-stage-btn:hover { border-color: var(--accent); color: var(--text-primary); }
-
-  /* 4. Scoreboard Capsule & Steppers */
-  .scoreboard-capsule {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    background: rgba(0, 0, 0, 0.45); padding: 5px 12px; border-radius: 8px;
-    border: 1px solid var(--border-strong); cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease;
-  }
-  .scoreboard-capsule:hover { border-color: var(--accent); transform: scale(1.03); }
-  .scoreboard-capsule .score-num { font-family: var(--font-heading); font-size: 17px; font-weight: 800; color: var(--text-primary); }
-  .scoreboard-capsule .score-num.score-winner { color: var(--accent); }
-  .scoreboard-capsule .score-num.score-loser { color: var(--text-muted); opacity: 0.6; }
-  .scoreboard-capsule .score-divider { font-weight: 800; font-size: 14px; color: var(--text-muted); }
-  .score-display.clickable { cursor: pointer; transition: color 0.2s ease; }
-  .score-display.clickable:hover { color: var(--accent); }
-
-  .stepper-wrap { display: inline-flex; align-items: center; background: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: 7px; overflow: hidden; }
-  .stepper-btn { width: 26px; height: 32px; background: var(--bg-surface-alt); color: var(--text-primary); border: none; font-size: 15px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-  .stepper-btn:hover { background: var(--accent); color: var(--accent-contrast); }
-  .stepper-wrap input[type=number] { width: 34px !important; height: 32px !important; border: none !important; background: transparent !important; text-align: center; font-weight: 800; font-size: 15px; color: var(--text-primary); padding: 0 !important; }
-
-  /* 5. Winner Highlight & Loser Dimming */
-  .match-fixture .name.side-winner .player-avatar-circle,
-  .match-fixture .name.side-winner .player-avatar-placeholder {
-    border-color: var(--accent) !important;
-    box-shadow: 0 0 0 2.5px var(--accent), 0 0 14px color-mix(in srgb, var(--accent) 75%, transparent) !important;
-    transform: scale(1.06);
-  }
-  .match-fixture .name.side-winner .side-name { font-weight: 800; }
-  .match-fixture .name.side-loser { opacity: 0.55; filter: grayscale(25%); }
-
-  /* 6. Form Dots & Match Filters */
-  .form-dots-cluster { display: flex; align-items: center; justify-content: center; gap: 3.5px; margin-top: 3px; }
-  .form-dot { width: 14px; height: 14px; border-radius: 50%; font-size: 8px; font-weight: 900; display: inline-flex; align-items: center; justify-content: center; color: #fff; }
-  .form-dot-w { background: #00e676; } .form-dot-l { background: #ff5252; } .form-dot-d { background: #78909c; }
   .match-filter-bar { display: flex; align-items: center; gap: 6px; margin: 8px 0 12px; flex-wrap: wrap; }
   .filter-pill { padding: 5px 12px; font-size: 12px; font-weight: 700; border-radius: 14px; border: 1px solid var(--border-strong); background: var(--bg-surface-alt); color: var(--text-secondary); cursor: pointer; }
   .filter-pill.active { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
 
-  /* 7. Head-to-Head (H2H) Rivalry Modal */
+  /* 8. Cinematic Face-Off Split-Screen Modal (Feature 3) */
+  .faceoff-modal-overlay {
+    position: fixed; inset: 0; background: rgba(5, 8, 14, 0.88);
+    backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center;
+    z-index: 99999; padding: 14px; animation: modalFadeIn 0.25s ease;
+  }
+  .faceoff-card {
+    position: relative; width: 100%; max-width: 620px;
+    background: #0a0e17; border: 2px solid var(--accent);
+    border-radius: 14px; overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 30px color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+  .faceoff-header {
+    text-align: center; padding: 12px; background: rgba(0,0,0,0.5);
+    border-bottom: 1px solid var(--border-strong);
+    font-family: var(--font-heading); font-size: 13px; font-weight: 900;
+    letter-spacing: 1.5px; color: var(--accent); text-transform: uppercase;
+  }
+  .faceoff-split {
+    display: flex; position: relative; min-height: 240px;
+  }
+  .faceoff-side {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 20px 14px; text-align: center; gap: 8px;
+    z-index: 1;
+  }
+  .faceoff-left {
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.15) 0%, transparent 80%);
+  }
+  .faceoff-right {
+    background: linear-gradient(225deg, rgba(255, 82, 82, 0.15) 0%, transparent 80%);
+  }
+  .faceoff-vs-shield {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 54px; height: 54px; border-radius: 50%;
+    background: #0c121e; border: 2px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-heading); font-size: 17px; font-weight: 900;
+    color: var(--accent); z-index: 2;
+    box-shadow: 0 0 18px var(--accent);
+  }
+  .faceoff-stat-strip {
+    background: rgba(0,0,0,0.4); padding: 12px 18px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* 9. Tale of the Tape H2H Modal */
   .h2h-modal-overlay {
     position: fixed; inset: 0; background: rgba(0, 0, 0, 0.78);
     backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center;
@@ -220,8 +374,7 @@
   .h2h-modal-card {
     background: var(--bg-surface); border: 2px solid var(--accent);
     border-radius: 12px; width: 100%; max-width: 440px; padding: 18px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px color-mix(in srgb, var(--accent) 30%, transparent);
-    position: relative;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); position: relative;
   }
   .h2h-close-btn {
     position: absolute; top: 12px; right: 14px; background: none; border: none;
@@ -235,24 +388,14 @@
   .h2h-bar-fill-a { background: var(--accent); transition: width 0.4s ease; }
   .h2h-bar-fill-b { background: #ff5252; transition: width 0.4s ease; }
 
-  /* 8. Winner Banner & Matchday Story Share Button */
-  #winnerBanner {
-    display: none; margin-top: 14px; padding: 16px; border-radius: 10px;
-    background: linear-gradient(135deg, rgba(0, 230, 118, 0.2) 0%, rgba(0, 0, 0, 0.5) 100%);
-    border: 2px solid #00e676; text-align: center; box-shadow: 0 0 20px rgba(0, 230, 118, 0.3);
-  }
+  /* 10. Matchday Story Button & Confetti Overlay */
   .share-story-btn {
-    display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
+    display: inline-flex; align-items: center; gap: 6px;
     padding: 8px 18px; font-size: 13px; font-weight: 800; border-radius: 20px;
     background: #00e676; color: #000; border: none; cursor: pointer;
-    box-shadow: 0 0 12px rgba(0, 230, 118, 0.5); transition: transform 0.15s ease;
+    box-shadow: 0 0 12px rgba(0, 230, 118, 0.5);
   }
-  .share-story-btn:active { transform: scale(0.95); }
-
-  /* 9. Confetti Fullscreen Overlay */
-  #confettiCanvas {
-    position: fixed; inset: 0; pointer-events: none; z-index: 10000;
-  }
+  #confettiCanvas { position: fixed; inset: 0; pointer-events: none; z-index: 10000; }
 
   .status-msg { font-size: 13px; color: var(--text-secondary); margin-top: 8px; }
   .warn { color: var(--danger-text); }
@@ -553,19 +696,28 @@
     flex-shrink: 0;
     scroll-snap-align: start;
   }
+
+  /* Animated Energy Conduit Connectors (Feature 4) */
   .bracket-col:not(:first-child)::before {
     content: "";
     display: block;
-    height: 2px;
+    height: 2.5px;
     background: var(--border-strong);
     margin-bottom: 8px;
-    animation: lineDraw 0.5s ease both;
     transform-origin: left;
+    transition: all 0.4s ease;
   }
-  @keyframes lineDraw {
-    from { transform: scaleX(0); }
-    to { transform: scaleX(1); }
+  .bracket-col.connector-lit::before {
+    background: linear-gradient(90deg, var(--accent) 0%, #00e5ff 50%, var(--accent) 100%);
+    background-size: 200% 100%;
+    animation: conduitEnergyPulse 1.8s linear infinite;
+    box-shadow: 0 0 10px var(--accent), 0 0 4px #00e5ff;
   }
+  @keyframes conduitEnergyPulse {
+    0% { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+  }
+
   .bracket-col h4 {
     font-size: 12px;
     text-transform: var(--heading-transform);
@@ -632,7 +784,6 @@
     margin-left: -8px;
   }
 
-  /* Clean Player / Team Name (No Dotted Underlines) */
   .bracket-match .side-name {
     font-size: 12px;
     font-weight: 700;
@@ -646,13 +797,12 @@
   }
   .bracket-match .side-name.clickable {
     cursor: pointer;
-    text-decoration: none !important;
   }
   .bracket-match .side-name.clickable:hover {
     color: var(--accent);
   }
 
-  /* High-Contrast Digital Score Box */
+  /* High-Contrast Score Box */
   .bracket-match .side > span,
   .bracket-match .side .count-up {
     display: inline-flex;
@@ -671,7 +821,7 @@
     flex-shrink: 0;
   }
 
-  /* Winner Highlight: Row tint + Accent Score Box */
+  /* Winner Highlight & Loser Dimming */
   .bracket-match .side.winner-side {
     background: color-mix(in srgb, var(--accent) 14%, transparent);
   }
@@ -687,8 +837,11 @@
     font-weight: 900;
     box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent);
   }
+  .bracket-match .side.loser-side {
+    opacity: 0.5;
+    filter: grayscale(30%);
+  }
 
-  /* Admin Score Input */
   .bracket-match .side input[type=number] {
     width: 34px !important;
     height: 28px;
@@ -716,20 +869,6 @@
     border: none;
   }
 
-  /* Penalty shootout badge */
-  .bracket-match > div[style*="font-size:10px"] {
-    font-size: 10px !important;
-    font-weight: 800 !important;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    color: var(--accent) !important;
-    background: rgba(0, 0, 0, 0.35);
-    padding: 3px 8px;
-    border-top: 1px dashed var(--border);
-    border-radius: 0 0 calc(var(--radius-card) - 1px) calc(var(--radius-card) - 1px);
-  }
-
-  /* Champion Box & Crown */
   .bracket-final .bracket-match { border-color: var(--accent); }
   .bracket-match.champion-box {
     border: 2px solid var(--accent);
@@ -750,13 +889,6 @@
     to { transform: translate(-50%, 0); opacity: 1; }
   }
 
-  /* Awaiting & Flip Animations */
-  .bracket-match.flip-reveal { animation: flipReveal 0.5s ease; transform-origin: center; }
-  @keyframes flipReveal {
-    0% { transform: scaleY(0.15); opacity: 0.3; }
-    60% { transform: scaleY(1.08); }
-    100% { transform: scaleY(1); opacity: 1; }
-  }
   .bracket-match.awaiting {
     border-color: var(--accent);
     animation: awaitPulse 1.6s ease-in-out infinite;
@@ -765,42 +897,22 @@
     0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); }
     50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 0%, transparent); }
   }
-  .bracket-col.connector-lit::before { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
-  .bracket-match.path-highlight { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
 
-  /* Breadcrumb & Pool Picker */
   .stage-breadcrumb { display: flex; gap: 6px; margin: 6px 0 10px; flex-wrap: wrap; }
   .stage-breadcrumb .step {
     padding: 4px 10px; border-radius: 12px; font-size: 11px;
     background: var(--bg-surface-alt); color: var(--text-muted); border: 1px solid var(--border);
-    transition: background 0.3s ease, color 0.3s ease;
   }
   .stage-breadcrumb .step.current { background: var(--accent); color: var(--accent-contrast); font-weight: bold; }
   .stage-breadcrumb .step.done { color: var(--text-secondary); }
 
   .pool-picker-list {
-    max-height: 180px;
-    overflow-y: auto;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 6px 10px;
-    margin-top: 4px;
+    max-height: 180px; overflow-y: auto; border: 1px solid var(--border);
+    border-radius: 6px; padding: 6px 10px; margin-top: 4px;
   }
-  .pool-picker-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 5px 0;
-    font-size: 14px;
-    cursor: pointer;
-  }
+  .pool-picker-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 14px; cursor: pointer; }
   .pool-picker-row input { width: auto; }
-  .addSelectedBtn {
-    margin-top: 8px;
-    padding: 8px 12px;
-    font-size: 13px;
-    cursor: pointer;
-  }
+  .addSelectedBtn { margin-top: 8px; padding: 8px 12px; font-size: 13px; cursor: pointer; }
 /* comment ==> 07. CSS Bracket Layout ends here */
  
 /* comment ==> 08. CSS Responsive Media Queries starts from here */
@@ -995,13 +1107,21 @@
 </style>
 </head>
 
-<!-- comment ==> 09. HTML Body Shell starts from here -->
+ <!-- comment ==> 09. HTML Body Shell starts from here -->
 <body>
 
 <h1>FC26 tracker</h1>
 <div id="authBar" style="font-size:13px; color:var(--text-secondary);"></div>
 
 <nav id="mainNav"></nav>
+
+<!-- Lower-Third Broadcast News Ticker Container -->
+<div id="broadcastTicker" class="broadcast-ticker-bar" style="display:none;">
+  <div class="ticker-badge">LIVE NEWS</div>
+  <div class="ticker-track">
+    <div class="ticker-content" id="tickerContent"></div>
+  </div>
+</div>
 
 <div id="viewArea"></div>
 
@@ -1109,82 +1229,82 @@
   }
 // comment ==> 12. Utility Helpers & Drive Image Converter ends here
  
-// comment ==> 13. Player Avatars, Medallions & Clustered Badges starts from here
-  function parseDrivePhotoUrl(url) {
-    if (!url || typeof url !== "string") return null;
-    const m = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    if (m && m[1]) return "https://drive.google.com/thumbnail?id=" + m[1] + "&sz=w1000";
-    return url;
+// comment ==> 13. Player Avatar & Badge Component starts from here
+  function getPlayerImageByName(name) {
+    if (!name) return null;
+    const clean = name.trim().toUpperCase();
+    const p = poolPlayers.find(x => (x.name || "").trim().toUpperCase() === clean);
+    return p && (p.photoUrl || p.imageUrl) ? convertImageUrl(p.photoUrl || p.imageUrl) : null;
   }
 
-  function getInitials(name) {
-    if (!name) return "?";
-    const parts = name.trim().split(/\s+/);
-    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  }
-
-  /* Dynamic EA FC Style OVR Calculator */
   function computePlayerOVR(playerName) {
     if (!playerName || !poolPlayers || poolPlayers.length === 0) return 74;
     const p = poolPlayers.find(x => x.name.toUpperCase() === playerName.toUpperCase());
-    if (!p) return 72; // Default for guests or unlisted
+    if (!p) return 72;
     const played = p.singleMatchesPlayed || 0;
     if (played === 0) return 75;
-
     const winRate = (p.singleWins || 0) / played;
     const gdPerGame = ((p.singleGoalsFor || 0) - (p.singleGoalsAgainst || 0)) / played;
     const titles = p.singleChampionships || 0;
-
     let ovr = Math.round(70 + (winRate * 18) + (gdPerGame * 2.5) + (titles * 1.5));
     return Math.max(63, Math.min(95, ovr));
   }
 
   function renderFutBadge(name) {
-    if (name.includes(" & ")) return ""; // Skip dual team names
+    if (name.includes(" & ")) return "";
     const ovr = computePlayerOVR(name);
     const tier = ovr >= 83 ? "fut-gold" : (ovr >= 75 ? "fut-silver" : "fut-bronze");
-    return `<span class="fut-badge ${tier}" title="OVR Rating: ${ovr}">${ovr}</span>`;
+    return `<span class="fut-badge ${tier}" title="FUT OVR: ${ovr}">${ovr}</span>`;
   }
 
-  function renderSingleAvatar(name, pObj) {
-    const photo = pObj && pObj.photoUrl ? parseDrivePhotoUrl(pObj.photoUrl) : null;
-    if (photo) {
-      return `<img class="player-avatar-circle" src="${photo}" alt="${name}" onerror="this.outerHTML='<span class=\\'player-avatar-placeholder\\'>${getInitials(name)}</span>'">`;
+  /* In-Form (Fire) & Ice Cold Streaks Engine */
+  function getPlayerStreakStatus(name) {
+    if (!name || name.includes(" & ") || !window.__playerStreaksCache) return null;
+    return window.__playerStreaksCache[name.toUpperCase()] || null;
+  }
+
+  function getSideVisuals(name) {
+    if (!name || name === "TBD" || name.toString().startsWith("TBD")) {
+      return [{ name: name || "TBD", img: null }];
     }
-    return `<span class="player-avatar-placeholder">${getInitials(name)}</span>`;
+    const parts = name.toString().split(" & ").map(s => s.trim());
+    return parts.map(pName => ({
+      name: pName,
+      img: getPlayerImageByName(pName),
+      streak: getPlayerStreakStatus(pName)
+    }));
   }
 
-  function renderPlayerBadge(name, isBracket = false) {
+  function renderPlayerBadge(name, isClickable = false) {
     if (!name) return "";
-    const isDuo = name.includes(" & ");
-    const members = isDuo ? name.split(" & ").map(s => s.trim()) : [name];
-    let avatarsHtml = "";
+    if (name === "TBD" || name.toString().startsWith("TBD")) {
+      return `<span>${name}</span>`;
+    }
+    const visuals = getSideVisuals(name);
+    const clickAttr = isClickable ? `class="side-name clickable" data-player-name="${name}"` : `class="side-name"`;
 
-    if (isDuo) {
-      avatarsHtml = '<div class="player-avatars-cluster">';
-      members.forEach(m => {
-        const pObj = poolPlayers.find(p => p.name.toUpperCase() === m.toUpperCase());
-        avatarsHtml += renderSingleAvatar(m, pObj);
-      });
-      avatarsHtml += '</div>';
-    } else {
-      const pObj = poolPlayers.find(p => p.name.toUpperCase() === name.toUpperCase());
-      avatarsHtml = renderSingleAvatar(name, pObj);
+    let overallStreakClass = "";
+    if (visuals.length === 1 && visuals[0].streak) {
+      overallStreakClass = visuals[0].streak === "fire" ? " streak-fire" : (visuals[0].streak === "ice" ? " streak-ice" : "");
     }
 
-    const clickClass = isBracket ? " clickable" : "";
-    const futHtml = !isDuo ? renderFutBadge(name) : "";
-    return `
-      <div class="player-badge-col">
-        ${avatarsHtml}
-        <span class="side-name${clickClass}" data-player-name="${name}">
-          ${futHtml}${name}
-        </span>
-      </div>
-    `;
+    const avatarsHtml = `<div class="player-avatars-cluster${overallStreakClass}">` + visuals.map(v => {
+      const streakClass = v.streak === "fire" ? " streak-fire" : (v.streak === "ice" ? " streak-ice" : "");
+      if (v.img) {
+        return `<img src="${v.img}" class="player-avatar-circle ${streakClass}" alt="${v.name}" onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'player-avatar-placeholder',innerText:'${(v.name||'?').slice(0,1).toUpperCase()}'}));">`;
+      }
+      return `<div class="player-avatar-placeholder ${streakClass}">${(v.name || "?").slice(0, 1).toUpperCase()}</div>`;
+    }).join("") + `</div>`;
+
+    const futHtml = !name.includes(" & ") ? renderFutBadge(name) : "";
+    let streakEmoji = "";
+    if (visuals.length === 1 && visuals[0].streak) {
+      streakEmoji = visuals[0].streak === "fire" ? `<span class="streak-icon" title="On Fire: 3+ win streak">🔥</span>` : `<span class="streak-icon" title="Ice Cold: 3+ match slump">❄️</span>`;
+    }
+
+    return `<div class="player-badge-col">${avatarsHtml}<span ${clickAttr}>${futHtml}${name}${streakEmoji}</span></div>`;
   }
-// comment ==> 13. Player Avatars, Medallions & Clustered Badges ends here
+// comment ==> 13. Player Avatar & Badge Component ends here
  
 // comment ==> 14. Theme Handler starts from here
   const THEMES = [
@@ -4730,96 +4850,133 @@
   }
 // comment ==> 38. Rankings & Duo Leaderboard ends here 
 
-// comment ==> 39. Audio Fanfare, Confetti & Matchday Story Engine starts from here
-  /* 1. Web Audio Synthesizer (0kb external audio) */
-  function playVictoryFanfare() {
+// comment ==> 39. Esports Broadcast Engine (Streaks, Ticker, Face-Off & Story) starts from here
+  window.__playerStreaksCache = {};
+
+  /* 1. Dynamic Stadium Lighting Phase Detector */
+  function updateStadiumLighting(phase) {
+    document.body.classList.remove("lighting-group", "lighting-knockout", "lighting-final");
+    if (phase === "group") document.body.classList.add("lighting-group");
+    else if (phase === "knockout") document.body.classList.add("lighting-knockout");
+    else if (phase === "final") document.body.classList.add("lighting-final");
+  }
+
+  /* 2. Streak Analyzer & Live News Ticker Engine */
+  async function refreshBroadcastStreaksAndTicker() {
     try {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
-      if (ctx.state === "suspended") ctx.resume();
+      const snap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "single"), where("status", "==", "completed")));
+      const allTournaments = [];
+      snap.forEach(d => allTournaments.push(d.data()));
+      allTournaments.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
 
-      // Dual-tone whistle burst
-      const whistleOsc = ctx.createOscillator();
-      const whistleGain = ctx.createGain();
-      whistleOsc.type = "sine";
-      whistleOsc.frequency.setValueAtTime(2850, ctx.currentTime);
-      whistleOsc.frequency.exponentialRampToValueAtTime(3200, ctx.currentTime + 0.15);
-      whistleGain.gain.setValueAtTime(0.2, ctx.currentTime);
-      whistleGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
-      whistleOsc.connect(whistleGain);
-      whistleGain.connect(ctx.destination);
-      whistleOsc.start();
-      whistleOsc.stop(ctx.currentTime + 0.23);
+      const playerHistory = {};
+      let totalGoals = 0, totalMatches = 0;
 
-      // Victory horn triad (C5 -> E5 -> G5 -> C6)
-      const notes = [523.25, 659.25, 783.99, 1046.50];
-      notes.forEach((freq, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "triangle";
-        osc.frequency.setValueAtTime(freq, ctx.currentTime + 0.2 + (i * 0.14));
-        gain.gain.setValueAtTime(0, ctx.currentTime + 0.2 + (i * 0.14));
-        gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.24 + (i * 0.14));
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.75 + (i * 0.14));
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(ctx.currentTime + 0.2 + (i * 0.14));
-        osc.stop(ctx.currentTime + 0.8 + (i * 0.14));
+      allTournaments.forEach(t => {
+        const matches = [];
+        if (t.matches) matches.push(...t.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
+        if (t.knockout && Array.isArray(t.knockout.stages)) {
+          t.knockout.stages.forEach(st => { if (Array.isArray(st.matches)) matches.push(...st.matches.filter(m => m.scoreA !== null)); });
+        }
+        matches.forEach(m => {
+          totalMatches++;
+          totalGoals += (m.scoreA + m.scoreB);
+          [m.sideA, m.sideB].forEach(name => {
+            if (!playerHistory[name]) playerHistory[name] = [];
+            const myScore = m.sideA === name ? m.scoreA : m.scoreB;
+            const oppScore = m.sideA === name ? m.scoreB : m.scoreA;
+            playerHistory[name].push({ win: myScore > oppScore, loss: myScore < oppScore, goals: myScore });
+          });
+        });
       });
-    } catch (e) {
-      console.warn("Audio context not allowed yet:", e);
-    }
-  }
 
-  /* 2. Fullscreen Canvas Confetti Particles */
-  function launchConfetti() {
-    let canvas = document.getElementById("confettiCanvas");
-    if (!canvas) {
-      canvas = document.createElement("canvas");
-      canvas.id = "confettiCanvas";
-      document.body.appendChild(canvas);
-    }
-    const ctx = canvas.getContext("2d");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+      window.__playerStreaksCache = {};
+      const tickerItems = [];
 
-    const colors = ["#00e676", "#00e5ff", "#ffd700", "#ff5252", "#e040fb", "#ffffff"];
-    const pieces = Array.from({ length: 110 }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * -canvas.height * 0.6,
-      size: Math.random() * 8 + 5,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      speedY: Math.random() * 4 + 3,
-      speedX: (Math.random() - 0.5) * 3,
-      rotation: Math.random() * 360,
-      rotSpeed: (Math.random() - 0.5) * 6
-    }));
+      Object.entries(playerHistory).forEach(([name, hist]) => {
+        const last3 = hist.slice(-3);
+        if (last3.length >= 3 && last3.every(h => h.win)) {
+          window.__playerStreaksCache[name.toUpperCase()] = "fire";
+          tickerItems.push(`🔥 <strong>${name}</strong> is ON FIRE with an active winning streak!`);
+        } else if (last3.length >= 3 && last3.every(h => h.loss)) {
+          window.__playerStreaksCache[name.toUpperCase()] = "ice";
+          tickerItems.push(`❄️ <strong>${name}</strong> is in a slump, looking to bounce back.`);
+        }
+      });
 
-    let startTime = performance.now();
-    function animate(now) {
-      if (now - startTime > 3800) {
-        canvas.remove();
-        return;
+      if (totalMatches > 0) {
+        const avg = (totalGoals / totalMatches).toFixed(1);
+        tickerItems.push(`⚽ Tournament scoring average: <strong>${avg} goals per match</strong>.`);
       }
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      pieces.forEach(p => {
-        p.y += p.speedY;
-        p.x += p.speedX;
-        p.rotation += p.rotSpeed;
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate((p.rotation * Math.PI) / 180);
-        ctx.fillStyle = p.color;
-        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
-        ctx.restore();
-      });
-      requestAnimationFrame(animate);
+
+      if (poolPlayers.length > 0) {
+        const topChamp = [...poolPlayers].sort((a, b) => (b.singleChampionships || 0) - (a.singleChampionships || 0))[0];
+        if (topChamp && (topChamp.singleChampionships || 0) > 0) {
+          tickerItems.push(`🏆 All-Time Record: <strong>${topChamp.name}</strong> leads with ${topChamp.singleChampionships} titles.`);
+        }
+      }
+
+      const tickerBar = document.getElementById("broadcastTicker");
+      const tickerContent = document.getElementById("tickerContent");
+      if (tickerItems.length > 0 && tickerContent) {
+        tickerContent.innerHTML = tickerItems.map(item => `<span class="ticker-item"><span class="ticker-dot"></span>${item}</span>`).join("");
+        tickerBar.style.display = "flex";
+      }
+    } catch (e) {
+      console.warn("Broadcast ticker refresh skipped:", e);
     }
-    requestAnimationFrame(animate);
   }
 
-  /* 3. Tale of the Tape (H2H) Rivalry Modal */
+  setTimeout(() => refreshBroadcastStreaksAndTicker(), 1000);
+
+  /* 3. Cinematic Split-Screen "Face-Off" View */
+  function openFaceOffModal(sideA, sideB, matchLabel = "CHAMPIONSHIP FACE-OFF") {
+    if (!sideA || !sideB || sideA === sideB) return;
+    const overlay = document.createElement("div");
+    overlay.className = "faceoff-modal-overlay";
+
+    const ovrA = computePlayerOVR(sideA);
+    const ovrB = computePlayerOVR(sideB);
+    const probA = Math.round((ovrA / (ovrA + ovrB)) * 100);
+    const probB = 100 - probA;
+
+    overlay.innerHTML = `
+      <div class="faceoff-card">
+        <button class="h2h-close-btn" id="faceOffClose" style="color:#fff; z-index:10;">&times;</button>
+        <div class="faceoff-header">${matchLabel}</div>
+        <div class="faceoff-split">
+          <div class="faceoff-side faceoff-left">
+            ${renderPlayerBadge(sideA)}
+            <div style="font-family:var(--font-heading); font-size:24px; font-weight:900; color:var(--accent);">${ovrA} OVR</div>
+            <div style="font-size:11px; color:#8899a6; text-transform:uppercase;">WIN PROBABILITY: ${probA}%</div>
+          </div>
+          <div class="faceoff-vs-shield">VS</div>
+          <div class="faceoff-side faceoff-right">
+            ${renderPlayerBadge(sideB)}
+            <div style="font-family:var(--font-heading); font-size:24px; font-weight:900; color:#ff5252;">${ovrB} OVR</div>
+            <div style="font-size:11px; color:#8899a6; text-transform:uppercase;">WIN PROBABILITY: ${probB}%</div>
+          </div>
+        </div>
+        <div class="faceoff-stat-strip">
+          <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:800; margin-bottom:4px;">
+            <span style="color:var(--accent);">${sideA}</span>
+            <span style="color:#8899a6;">HEAD-TO-HEAD WIN PROBABILITY</span>
+            <span style="color:#ff5252;">${sideB}</span>
+          </div>
+          <div style="display:flex; height:6px; border-radius:3px; overflow:hidden; background:#1c2430;">
+            <div style="width:${probA}%; background:var(--accent);"></div>
+            <div style="width:${probB}%; background:#ff5252;"></div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+    overlay.querySelector("#faceOffClose").addEventListener("click", () => overlay.remove());
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
+  }
+
+  /* 4. Tale of the Tape H2H Modal */
   async function openH2HModal(sideA, sideB) {
     if (!sideA || !sideB || sideA === sideB) return;
     const overlay = document.createElement("div");
@@ -4831,24 +4988,26 @@
           Tale of the Tape &middot; All-Time H2H
         </div>
         <div class="h2h-header-grid">
-          <div class="h2h-side">
-            ${renderPlayerBadge(sideA)}
-          </div>
+          <div class="h2h-side">${renderPlayerBadge(sideA)}</div>
           <div style="font-family:var(--font-heading); font-weight:900; font-size:18px; color:var(--text-muted);">VS</div>
-          <div class="h2h-side">
-            ${renderPlayerBadge(sideB)}
-          </div>
+          <div class="h2h-side">${renderPlayerBadge(sideB)}</div>
         </div>
         <div id="h2hStatsLoading" style="text-align:center; font-size:12px; color:var(--text-muted);">Calculating lifetime meetings...</div>
         <div id="h2hStatsBody" style="display:none;"></div>
+        <div style="text-align:center; margin-top:14px;">
+          <button type="button" class="toggle-stage-btn" id="launchFaceOffBtn" style="margin:0;">⚔️ Cinematic Face-Off View</button>
+        </div>
       </div>
     `;
     document.body.appendChild(overlay);
     overlay.querySelector("#h2hClose").addEventListener("click", () => overlay.remove());
     overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
+    overlay.querySelector("#launchFaceOffBtn").addEventListener("click", () => {
+      overlay.remove();
+      openFaceOffModal(sideA, sideB);
+    });
 
     let winsA = 0, winsB = 0, draws = 0, gfA = 0, gfB = 0, totalMatches = 0;
-
     try {
       const snap = await getDocs(collection(db, "tournaments"));
       snap.forEach(docSnap => {
@@ -4864,15 +5023,13 @@
 
         allMatches.forEach(m => {
           if (m.scoreA === null || m.scoreB === null) return;
-          const matchIsA_vs_B = (m.sideA === sideA && m.sideB === sideB);
-          const matchIsB_vs_A = (m.sideA === sideB && m.sideB === sideA);
-          if (!matchIsA_vs_B && !matchIsB_vs_A) return;
-
+          const isA_B = (m.sideA === sideA && m.sideB === sideB);
+          const isB_A = (m.sideA === sideB && m.sideB === sideA);
+          if (!isA_B && !isB_A) return;
           totalMatches++;
-          const scoreForA = matchIsA_vs_B ? m.scoreA : m.scoreB;
-          const scoreForB = matchIsA_vs_B ? m.scoreB : m.scoreA;
+          const scoreForA = isA_B ? m.scoreA : m.scoreB;
+          const scoreForB = isA_B ? m.scoreB : m.scoreA;
           gfA += scoreForA; gfB += scoreForB;
-
           if (scoreForA > scoreForB) winsA++;
           else if (scoreForB > scoreForA) winsB++;
           else draws++;
@@ -4900,14 +5057,8 @@
           </div>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px; text-align:center;">
-          <div class="card" style="padding:8px; margin:0;">
-            <div style="font-size:10px; color:var(--text-muted);">TOTAL GOALS</div>
-            <div style="font-size:16px; font-weight:800;">${gfA} &ndash; ${gfB}</div>
-          </div>
-          <div class="card" style="padding:8px; margin:0;">
-            <div style="font-size:10px; color:var(--text-muted);">GAMES PLAYED</div>
-            <div style="font-size:16px; font-weight:800;">${totalMatches}</div>
-          </div>
+          <div class="card" style="padding:8px; margin:0;"><div style="font-size:10px; color:var(--text-muted);">TOTAL GOALS</div><div style="font-size:16px; font-weight:800;">${gfA} &ndash; ${gfB}</div></div>
+          <div class="card" style="padding:8px; margin:0;"><div style="font-size:10px; color:var(--text-muted);">GAMES PLAYED</div><div style="font-size:16px; font-weight:800;">${totalMatches}</div></div>
         </div>
       `;
     } catch (e) {
@@ -4915,7 +5066,88 @@
     }
   }
 
-  /* 4. Matchday Story 9:16 Canvas Graphic Generator */
+  /* 5. Web Audio Victory Fanfare */
+  function playVictoryFanfare() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      if (ctx.state === "suspended") ctx.resume();
+
+      const whistleOsc = ctx.createOscillator();
+      const whistleGain = ctx.createGain();
+      whistleOsc.type = "sine";
+      whistleOsc.frequency.setValueAtTime(2850, ctx.currentTime);
+      whistleOsc.frequency.exponentialRampToValueAtTime(3200, ctx.currentTime + 0.15);
+      whistleGain.gain.setValueAtTime(0.2, ctx.currentTime);
+      whistleGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+      whistleOsc.connect(whistleGain);
+      whistleGain.connect(ctx.destination);
+      whistleOsc.start();
+      whistleOsc.stop(ctx.currentTime + 0.23);
+
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + 0.2 + (i * 0.14));
+        gain.gain.setValueAtTime(0, ctx.currentTime + 0.2 + (i * 0.14));
+        gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.24 + (i * 0.14));
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.75 + (i * 0.14));
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + 0.2 + (i * 0.14));
+        osc.stop(ctx.currentTime + 0.8 + (i * 0.14));
+      });
+    } catch (e) {
+      console.warn("Audio skipped:", e);
+    }
+  }
+
+  /* 6. Fullscreen Particle Confetti */
+  function launchConfetti() {
+    let canvas = document.getElementById("confettiCanvas");
+    if (!canvas) {
+      canvas = document.createElement("canvas");
+      canvas.id = "confettiCanvas";
+      document.body.appendChild(canvas);
+    }
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const colors = ["#00e676", "#00e5ff", "#ffd700", "#ff5252", "#e040fb", "#ffffff"];
+    const pieces = Array.from({ length: 110 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * -canvas.height * 0.6,
+      size: Math.random() * 8 + 5,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      speedY: Math.random() * 4 + 3,
+      speedX: (Math.random() - 0.5) * 3,
+      rotation: Math.random() * 360,
+      rotSpeed: (Math.random() - 0.5) * 6
+    }));
+
+    let startTime = performance.now();
+    function animate(now) {
+      if (now - startTime > 3800) { canvas.remove(); return; }
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      pieces.forEach(p => {
+        p.y += p.speedY; p.x += p.speedX; p.rotation += p.rotSpeed;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+        ctx.restore();
+      });
+      requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+  }
+
+  /* 7. Matchday Story 9:16 Canvas Graphic Generator */
   async function generateMatchdayStory(tid, data) {
     showToast("Generating official matchday story...", "info");
     const canvas = document.createElement("canvas");
@@ -4923,7 +5155,6 @@
     canvas.height = 1920;
     const ctx = canvas.getContext("2d");
 
-    // Carbon fiber broadcast background
     const bgGrad = ctx.createLinearGradient(0, 0, 1080, 1920);
     bgGrad.addColorStop(0, "#080d16");
     bgGrad.addColorStop(0.5, "#0d1726");
@@ -4931,12 +5162,10 @@
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, 1080, 1920);
 
-    // Neon frame borders
     ctx.strokeStyle = "rgba(0, 230, 118, 0.45)";
     ctx.lineWidth = 14;
     ctx.strokeRect(30, 30, 1020, 1860);
 
-    // Corner targeting brackets
     ctx.strokeStyle = "#00e676";
     ctx.lineWidth = 18;
     ctx.beginPath();
@@ -4946,7 +5175,6 @@
     ctx.moveTo(940, 1890); ctx.lineTo(1050, 1890); ctx.lineTo(1050, 1780);
     ctx.stroke();
 
-    // Tournament Header
     ctx.textAlign = "center";
     ctx.fillStyle = "#00e676";
     ctx.font = "900 38px monospace";
@@ -4956,11 +5184,9 @@
     ctx.font = "800 56px monospace";
     ctx.fillText((data.name || "CHAMPIONSHIP FINALS").toUpperCase(), 540, 240);
 
-    // Champion Spotlight Section
     ctx.font = "900 110px monospace";
     ctx.fillText("👑", 540, 480);
 
-    // Draw Champion Gold Halo Ring
     ctx.beginPath();
     ctx.arc(540, 680, 170, 0, Math.PI * 2);
     ctx.fillStyle = "#101928";
@@ -4969,12 +5195,10 @@
     ctx.lineWidth = 16;
     ctx.stroke();
 
-    // Champion Initial Badge
     ctx.fillStyle = "#ffd700";
     ctx.font = "900 130px monospace";
-    ctx.fillText(getInitials(data.winner), 540, 725);
+    ctx.fillText((data.winner || "?").slice(0, 2).toUpperCase(), 540, 725);
 
-    // Champion Ribbon
     ctx.fillStyle = "#ffd700";
     ctx.fillRect(340, 890, 400, 64);
     ctx.fillStyle = "#000000";
@@ -4985,7 +5209,6 @@
     ctx.font = "900 68px monospace";
     ctx.fillText(data.winner, 540, 1030);
 
-    // Final Score Capsule
     let scoreDisplay = "DECISIVE VICTORY";
     if (data.finalScore) {
       scoreDisplay = `${data.finalScore.side1} : ${data.finalScore.side2}`;
@@ -5007,7 +5230,6 @@
     ctx.font = "900 60px monospace";
     ctx.fillText(scoreDisplay, 540, 1188);
 
-    // Runner-up Section
     ctx.fillStyle = "#8899a6";
     ctx.font = "800 34px monospace";
     ctx.fillText("RUNNER-UP", 540, 1310);
@@ -5016,7 +5238,6 @@
     ctx.font = "800 52px monospace";
     ctx.fillText(data.runnerUp || "FINALIST", 540, 1375);
 
-    // Golden Boot / Highlights (if present)
     const goldenBoot = computeGoldenBoot(data);
     if (goldenBoot) {
       ctx.fillStyle = "rgba(255, 215, 0, 0.12)";
@@ -5030,7 +5251,6 @@
       ctx.fillText(`⚽ GOLDEN BOOT: ${goldenBoot.name} (${goldenBoot.goals} G)`, 540, 1528);
     }
 
-    // Footer
     ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
     ctx.font = "700 28px monospace";
     ctx.fillText("OFFICIAL HUD ESPORTS BROADCAST • VERIFIED", 540, 1780);
@@ -5060,7 +5280,7 @@
     }, "image/png");
   }
 
-  /* Enhanced Winner Banner with Fanfare & Confetti Triggers */
+  /* 8. Single Unified showWinnerBanner (Celebration + Fanfare) */
   function showWinnerBanner(container, winnerName, data, tid) {
     let banner = document.getElementById("winnerBanner");
     if (!banner) {
@@ -5072,7 +5292,7 @@
     banner.innerHTML = `
       <div style="font-size:20px; font-weight:900; color:#00e676;">&#127942; TOURNAMENT COMPLETED!</div>
       <div style="font-size:16px; margin-top:4px;">CHAMPION: <strong style="color:#ffffff;">${winnerName}</strong></div>
-      ${data ? `<button class="share-story-btn" id="bannerShareStory">&#128248; Share Matchday Story</button>` : ""}
+      ${data ? `<button class="share-story-btn" id="bannerShareStory" style="margin-top:10px;">&#128248; Share Matchday Story</button>` : ""}
     `;
 
     if (data) {
@@ -5083,8 +5303,9 @@
 
     launchConfetti();
     playVictoryFanfare();
+    updateStadiumLighting("final");
   }
-// comment ==> 39. Audio Fanfare, Confetti & Matchday Story Engine ends here 
+// comment ==> 39. Esports Broadcast Engine (Streaks, Ticker, Face-Off & Story) ends here
 
 
 </script>
