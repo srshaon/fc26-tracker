@@ -4787,10 +4787,14 @@
     const multiWinPct = multiMatches > 0 ? Math.round((multiWins / multiMatches) * 100) : 0;
     const regMatches = num(p.tagRegularTournamentsPlayed), regWins = num(p.tagRegularChampionships);
     const regWinPct = regMatches > 0 ? Math.round((regWins / regMatches) * 100) : 0;
-
-    const ovr = computePlayerOVR(p.name);
+const ovr = computePlayerOVR(p.name);
     const tier = ovr >= 83 ? "gold" : (ovr >= 75 ? "silver" : "bronze");
     const photo = p.photoUrl || p.imageUrl;
+
+    // Dynamic Title & Rank Logic
+    const totalChamps = num(p.singleChampionships) + num(p.tagMultiChampionships) + num(p.tagRegularChampionships);
+    const crownIcon = totalChamps > 0 ? "👑" : "⚽";
+    const rankTag = ovr >= 83 ? "ELITE" : (ovr >= 75 ? "PRO" : "CHAL");
 
     const avatarCircleHtml = photo
       ? `<img src="${convertImageUrl(photo)}" class="player-avatar-circle" style="width:78px; height:78px; border-width:3px;" alt="${p.name}">`
@@ -4807,10 +4811,11 @@
             <div class="holo-header-row">
               <div style="text-align:center;">
                 <div class="holo-ovr-num">${ovr}</div>
-                <div class="holo-pos-label">PRO</div>
+                <div class="holo-pos-label">${rankTag}</div>
               </div>
-              <div style="font-size:18px;">👑</div>
+              <div style="font-size:18px;" title="${totalChamps > 0 ? `${totalChamps}x Champion` : 'Contender'}">${crownIcon}</div>
             </div>
+    
             <div class="holo-avatar-wrap">
               ${avatarCircleHtml}
             </div>
