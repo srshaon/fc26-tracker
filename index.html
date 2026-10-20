@@ -241,109 +241,128 @@
   .filter-pill { padding: 5px 12px; font-size: 12px; font-weight: 700; border-radius: 14px; border: 1px solid var(--border-strong); background: var(--bg-surface-alt); color: var(--text-secondary); cursor: pointer; }
   .filter-pill.active { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
 
-  /* 8. Cinematic Anime/Esports Clash Screen */
+  /* 8. Cinematic Fighting Game Clash Screen (Theatrical Timing) */
   .faceoff-modal-overlay {
-    position: fixed; inset: 0; background: rgba(5, 7, 12, 0.92);
-    backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center;
-    z-index: 99999; padding: 14px; animation: modalFadeIn 0.25s ease;
+    position: fixed; inset: 0; background: rgba(5, 7, 12, 0.94);
+    backdrop-filter: blur(14px); display: flex; align-items: center; justify-content: center;
+    z-index: 99999; padding: 14px; animation: modalFadeIn 0.4s ease;
   }
+  @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
   .faceoff-card {
     position: relative; width: 100%; max-width: 660px;
-    background: #080c14; border: 2px solid var(--accent);
-    border-radius: 16px; overflow: hidden;
-    box-shadow: 0 0 50px rgba(0, 0, 0, 0.9), 0 0 30px color-mix(in srgb, var(--accent) 40%, transparent);
+    background: #080c14; border: 2.5px solid var(--accent);
+    border-radius: 18px; overflow: hidden;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.95), 0 0 35px color-mix(in srgb, var(--accent) 45%, transparent);
+    animation: arenaRumble 0.3s ease-out 1.25s 1;
   }
+  @keyframes arenaRumble {
+    0%, 100% { transform: translateY(0); }
+    20% { transform: translateY(-5px) rotate(-0.5deg); }
+    40% { transform: translateY(5px) rotate(0.5deg); }
+    60% { transform: translateY(-3px); }
+    80% { transform: translateY(2px); }
+  }
+
   .faceoff-card::before {
     content: ""; position: absolute; inset: 0;
-    background: repeating-linear-gradient(45deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 2px, transparent 2px, transparent 8px);
+    background: repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 2px, transparent 2px, transparent 10px);
     pointer-events: none;
   }
   .faceoff-header {
-    text-align: center; padding: 12px; background: rgba(0,0,0,0.65);
+    text-align: center; padding: 14px; background: rgba(0,0,0,0.7);
     border-bottom: 1px solid var(--border-strong);
     font-family: var(--font-heading); font-size: 13px; font-weight: 900;
     letter-spacing: 2px; color: var(--accent); text-transform: uppercase;
   }
   .faceoff-split {
-    display: flex; position: relative; min-height: 270px; overflow: hidden;
+    display: flex; position: relative; min-height: 290px; overflow: hidden;
   }
   .faceoff-side {
     flex: 1; display: flex; flex-direction: column; align-items: center;
-    justify-content: center; padding: 22px 14px; text-align: center; gap: 10px;
+    justify-content: center; padding: 26px 16px; text-align: center; gap: 12px;
     position: relative; z-index: 1;
   }
-  /* Fighter Slide-In Entrances */
+
+  /* Sequenced Deliberate Anime Entrances (Beat 1: Left at 0.2s, Beat 2: Right at 0.6s) */
   .faceoff-left {
-    background: linear-gradient(135deg, rgba(0, 229, 255, 0.22) 0%, rgba(0, 0, 0, 0.7) 100%);
-    animation: animeSlideLeft 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.25) 0%, rgba(0, 0, 0, 0.75) 100%);
+    animation: animeSlideLeft 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
   }
   .faceoff-right {
-    background: linear-gradient(225deg, rgba(255, 68, 68, 0.22) 0%, rgba(0, 0, 0, 0.7) 100%);
-    animation: animeSlideRight 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+    background: linear-gradient(225deg, rgba(255, 68, 68, 0.25) 0%, rgba(0, 0, 0, 0.75) 100%);
+    animation: animeSlideRight 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.55s both;
   }
   @keyframes animeSlideLeft {
-    0% { transform: translateX(-120px) skewX(-8deg); opacity: 0; }
-    70% { transform: translateX(8px) skewX(2deg); opacity: 1; }
+    0% { transform: translateX(-160px) skewX(-10deg); opacity: 0; filter: blur(6px); }
+    70% { transform: translateX(10px) skewX(2deg); opacity: 1; filter: blur(0); }
     100% { transform: translateX(0) skewX(0); opacity: 1; }
   }
   @keyframes animeSlideRight {
-    0% { transform: translateX(120px) skewX(8deg); opacity: 0; }
-    70% { transform: translateX(-8px) skewX(-2deg); opacity: 1; }
+    0% { transform: translateX(160px) skewX(10deg); opacity: 0; filter: blur(6px); }
+    70% { transform: translateX(-10px) skewX(-2deg); opacity: 1; filter: blur(0); }
     100% { transform: translateX(0) skewX(0); opacity: 1; }
   }
 
-  /* Dramatic Center VS Slam & Shockwave */
+  /* Center VS Slam Impact (Arrives at 1.2s after fighters are staged) */
   .faceoff-vs-shield {
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    width: 60px; height: 60px; border-radius: 50%;
-    background: radial-gradient(circle, #1a2234 0%, #080c14 100%);
+    width: 64px; height: 64px; border-radius: 50%;
+    background: radial-gradient(circle, #202b42 0%, #080c14 100%);
     border: 2.5px solid var(--accent);
     display: flex; align-items: center; justify-content: center;
-    font-family: var(--font-heading); font-size: 20px; font-weight: 900;
+    font-family: var(--font-heading); font-size: 22px; font-weight: 900;
     color: var(--accent); z-index: 3;
-    animation: vsSlamImpact 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) 0.35s both;
+    animation: vsSlamImpact 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 1.15s both;
   }
   .faceoff-vs-shield::after {
-    content: ""; position: absolute; inset: -10px; border-radius: 50%;
-    border: 2px solid var(--accent);
-    animation: shockwaveBurst 1.8s ease-out 0.8s infinite;
+    content: ""; position: absolute; inset: -12px; border-radius: 50%;
+    border: 2.5px solid var(--accent);
+    animation: shockwaveBurst 2s ease-out 1.7s infinite;
   }
   @keyframes vsSlamImpact {
-    0% { transform: translate(-50%, -50%) scale(3.8); opacity: 0; filter: blur(8px); }
-    60% { transform: translate(-50%, -50%) scale(0.85); opacity: 1; filter: blur(0); }
-    85% { transform: translate(-50%, -50%) scale(1.15); }
+    0% { transform: translate(-50%, -50%) scale(4.5); opacity: 0; filter: blur(12px); }
+    55% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; filter: blur(0); }
+    75% { transform: translate(-50%, -50%) scale(1.2); }
     100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
   }
   @keyframes shockwaveBurst {
     0% { transform: scale(0.8); opacity: 1; }
-    100% { transform: scale(2.2); opacity: 0; }
+    100% { transform: scale(2.4); opacity: 0; }
   }
 
   .faceoff-ovr-box {
-    font-family: var(--font-heading); font-size: 28px; font-weight: 900;
-    animation: ovrPowerUp 0.6s ease-out 0.5s both;
+    font-family: var(--font-heading); font-size: 30px; font-weight: 900;
+    animation: ovrPowerUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.9s both;
   }
   @keyframes ovrPowerUp {
-    from { transform: scale(0.5); opacity: 0; }
+    from { transform: scale(0.3); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
   }
 
+  /* Predictor Deck (Revealed at 1.7s) */
   .faceoff-stat-strip {
-    background: rgba(0,0,0,0.55); padding: 14px 20px;
+    background: rgba(0,0,0,0.65); padding: 16px 22px;
     border-top: 1px solid var(--border-strong);
+    animation: stripSlideUp 0.6s ease-out 1.6s both;
   }
+  @keyframes stripSlideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
   .faceoff-prob-bar {
-    display: flex; height: 8px; border-radius: 4px; overflow: hidden;
-    background: #141a24; margin-top: 6px;
+    display: flex; height: 10px; border-radius: 5px; overflow: hidden;
+    background: #141a24; margin-top: 8px; border: 1px solid rgba(255,255,255,0.1);
   }
   .faceoff-prob-fill-a {
     background: linear-gradient(90deg, #00e5ff, var(--accent));
-    transition: width 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: width 1.4s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .faceoff-prob-fill-b {
     background: linear-gradient(90deg, #ff5252, #ff7979);
-    transition: width 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: width 1.4s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   /* 9. Tale of the Tape H2H Modal */
@@ -352,7 +371,6 @@
     backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center;
     z-index: 9999; padding: 16px; animation: modalFadeIn 0.2s ease;
   }
-  @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
   .h2h-modal-card {
     background: var(--bg-surface); border: 2px solid var(--accent);
     border-radius: 12px; width: 100%; max-width: 440px; padding: 18px;
@@ -5031,16 +5049,92 @@
 
   setTimeout(() => refreshBroadcastStreaksAndTicker(), 1000);
 
-  /* 3. Cinematic Anime/Esports Clash Screen */
-  function openFaceOffModal(sideA, sideB, matchLabel = "CHAMPIONSHIP FACE-OFF") {
+  /* Helper: Real-time probability digital counter */
+  function runDigitalCounter(el, targetVal, duration = 1200) {
+    if (!el) return;
+    const startVal = 50;
+    const startTime = performance.now();
+    function step(now) {
+      const elapsed = Math.min((now - startTime) / duration, 1);
+      const ease = 1 - Math.pow(1 - elapsed, 3); // cubic ease-out
+      const cur = Math.round(startVal + (targetVal - startVal) * ease);
+      el.textContent = cur + "%";
+      if (elapsed < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* 3. Cinematic Anime/Esports Clash Screen with Multi-Factor Realistic Predictions */
+  async function openFaceOffModal(sideA, sideB, matchLabel = "CHAMPIONSHIP FACE-OFF") {
     if (!sideA || !sideB || sideA === sideB) return;
     const overlay = document.createElement("div");
     overlay.className = "faceoff-modal-overlay";
 
+    // 1. Base Elo calculation from dynamic OVR
     const ovrA = computePlayerOVR(sideA);
     const ovrB = computePlayerOVR(sideB);
-    const probA = Math.round((ovrA / (ovrA + ovrB)) * 100);
+    const ovrDiff = ovrA - ovrB;
+    // Logistic curve: 14pt gap yields ~90/10 probability
+    const pElo = 1 / (1 + Math.pow(10, -ovrDiff / 14));
+
+    // 2. Fetch Lifetime H2H Record between these two sides
+    let winsA = 0, winsB = 0, draws = 0, totalH2H = 0;
+    try {
+      const snap = await getDocs(collection(db, "tournaments"));
+      snap.forEach(docSnap => {
+        const t = docSnap.data();
+        const matches = [];
+        if (Array.isArray(t.matches)) matches.push(...t.matches);
+        if (t.knockout && Array.isArray(t.knockout.stages)) {
+          t.knockout.stages.forEach(st => { if (Array.isArray(st.matches)) matches.push(...st.matches); });
+        }
+        if (t.finalScore && t.teams) {
+          matches.push({ sideA: t.teams[0].teamName, sideB: t.teams[1].teamName, scoreA: t.finalScore.side1, scoreB: t.finalScore.side2 });
+        }
+
+        matches.forEach(m => {
+          if (m.scoreA === null || m.scoreB === null) return;
+          const isA_B = (m.sideA === sideA && m.sideB === sideB);
+          const isB_A = (m.sideA === sideB && m.sideB === sideA);
+          if (!isA_B && !isB_A) return;
+
+          totalH2H++;
+          const scA = isA_B ? m.scoreA : m.scoreB;
+          const scB = isA_B ? m.scoreB : m.scoreA;
+          if (scA > scB) winsA++;
+          else if (scB > scA) winsB++;
+          else draws++;
+        });
+      });
+    } catch (err) {}
+
+    // 3. Form factor from hot/cold streak
+    let pForm = 0.50;
+    const streakA = window.__playerStreaksCache ? window.__playerStreaksCache[sideA.toUpperCase()] : null;
+    const streakB = window.__playerStreaksCache ? window.__playerStreaksCache[sideB.toUpperCase()] : null;
+    if (streakA === "fire") pForm += 0.12;
+    if (streakA === "ice") pForm -= 0.12;
+    if (streakB === "fire") pForm -= 0.12;
+    if (streakB === "ice") pForm += 0.12;
+
+    // 4. Multi-Factor Formula
+    let finalProbRatio;
+    if (totalH2H >= 1) {
+      // Laplace smoothed H2H probability (4 wins to 0 losses = 5/6 = 83.3%)
+      const pH2H = (winsA + 1) / (winsA + winsB + 2);
+      finalProbRatio = (pH2H * 0.55) + (pElo * 0.30) + (pForm * 0.15);
+    } else {
+      // First meeting: 75% Elo OVR + 25% Recent Form
+      finalProbRatio = (pElo * 0.75) + (pForm * 0.25);
+    }
+
+    // Realistic spread bounds: between 7% and 93%
+    const probA = Math.round(Math.max(0.07, Math.min(0.93, finalProbRatio)) * 100);
     const probB = 100 - probA;
+
+    const h2hSummaryText = totalH2H > 0
+      ? `H2H RECORD: ${sideA} ${winsA} - ${winsB} ${sideB} (${draws}D)`
+      : `FIRST TIME CLASH &bull; ELO RATED`;
 
     overlay.innerHTML = `
       <div class="faceoff-card">
@@ -5050,24 +5144,24 @@
           <div class="faceoff-side faceoff-left">
             ${renderPlayerBadge(sideA)}
             <div class="faceoff-ovr-box" style="color:var(--accent);">${ovrA} OVR</div>
-            <div style="font-size:11px; font-weight:800; color:#8899a6; text-transform:uppercase;">PREDICTED: ${probA}%</div>
+            <div id="probNumA" style="font-size:16px; font-weight:900; color:var(--accent);">50%</div>
           </div>
           <div class="faceoff-vs-shield">VS</div>
           <div class="faceoff-side faceoff-right">
             ${renderPlayerBadge(sideB)}
             <div class="faceoff-ovr-box" style="color:#ff5252;">${ovrB} OVR</div>
-            <div style="font-size:11px; font-weight:800; color:#8899a6; text-transform:uppercase;">PREDICTED: ${probB}%</div>
+            <div id="probNumB" style="font-size:16px; font-weight:900; color:#ff5252;">50%</div>
           </div>
         </div>
         <div class="faceoff-stat-strip">
           <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:900; letter-spacing:0.5px;">
             <span style="color:var(--accent);">${sideA}</span>
-            <span style="color:#8899a6; text-transform:uppercase;">MATCHDAY CLASH PROBABILITY</span>
+            <span style="color:#8899a6; text-transform:uppercase;">${h2hSummaryText}</span>
             <span style="color:#ff5252;">${sideB}</span>
           </div>
           <div class="faceoff-prob-bar">
-            <div class="faceoff-prob-fill-a" style="width:${probA}%;"></div>
-            <div class="faceoff-prob-fill-b" style="width:${probB}%;"></div>
+            <div id="probBarA" class="faceoff-prob-fill-a" style="width:50%;"></div>
+            <div id="probBarB" class="faceoff-prob-fill-b" style="width:50%;"></div>
           </div>
         </div>
       </div>
@@ -5076,6 +5170,18 @@
     document.body.appendChild(overlay);
     overlay.querySelector("#faceOffClose").addEventListener("click", () => overlay.remove());
     overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
+
+    // Sequenced Reveal: Charge probability bar and run digital counter at 1.8s
+    setTimeout(() => {
+      const barA = overlay.querySelector("#probBarA");
+      const barB = overlay.querySelector("#probBarB");
+      if (barA && barB) {
+        barA.style.width = probA + "%";
+        barB.style.width = probB + "%";
+      }
+      runDigitalCounter(overlay.querySelector("#probNumA"), probA, 1300);
+      runDigitalCounter(overlay.querySelector("#probNumB"), probB, 1300);
+    }, 1800);
   }
 
   /* 4. Tale of the Tape H2H Modal */
