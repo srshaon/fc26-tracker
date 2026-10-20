@@ -126,13 +126,13 @@
   th, td { text-align: left; padding: 6px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
   th { color: var(--text-secondary); font-weight: normal; }
 
-  /* 1. Dynamic Stadium Atmospheric Lighting */
+  /* Dynamic Stadium Atmospheric Lighting */
   body { transition: background 0.4s ease, box-shadow 0.4s ease; }
   body.lighting-group { background: radial-gradient(circle at 50% -15%, rgba(0, 230, 118, 0.12) 0%, transparent 65%), var(--bg-page); }
   body.lighting-knockout { background: radial-gradient(circle at 50% -15%, rgba(0, 229, 255, 0.16) 0%, transparent 68%), var(--bg-page); }
   body.lighting-final { background: radial-gradient(circle at 50% -15%, rgba(255, 215, 0, 0.22) 0%, transparent 72%), var(--bg-page); }
 
-  /* 2. Broadcast Lower-Third News Ticker */
+  /* Broadcast Lower-Third News Ticker */
   .broadcast-ticker-bar {
     display: flex; align-items: center; background: rgba(10, 14, 22, 0.92);
     backdrop-filter: blur(8px); border: 1px solid var(--border-strong);
@@ -151,7 +151,7 @@
   .ticker-item { display: inline-flex; align-items: center; margin-right: 32px; }
   .ticker-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-right: 8px; box-shadow: 0 0 6px var(--accent); }
 
-  /* 3. In-Form & Ice Cold Card Streaks */
+  /* FUT Streaks */
   .fut-badge {
     display: inline-flex; align-items: center; justify-content: center;
     width: 20px; height: 18px; border-radius: 3px; font-size: 10px; font-weight: 900;
@@ -171,7 +171,6 @@
     from { box-shadow: 0 0 0 2px #ff5722, 0 0 10px rgba(255, 87, 34, 0.5); }
     to { box-shadow: 0 0 0 2.5px #ff9800, 0 0 20px rgba(255, 152, 0, 0.9); }
   }
-
   .streak-ice .player-avatar-circle,
   .streak-ice .player-avatar-placeholder {
     border-color: #00e5ff !important; box-shadow: 0 0 0 2px #00e5ff, 0 0 14px rgba(0, 229, 255, 0.65) !important;
@@ -183,87 +182,89 @@
   }
   .streak-icon { font-size: 11px; margin-left: 2px; vertical-align: middle; }
 
-  /* 4. 3D Gyroscope & Holographic Foil Card with Living Fluid Canvas Engine */
+  /* 3D Holographic Card & Flowing Neon Border */
   .holo-card-stage {
-    perspective: 1100px;
+    perspective: 1000px;
     display: flex;
     justify-content: center;
-    margin: 22px 0 28px;
+    margin: 16px 0 20px;
   }
   .holo-card {
     position: relative;
-    width: 270px;
-    height: 410px;
+    width: 275px;
+    height: 415px;
     border-radius: 20px;
     transform-style: preserve-3d;
-    box-shadow: 0 24px 50px rgba(0, 0, 0, 0.92);
-    cursor: grab;
-    transition: transform 0.12s ease-out;
+    box-shadow: 0 24px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 230, 118, 0.22);
+    overflow: hidden;
+    padding: 3px;
+    display: flex;
+    background: #06090e;
     user-select: none;
-    background: transparent;
-    overflow: visible;
+    transition: transform 0.12s ease-out;
   }
 
-  /* Full-bleed Canvas Behind Card for Fluid Physics */
-  #holoLiquidCanvas {
+  /* Seamless Traveling Border Beam */
+  .holo-card::before {
+    content: "";
     position: absolute;
-    top: -50px;
-    left: -50px;
-    width: 370px;
-    height: 510px;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      transparent 270deg,
+      rgba(0, 230, 118, 0.3) 310deg,
+      #00e676 335deg,
+      #00e5ff 352deg,
+      #ffffff 360deg
+    );
+    animation: liquidBorderSpin 3.5s linear infinite;
+    z-index: 1;
     pointer-events: none;
-    z-index: 8; /* Sits above inner card background so full fluid stream is visible */
-    transform: translateZ(10px);
+  }
+  @keyframes liquidBorderSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
 
-  /* Iridescent Rainbow Hologram Glare Sheen */
+  /* Foil Sheen */
   .holo-card-glare {
     position: absolute;
-    inset: 0;
-    border-radius: 20px;
+    inset: 3px;
+    border-radius: 17px;
     background: linear-gradient(
       125deg,
-      transparent 15%,
-      rgba(255, 0, 128, 0.45) 30%,
-      rgba(0, 229, 255, 0.5) 45%,
-      rgba(255, 235, 59, 0.52) 55%,
-      rgba(0, 230, 118, 0.42) 70%,
-      transparent 85%
+      transparent 20%,
+      rgba(255, 0, 128, 0.35) 35%,
+      rgba(0, 229, 255, 0.4) 48%,
+      rgba(255, 235, 59, 0.45) 55%,
+      transparent 72%
     );
-    background-size: 260% 260%;
+    background-size: 250% 250%;
     background-position: 50% 50%;
     mix-blend-mode: color-dodge;
     pointer-events: none;
-    z-index: 12;
-    opacity: 0.85;
-    transform: translateZ(25px);
-    transition: opacity 0.3s ease;
+    z-index: 5;
+    opacity: 0.7;
   }
 
-  /* Inner Card Face Mounted Behind Front Glow */
+  /* Inner Card Body */
   .holo-card-inner {
-    position: absolute;
-    inset: 0;
-    border-radius: 20px;
-    padding: 16px 14px;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 17px;
+    padding: 16px 14px 14px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    transform: translateZ(4px);
+    background: radial-gradient(circle at 50% 18%, #16241a 0%, #0d1612 55%, #06090a 100%);
     z-index: 2;
-    overflow: hidden;
-    border: 1.5px solid rgba(0, 230, 118, 0.25);
-    box-shadow: inset 0 0 25px rgba(0, 230, 118, 0.08);
-  }
-  .holo-card-tier-gold .holo-card-inner {
-    background: radial-gradient(circle at 50% 18%, #3a2a0a 0%, #161208 60%, #0a0804 100%);
-  }
-  .holo-card-tier-silver .holo-card-inner {
-    background: radial-gradient(circle at 50% 18%, #2b333c 0%, #171c22 60%, #0a0d10 100%);
-  }
-  .holo-card-tier-bronze .holo-card-inner {
-    background: radial-gradient(circle at 50% 18%, #3c2415 0%, #1e120a 60%, #0c0704 100%);
+    transform: translateZ(26px);
   }
 
   .holo-header-row {
@@ -271,63 +272,56 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    z-index: 14;
-    transform: translateZ(30px);
+    padding: 0 4px;
   }
   .holo-ovr-num {
     font-family: var(--font-heading);
-    font-size: 34px;
+    font-size: 32px;
     font-weight: 900;
     line-height: 0.9;
     color: var(--accent);
-    text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 70%, transparent);
+    text-shadow: 0 0 10px rgba(0, 230, 118, 0.6);
   }
   .holo-pos-label {
     font-size: 11px;
     font-weight: 900;
     letter-spacing: 1px;
-    color: var(--text-muted);
+    color: #8899a6;
     text-transform: uppercase;
+    margin-top: 2px;
   }
 
-  /* Championship Jersey Stars */
+  /* Stars */
   .holo-stars-row {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 4px;
     margin-bottom: 6px;
-    transform: translateZ(42px);
-    z-index: 14;
+    transform: translateZ(40px);
   }
   .holo-star {
     font-size: 16px;
     color: #ffd700;
     line-height: 1;
     filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.9));
-    animation: starTwinkle 2.5s ease-in-out infinite alternate;
-  }
-  @keyframes starTwinkle {
-    0% { transform: scale(0.95); opacity: 0.9; }
-    100% { transform: scale(1.15); opacity: 1; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 1)); }
   }
 
-  /* Scaled-Up Marquee Avatar Section */
+  /* Avatar Section */
   .holo-avatar-wrap {
-    margin-top: -2px;
+    margin-top: -4px;
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    transform: translateZ(34px);
-    z-index: 14;
+    transform: translateZ(32px);
   }
   .holo-avatar-wrap .player-avatar-circle {
-    box-shadow: 0 0 22px rgba(0, 230, 118, 0.5), 0 8px 20px rgba(0, 0, 0, 0.8) !important;
+    box-shadow: 0 0 20px rgba(0, 230, 118, 0.4), 0 8px 18px rgba(0, 0, 0, 0.8) !important;
   }
   .holo-avatar-wrap .player-avatar-placeholder {
-    box-shadow: 0 0 22px rgba(0, 230, 118, 0.4), 0 8px 20px rgba(0, 0, 0, 0.8) !important;
+    box-shadow: 0 0 20px rgba(0, 230, 118, 0.3), 0 8px 18px rgba(0, 0, 0, 0.8) !important;
   }
 
   .holo-player-name {
@@ -338,27 +332,22 @@
     color: #ffffff;
     text-transform: uppercase;
     text-align: center;
-    border-bottom: 1.5px solid var(--border-strong);
-    width: 88%;
+    border-bottom: 1.5px solid rgba(255, 255, 255, 0.15);
+    width: 86%;
     padding-bottom: 5px;
-    margin-top: 6px;
-    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
-    transform: translateZ(30px);
-    z-index: 14;
+    margin-top: 4px;
   }
   .holo-stats-grid {
     width: 94%;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 6px 10px;
+    gap: 6px 8px;
     margin-top: 4px;
     text-align: center;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.45);
     padding: 8px 6px;
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    transform: translateZ(30px);
-    z-index: 14;
   }
   .holo-stat-item {
     display: flex;
@@ -378,7 +367,7 @@
     color: var(--accent);
   }
 
-  /* 5. Hexagonal Radar Chart Card */
+  /* Hexagonal Radar Chart Card */
   .radar-card-wrap {
     text-align: center;
     margin: 14px 0 18px;
@@ -391,7 +380,7 @@
     filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45));
   }
 
-  /* 6. Qualification & Elimination Strips */
+  /* Strips, Badges & Tables */
   table tbody tr.row-qual td:first-child { border-left: 4.5px solid #00e676; font-weight: 800; color: #00e676; }
   table tbody tr.row-qual { background: linear-gradient(90deg, rgba(0, 230, 118, 0.12) 0%, rgba(0, 230, 118, 0.02) 100%); }
   table tbody tr.row-elim td:first-child { border-left: 4.5px solid rgba(255, 82, 82, 0.7); font-weight: 800; color: #ff5252; }
@@ -400,7 +389,6 @@
   .qual-tag-q { background: rgba(0, 230, 118, 0.2); color: #00e676; border: 1px solid rgba(0, 230, 118, 0.6); }
   .qual-tag-e { background: rgba(255, 82, 82, 0.18); color: #ff5252; border: 1px solid rgba(255, 82, 82, 0.5); }
 
-  /* 7. Scoreboard Capsule & Steppers */
   .scoreboard-capsule {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     background: rgba(0, 0, 0, 0.45); padding: 5px 12px; border-radius: 8px;
@@ -419,7 +407,6 @@
   .stepper-btn:hover { background: var(--accent); color: var(--accent-contrast); }
   .stepper-wrap input[type=number] { width: 34px !important; height: 32px !important; border: none !important; background: transparent !important; text-align: center; font-weight: 800; font-size: 15px; color: var(--text-primary); padding: 0 !important; }
 
-  /* 8. Winner Highlight & Loser Dimming */
   .match-fixture .name.side-winner .player-avatar-circle,
   .match-fixture .name.side-winner .player-avatar-placeholder {
     border-color: var(--accent) !important;
@@ -429,7 +416,6 @@
   .match-fixture .name.side-winner .side-name { font-weight: 800; }
   .match-fixture .name.side-loser { opacity: 0.55; filter: grayscale(25%); }
 
-  /* 9. Stage Badges & Filter Pills */
   .stage-badge {
     display: inline-flex; align-items: center; gap: 8px;
     background: var(--bg-surface-alt); border: 1px solid var(--border-strong);
@@ -449,7 +435,7 @@
   .filter-pill { padding: 5px 12px; font-size: 12px; font-weight: 700; border-radius: 14px; border: 1px solid var(--border-strong); background: var(--bg-surface-alt); color: var(--text-secondary); cursor: pointer; }
   .filter-pill.active { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
 
-  /* 10. Cinematic Clash Screen */
+  /* Face-Off Modal Overlay */
   .faceoff-modal-overlay {
     position: fixed; inset: 0; background: rgba(5, 7, 12, 0.94);
     backdrop-filter: blur(14px); display: flex; align-items: center; justify-content: center;
@@ -462,20 +448,6 @@
     background: #080c14; border: 2.5px solid var(--accent);
     border-radius: 18px; overflow: hidden;
     box-shadow: 0 0 50px rgba(0, 0, 0, 0.95), 0 0 35px color-mix(in srgb, var(--accent) 45%, transparent);
-    animation: arenaRumble 0.3s ease-out 1.25s 1;
-  }
-  @keyframes arenaRumble {
-    0%, 100% { transform: translateY(0); }
-    20% { transform: translateY(-5px) rotate(-0.5deg); }
-    40% { transform: translateY(5px) rotate(0.5deg); }
-    60% { transform: translateY(-3px); }
-    80% { transform: translateY(2px); }
-  }
-
-  .faceoff-card::before {
-    content: ""; position: absolute; inset: 0;
-    background: repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 2px, transparent 2px, transparent 10px);
-    pointer-events: none;
   }
   .faceoff-header {
     text-align: center; padding: 14px; background: rgba(0,0,0,0.7);
@@ -539,21 +511,10 @@
 
   .faceoff-ovr-box {
     font-family: var(--font-heading); font-size: 30px; font-weight: 900;
-    animation: ovrPowerUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.9s both;
   }
-  @keyframes ovrPowerUp {
-    from { transform: scale(0.3); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
-
   .faceoff-stat-strip {
     background: rgba(0,0,0,0.65); padding: 16px 22px;
     border-top: 1px solid var(--border-strong);
-    animation: stripSlideUp 0.6s ease-out 1.6s both;
-  }
-  @keyframes stripSlideUp {
-    from { transform: translateY(30px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
   }
   .faceoff-prob-bar {
     display: flex; height: 10px; border-radius: 5px; overflow: hidden;
@@ -568,7 +529,7 @@
     transition: width 1.4s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  /* 11. Tale of the Tape H2H Modal */
+  /* H2H Modal */
   .h2h-modal-overlay {
     position: fixed; inset: 0; background: rgba(0, 0, 0, 0.78);
     backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center;
@@ -591,7 +552,6 @@
   .h2h-bar-fill-a { background: var(--accent); transition: width 0.4s ease; }
   .h2h-bar-fill-b { background: #ff5252; transition: width 0.4s ease; }
 
-  /* 12. Matchday Story Button & Confetti Overlay */
   .share-story-btn {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 8px 18px; font-size: 13px; font-weight: 800; border-radius: 20px;
@@ -4626,26 +4586,20 @@
     // Only Single and Tag Multi count towards Pedigree
     const totalTitles = num(p.singleChampionships) + num(p.tagMultiChampionships);
 
-    // 1. Attack (Goals per match)
     const avgGf = matches > 0 ? (gf / matches) : 1.6;
     const att = Math.min(99, Math.max(50, Math.round(52 + (avgGf * 15))));
 
-    // 2. Defense (Goals conceded per match)
     const avgGa = matches > 0 ? (ga / matches) : 2.0;
     const def = Math.min(99, Math.max(50, Math.round(98 - (avgGa * 15))));
 
-    // 3. Clutch (Winning percentage & finals conversion)
     const winRate = matches > 0 ? (wins / matches) : 0.5;
     const clu = Math.min(99, Math.max(50, Math.round(55 + (winRate * 28) + (num(p.singleChampionships) * 2.5))));
 
-    // 4. Dominance (Average goal differential per game)
     const avgGd = matches > 0 ? ((gf - ga) / matches) : 0;
     const dom = Math.min(99, Math.max(50, Math.round(70 + (avgGd * 9))));
 
-    // 5. Pedigree (Career trophies across Single & Tag Multi only)
     const ped = Math.min(99, Math.max(50, Math.round(62 + (totalTitles * 6.5))));
 
-    // 6. Form (Last 5 match points: W = +7, D = +2, L = -5)
     let formScore = 72;
     if (recentFormList && recentFormList.length > 0) {
       recentFormList.forEach(r => {
@@ -4684,7 +4638,7 @@
 
       ctx.clearRect(0, 0, width, height);
 
-      // 3 concentric hexagonal grid levels
+      // Concentric hexagonal grid
       const levels = [0.33, 0.66, 1.0];
       levels.forEach(lvl => {
         ctx.beginPath();
@@ -4740,7 +4694,7 @@
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Data point vertices & labels
+      // Vertices & text
       for (let i = 0; i < numAxes; i++) {
         const a = (i * angleStep) - (Math.PI / 2);
         const normVal = (values[i] / 100) * ease;
@@ -4785,15 +4739,15 @@
       const cx = rect.width / 2;
       const cy = rect.height / 2;
 
-      const rotX = ((y - cy) / cy) * -16;
-      const rotY = ((x - cx) / cx) * 16;
-      cardEl.style.transform = `rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) scale3d(1.04, 1.04, 1.04)`;
+      const rotX = ((y - cy) / cy) * -14;
+      const rotY = ((x - cx) / cx) * 14;
+      cardEl.style.transform = `rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) scale3d(1.03, 1.03, 1.03)`;
 
       if (glareEl) {
         const px = (x / rect.width) * 100;
         const py = (y / rect.height) * 100;
         glareEl.style.backgroundPosition = `${px}% ${py}%`;
-        glareEl.style.opacity = "0.9";
+        glareEl.style.opacity = "0.85";
       }
     });
 
@@ -4813,8 +4767,8 @@
       if (e.gamma === null || e.beta === null) return;
       const gamma = Math.max(-25, Math.min(25, e.gamma));
       const beta = Math.max(15, Math.min(65, e.beta));
-      const rotY = (gamma / 25) * 18;
-      const rotX = -((beta - 40) / 25) * 18;
+      const rotY = (gamma / 25) * 15;
+      const rotX = -((beta - 40) / 25) * 15;
 
       cardEl.style.transform = `rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) scale3d(1.02, 1.02, 1.02)`;
 
@@ -4830,262 +4784,7 @@
     }
   }
 
-  /* -------------------------------------------------------------
-     Living Liquid Canvas Engine (Real-Time Fluid, Swirls & Spray)
-     ------------------------------------------------------------- */
-  function initHoloLiquidCanvas() {
-    const canvas = document.getElementById("holoLiquidCanvas");
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-
-    if (window.__holoLiquidLoopId) {
-      cancelAnimationFrame(window.__holoLiquidLoopId);
-    }
-
-    const W = 370, H = 510;
-    canvas.width = W;
-    canvas.height = H;
-
-    const offX = 50, offY = 50;
-    const cardW = 270, cardH = 410, cardR = 20;
-
-    const segTop = cardW - 2 * cardR;
-    const segRight = cardH - 2 * cardR;
-    const segBottom = cardW - 2 * cardR;
-    const segLeft = cardH - 2 * cardR;
-    const arcLen = (Math.PI / 2) * cardR;
-    const totalLen = (2 * segTop) + (2 * segRight) + (4 * arcLen);
-
-    function getPerimeterPoint(s) {
-      s = ((s % totalLen) + totalLen) % totalLen;
-      let d = s;
-
-      if (d < segTop) {
-        return { x: offX + cardR + d, y: offY, nx: 0, ny: -1, tx: 1, ty: 0 };
-      }
-      d -= segTop;
-
-      if (d < arcLen) {
-        const a = -Math.PI / 2 + (d / arcLen) * (Math.PI / 2);
-        return {
-          x: offX + cardW - cardR + cardR * Math.cos(a),
-          y: offY + cardR + cardR * Math.sin(a),
-          nx: Math.cos(a), ny: Math.sin(a),
-          tx: -Math.sin(a), ty: Math.cos(a)
-        };
-      }
-      d -= arcLen;
-
-      if (d < segRight) {
-        return { x: offX + cardW, y: offY + cardR + d, nx: 1, ny: 0, tx: 0, ty: 1 };
-      }
-      d -= segRight;
-
-      if (d < arcLen) {
-        const a = (d / arcLen) * (Math.PI / 2);
-        return {
-          x: offX + cardW - cardR + cardR * Math.cos(a),
-          y: offY + cardH - cardR + cardR * Math.sin(a),
-          nx: Math.cos(a), ny: Math.sin(a),
-          tx: -Math.sin(a), ty: Math.cos(a)
-        };
-      }
-      d -= arcLen;
-
-      if (d < segBottom) {
-        return { x: offX + cardW - cardR - d, y: offY + cardH, nx: 0, ny: 1, tx: -1, ty: 0 };
-      }
-      d -= segBottom;
-
-      if (d < arcLen) {
-        const a = Math.PI / 2 + (d / arcLen) * (Math.PI / 2);
-        return {
-          x: offX + cardR + cardR * Math.cos(a),
-          y: offY + cardH - cardR + cardR * Math.sin(a),
-          nx: Math.cos(a), ny: Math.sin(a),
-          tx: -Math.sin(a), ty: Math.cos(a)
-        };
-      }
-      d -= arcLen;
-
-      if (d < segLeft) {
-        return { x: offX, y: offY + cardH - cardR - d, nx: -1, ny: 0, tx: 0, ty: -1 };
-      }
-      d -= segLeft;
-
-      const a = Math.PI + (d / arcLen) * (Math.PI / 2);
-      return {
-        x: offX + cardR + cardR * Math.cos(a),
-        y: offY + cardR + cardR * Math.sin(a),
-        nx: Math.cos(a), ny: Math.sin(a),
-        tx: -Math.sin(a), ty: Math.cos(a)
-      };
-    }
-
-    const particles = [];
-    let streamHead = 0;
-    const streamLength = 460;
-    let lastTime = performance.now();
-
-    function loop(now) {
-      if (!document.body.contains(canvas)) return;
-
-      const dt = Math.min((now - lastTime) / 1000, 0.05);
-      lastTime = now;
-      const t = now * 0.002;
-
-      ctx.clearRect(0, 0, W, H);
-
-      streamHead = (streamHead + 330 * dt) % totalLen;
-      const headPt = getPerimeterPoint(streamHead);
-      const tailPt = getPerimeterPoint(streamHead - streamLength);
-
-      // 1. Capillary glass guide track
-      ctx.beginPath();
-      ctx.roundRect(offX, offY, cardW, cardH, cardR);
-      ctx.strokeStyle = "rgba(0, 230, 118, 0.16)";
-      ctx.lineWidth = 3.5;
-      ctx.stroke();
-
-      // 2. Main Fluid Stream Body
-      const numSteps = 42;
-      const outerPts = [];
-      const innerPts = [];
-
-      for (let i = 0; i <= numSteps; i++) {
-        const u = i / numSteps;
-        const s = streamHead - streamLength * (1 - u);
-        const pt = getPerimeterPoint(s);
-
-        const wave = Math.sin(u * Math.PI);
-        const wobble = Math.sin(t * 7 + u * 12) * 3;
-        const thick = Math.max(2, wave * (11 + wobble));
-
-        outerPts.push({ x: pt.x + pt.nx * (thick * 0.95), y: pt.y + pt.ny * (thick * 0.95) });
-        innerPts.push({ x: pt.x - pt.nx * (thick * 0.45), y: pt.y - pt.ny * (thick * 0.45) });
-      }
-
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(outerPts[0].x, outerPts[0].y);
-      for (let i = 1; i < outerPts.length; i++) ctx.lineTo(outerPts[i].x, outerPts[i].y);
-      for (let i = innerPts.length - 1; i >= 0; i--) ctx.lineTo(innerPts[i].x, innerPts[i].y);
-      ctx.closePath();
-
-      const streamGrad = ctx.createLinearGradient(tailPt.x, tailPt.y, headPt.x, headPt.y);
-      streamGrad.addColorStop(0, "rgba(0, 230, 118, 0)");
-      streamGrad.addColorStop(0.35, "rgba(0, 230, 118, 0.7)");
-      streamGrad.addColorStop(0.75, "#00f0ff");
-      streamGrad.addColorStop(0.95, "#ffffff");
-      streamGrad.addColorStop(1, "#00e5ff");
-
-      ctx.fillStyle = streamGrad;
-      ctx.shadowColor = "#00f0ff";
-      ctx.shadowBlur = 18;
-      ctx.fill();
-
-      // White-hot plasma core filament
-      ctx.beginPath();
-      for (let i = 0; i <= numSteps; i++) {
-        const u = i / numSteps;
-        const s = streamHead - streamLength * (1 - u);
-        const pt = getPerimeterPoint(s);
-        if (i === 0) ctx.moveTo(pt.x, pt.y);
-        else ctx.lineTo(pt.x, pt.y);
-      }
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.95)";
-      ctx.lineWidth = 2.4;
-      ctx.shadowColor = "#ffffff";
-      ctx.shadowBlur = 10;
-      ctx.stroke();
-      ctx.restore();
-
-      // 3. Curling Water Tendrils
-      const tendrilPositions = [0.45, 0.82];
-      tendrilPositions.forEach((pos, idx) => {
-        const s = streamHead - streamLength * (1 - pos);
-        const base = getPerimeterPoint(s);
-
-        const curlDir = idx === 0 ? 1 : -1;
-        const curlMag = 34 + Math.sin(t * 4 + idx) * 14;
-        const tipX = base.x + base.nx * curlMag + base.tx * (curlDir * 30);
-        const tipY = base.y + base.ny * curlMag + base.ty * (curlDir * 30);
-
-        const cp1X = base.x + base.nx * (curlMag * 0.7);
-        const cp1Y = base.y + base.ny * (curlMag * 0.7);
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(base.x, base.y);
-        ctx.quadraticCurveTo(cp1X, cp1Y, tipX, tipY);
-        ctx.strokeStyle = idx === 0 ? "#00e676" : "#00f0ff";
-        ctx.lineWidth = 3.5;
-        ctx.shadowColor = idx === 0 ? "#00e676" : "#00f0ff";
-        ctx.shadowBlur = 14;
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.arc(tipX, tipY, 4, 0, Math.PI * 2);
-        ctx.fillStyle = "#ffffff";
-        ctx.shadowColor = "#00f0ff";
-        ctx.shadowBlur = 12;
-        ctx.fill();
-        ctx.restore();
-      });
-
-      // 4. Floating Droplets & Bubbles
-      if (Math.random() < 0.8) {
-        particles.push({
-          x: headPt.x + (Math.random() - 0.5) * 8,
-          y: headPt.y + (Math.random() - 0.5) * 8,
-          vx: headPt.nx * (Math.random() * 2.2 + 0.8) + (Math.random() - 0.5) * 0.9,
-          vy: headPt.ny * (Math.random() * 2.2 + 0.8) + (Math.random() - 0.5) * 0.9,
-          radius: Math.random() * 3.6 + 1.4,
-          alpha: 1,
-          decay: Math.random() * 0.02 + 0.012,
-          isRing: Math.random() > 0.55
-        });
-      }
-
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.alpha -= p.decay;
-
-        if (p.alpha <= 0) {
-          particles.splice(i, 1);
-          continue;
-        }
-
-        ctx.save();
-        ctx.globalAlpha = p.alpha;
-        if (p.isRing) {
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-          ctx.strokeStyle = "#00f0ff";
-          ctx.lineWidth = 1.4;
-          ctx.shadowColor = "#00f0ff";
-          ctx.shadowBlur = 8;
-          ctx.stroke();
-        } else {
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-          ctx.fillStyle = p.radius > 3 ? "#ffffff" : "#00e676";
-          ctx.shadowColor = "#00e676";
-          ctx.shadowBlur = 10;
-          ctx.fill();
-        }
-        ctx.restore();
-      }
-
-      window.__holoLiquidLoopId = requestAnimationFrame(loop);
-    }
-
-    window.__holoLiquidLoopId = requestAnimationFrame(loop);
-  }
-
-  /* Render Full Player Profile Screen */
+  /* Render Full Player Profile Screen (Exact Match to Showcase Video) */
   async function renderPlayerProfile(body, playerId) {
     const p = poolPlayers.find(x => x.id === playerId);
     if (!p) { body.innerHTML = "<p>Player not found.</p>"; return; }
@@ -5098,10 +4797,8 @@
     const regWinPct = regMatches > 0 ? Math.round((regWins / regMatches) * 100) : 0;
 
     const ovr = computePlayerOVR(p.name);
-    const tier = ovr >= 83 ? "gold" : (ovr >= 75 ? "silver" : "bronze");
     const photo = p.photoUrl || p.imageUrl;
 
-    // Title Stars, Crown & Rank Logic (Single & Tag Multi only)
     const singleChamps = num(p.singleChampionships);
     const multiChamps = num(p.tagMultiChampionships);
     const totalCountedChamps = singleChamps + multiChamps;
@@ -5112,44 +4809,34 @@
     let starsHtml = "";
     if (totalCountedChamps > 0) {
       const starIcons = Array.from({ length: totalCountedChamps }, () => `<span class="holo-star">★</span>`).join("");
-      starsHtml = `<div class="holo-stars-row" title="${totalCountedChamps}x Title Winner (Single & Tag Multi)">${starIcons}</div>`;
+      starsHtml = `<div class="holo-stars-row" title="${totalCountedChamps}x Title Winner">${starIcons}</div>`;
     }
 
-    // Scaled-Up Marquee Avatar (125px diameter)
+    // Exact video proportions: 120px diameter circle
     const avatarCircleHtml = photo
-      ? `<img src="${convertImageUrl(photo)}" class="player-avatar-circle" style="width:125px; height:125px; border-width:3.5px;" alt="${p.name}">`
-      : `<div class="player-avatar-placeholder" style="width:125px; height:125px; font-size:48px;">${(p.name || "?").slice(0, 1).toUpperCase()}</div>`;
+      ? `<img src="${convertImageUrl(photo)}" class="player-avatar-circle" style="width:120px; height:120px; border-width:3px; border-color:#00e676;" alt="${p.name}">`
+      : `<div class="player-avatar-placeholder" style="width:120px; height:120px; font-size:44px; border-color:#00e676;">${(p.name || "?").slice(0, 1).toUpperCase()}</div>`;
 
     body.innerHTML = `
       <button id="backToPlayers">&larr; Back to players</button>
 
-      <!-- 1. Interactive 3D Holographic Foil Card with Living Fluid Canvas Engine -->
+      <!-- 1. Interactive 3D Holographic Foil Card (Exact match to video) -->
       <div class="holo-card-stage">
-        <div class="holo-card holo-card-tier-${tier}" id="holoFoilCard">
-          
-          <!-- Dynamic Fluid Physics Canvas (Swirls, Waves & Bubbles) -->
-          <canvas id="holoLiquidCanvas" width="370" height="510"></canvas>
-          
-          <!-- Rainbow Hologram Glare Sheen Layer -->
+        <div class="holo-card" id="holoFoilCard">
           <div class="holo-card-glare" id="holoCardGlare"></div>
-          
-          <!-- Inner Card Body Mounted Behind Living Fluid -->
           <div class="holo-card-inner">
             <div class="holo-header-row">
-              <div style="text-align:center;">
+              <div style="text-align:left;">
                 <div class="holo-ovr-num">${ovr}</div>
                 <div class="holo-pos-label">${rankTag}</div>
               </div>
-              <div style="font-size:18px;" title="${totalCountedChamps > 0 ? `${totalCountedChamps}x Champion` : 'Contender'}">${crownIcon}</div>
+              <div style="font-size:20px;" title="${totalCountedChamps > 0 ? `${totalCountedChamps}x Champion` : 'Contender'}">${crownIcon}</div>
             </div>
-            
             <div class="holo-avatar-wrap">
               ${starsHtml}
               ${avatarCircleHtml}
             </div>
-            
             <div class="holo-player-name">${p.name}</div>
-            
             <div class="holo-stats-grid" id="holoStatsGrid">
               <div class="holo-stat-item"><span class="holo-stat-val" id="statATT">--</span><span class="holo-stat-lbl">ATT</span></div>
               <div class="holo-stat-item"><span class="holo-stat-val" id="statDEF">--</span><span class="holo-stat-lbl">DEF</span></div>
@@ -5217,16 +4904,11 @@
     `;
 
     document.getElementById("backToPlayers").addEventListener("click", () => {
-      if (window.__holoLiquidLoopId) cancelAnimationFrame(window.__holoLiquidLoopId);
       viewingPlayerId = null;
       renderRecordsBody();
     });
 
-    // Attach 3D tilt engine & start liquid animation
     attachCard3DTilt(document.getElementById("holoFoilCard"), document.getElementById("holoCardGlare"));
-    initHoloLiquidCanvas();
-
-    // Fetch stats and render Hexagon Radar
     loadRecentFormAndDrawRadar(p, playerId);
   }
 
@@ -5279,7 +4961,7 @@
   }
 
   const loadRecentForm = loadRecentFormAndDrawRadar;
-// comment ==> 36. Player Profile & Recent Form ends here 
+// comment ==> 36. Player Profile & Recent Form ends here
  
 // comment ==> 37. Fun Records & Tournament Archive Cache starts from here
   async function computeDuoStats() {
