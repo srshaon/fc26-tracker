@@ -5056,7 +5056,7 @@
     const startTime = performance.now();
     function step(now) {
       const elapsed = Math.min((now - startTime) / duration, 1);
-      const ease = 1 - Math.pow(1 - elapsed, 3); // cubic ease-out
+      const ease = 1 - Math.pow(1 - elapsed, 3);
       const cur = Math.round(startVal + (targetVal - startVal) * ease);
       el.textContent = cur + "%";
       if (elapsed < 1) requestAnimationFrame(step);
@@ -5064,7 +5064,7 @@
     requestAnimationFrame(step);
   }
 
-  /* 3. Cinematic Anime/Esports Clash Screen with Multi-Factor Realistic Predictions */
+  /* 3. Cinematic Anime Clash Screen with Multi-Factor Predictions & Clean Mobile Layout */
   async function openFaceOffModal(sideA, sideB, matchLabel = "CHAMPIONSHIP FACE-OFF") {
     if (!sideA || !sideB || sideA === sideB) return;
     const overlay = document.createElement("div");
@@ -5074,7 +5074,6 @@
     const ovrA = computePlayerOVR(sideA);
     const ovrB = computePlayerOVR(sideB);
     const ovrDiff = ovrA - ovrB;
-    // Logistic curve: 14pt gap yields ~90/10 probability
     const pElo = 1 / (1 + Math.pow(10, -ovrDiff / 14));
 
     // 2. Fetch Lifetime H2H Record between these two sides
@@ -5120,21 +5119,19 @@
     // 4. Multi-Factor Formula
     let finalProbRatio;
     if (totalH2H >= 1) {
-      // Laplace smoothed H2H probability (4 wins to 0 losses = 5/6 = 83.3%)
       const pH2H = (winsA + 1) / (winsA + winsB + 2);
       finalProbRatio = (pH2H * 0.55) + (pElo * 0.30) + (pForm * 0.15);
     } else {
-      // First meeting: 75% Elo OVR + 25% Recent Form
       finalProbRatio = (pElo * 0.75) + (pForm * 0.25);
     }
 
-    // Realistic spread bounds: between 7% and 93%
     const probA = Math.round(Math.max(0.07, Math.min(0.93, finalProbRatio)) * 100);
     const probB = 100 - probA;
 
-    const h2hSummaryText = totalH2H > 0
-      ? `H2H RECORD: ${sideA} ${winsA} - ${winsB} ${sideB} (${draws}D)`
-      : `FIRST TIME CLASH &bull; ELO RATED`;
+    // Clean top headline for the stat deck
+    const h2hTopHeadline = totalH2H > 0
+      ? `LIFETIME H2H &bull; ${totalH2H} MATCH${totalH2H === 1 ? '' : 'ES'} (${draws} DRAWS)`
+      : `FIRST-TIME CLASH &bull; ELO RATED`;
 
     overlay.innerHTML = `
       <div class="faceoff-card">
@@ -5154,10 +5151,19 @@
           </div>
         </div>
         <div class="faceoff-stat-strip">
-          <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:900; letter-spacing:0.5px;">
-            <span style="color:var(--accent);">${sideA}</span>
-            <span style="color:#8899a6; text-transform:uppercase;">${h2hSummaryText}</span>
-            <span style="color:#ff5252;">${sideB}</span>
+          <div style="text-align:center; font-size:10px; font-weight:800; color:#8899a6; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">
+            ${h2hTopHeadline}
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; font-weight:900; letter-spacing:0.5px; gap:10px;">
+            <span style="color:var(--accent); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:40%;">
+              ${sideA}&nbsp;${totalH2H > 0 ? `(${winsA}W)` : ''}
+            </span>
+            <span style="color:#8899a6; font-size:9.5px; text-transform:uppercase; flex-shrink:0; text-align:center;">
+              WIN PROBABILITY
+            </span>
+            <span style="color:#ff5252; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:40%; text-align:right;">
+              ${totalH2H > 0 ? `(${winsB}W)&nbsp;` : ''}${sideB}
+            </span>
           </div>
           <div class="faceoff-prob-bar">
             <div id="probBarA" class="faceoff-prob-fill-a" style="width:50%;"></div>
