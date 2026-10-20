@@ -183,7 +183,7 @@
   }
   .streak-icon { font-size: 11px; margin-left: 2px; vertical-align: middle; }
 
-  /* 4. 3D Gyroscope & Holographic Foil FUT Card (Feature 2) */
+  /* 4. 3D Gyroscope & Holographic Foil FUT Card with Neon Liquid Stream Border */
   .holo-card-stage {
     perspective: 1100px;
     display: flex;
@@ -192,41 +192,58 @@
   }
   .holo-card {
     position: relative;
-    width: 250px;
-    height: 370px;
-    border-radius: 18px;
+    width: 270px;
+    height: 410px;
+    border-radius: 20px;
     transform-style: preserve-3d;
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.75), 0 0 20px rgba(242, 201, 76, 0.25);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 28px rgba(0, 230, 118, 0.28);
     cursor: grab;
     transition: transform 0.12s ease-out;
     overflow: hidden;
     user-select: none;
-    border: 2px solid rgba(255, 215, 0, 0.6);
+    padding: 3px; /* Channel gap for the liquid border */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #06090e;
   }
-  .holo-card-tier-gold {
-    background: radial-gradient(circle at 50% 20%, #3a2a0a 0%, #161208 60%, #0a0804 100%);
-    border-color: #ffd700;
+
+  /* Neon Liquid Stream (Water Flow) Perimeter Engine */
+  .holo-card::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(
+      transparent,
+      transparent 55%,
+      rgba(0, 230, 118, 0.3) 72%,
+      #00e676 86%,
+      #00e5ff 97%,
+      #ffffff 100%
+    );
+    animation: liquidStreamFlow 3.4s linear infinite;
+    z-index: 1;
+    pointer-events: none;
   }
-  .holo-card-tier-silver {
-    background: radial-gradient(circle at 50% 20%, #2b333c 0%, #171c22 60%, #0a0d10 100%);
-    border-color: #c0c9d4;
-  }
-  .holo-card-tier-bronze {
-    background: radial-gradient(circle at 50% 20%, #3c2415 0%, #1e120a 60%, #0c0704 100%);
-    border-color: #cd7f32;
+  @keyframes liquidStreamFlow {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
 
   /* Iridescent Rainbow Hologram Glare Sheen */
   .holo-card-glare {
     position: absolute;
-    inset: 0;
-    border-radius: 18px;
+    inset: 3px;
+    border-radius: 17px;
     background: linear-gradient(
       125deg,
       transparent 15%,
-      rgba(255, 0, 128, 0.4) 32%,
-      rgba(0, 229, 255, 0.45) 48%,
-      rgba(255, 235, 59, 0.5) 54%,
+      rgba(255, 0, 128, 0.38) 32%,
+      rgba(0, 229, 255, 0.42) 48%,
+      rgba(255, 235, 59, 0.48) 54%,
       transparent 75%
     );
     background-size: 260% 260%;
@@ -242,6 +259,7 @@
     position: relative;
     width: 100%;
     height: 100%;
+    border-radius: 17px;
     padding: 16px 14px;
     display: flex;
     flex-direction: column;
@@ -250,6 +268,16 @@
     transform: translateZ(28px);
     z-index: 2;
   }
+  .holo-card-tier-gold .holo-card-inner {
+    background: radial-gradient(circle at 50% 18%, #3a2a0a 0%, #161208 60%, #0a0804 100%);
+  }
+  .holo-card-tier-silver .holo-card-inner {
+    background: radial-gradient(circle at 50% 18%, #2b333c 0%, #171c22 60%, #0a0d10 100%);
+  }
+  .holo-card-tier-bronze .holo-card-inner {
+    background: radial-gradient(circle at 50% 18%, #3c2415 0%, #1e120a 60%, #0c0704 100%);
+  }
+
   .holo-header-row {
     width: 100%;
     display: flex;
@@ -271,12 +299,8 @@
     color: var(--text-muted);
     text-transform: uppercase;
   }
-  .holo-avatar-wrap {
-    margin-top: -6px;
-    position: relative;
-    transform: translateZ(32px);
-  }
- /* Championship Jersey Stars on 3D Card */
+
+  /* Championship Jersey Stars on 3D Card */
   .holo-stars-row {
     display: flex;
     justify-content: center;
@@ -296,6 +320,24 @@
     0% { transform: scale(0.95); opacity: 0.9; }
     100% { transform: scale(1.15); opacity: 1; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 1)); }
   }
+
+  /* Enlarged Marquee Avatar Section */
+  .holo-avatar-wrap {
+    margin-top: -2px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transform: translateZ(34px);
+  }
+  .holo-avatar-wrap .player-avatar-circle {
+    box-shadow: 0 0 18px rgba(0, 230, 118, 0.45), 0 8px 16px rgba(0, 0, 0, 0.65) !important;
+  }
+  .holo-avatar-wrap .player-avatar-placeholder {
+    box-shadow: 0 0 18px rgba(0, 230, 118, 0.35), 0 8px 16px rgba(0, 0, 0, 0.65) !important;
+  }
+
   .holo-player-name {
     font-family: var(--font-heading);
     font-size: 19px;
@@ -306,18 +348,18 @@
     text-align: center;
     border-bottom: 1.5px solid var(--border-strong);
     width: 88%;
-    padding-bottom: 6px;
-    margin-top: 4px;
+    padding-bottom: 5px;
+    margin-top: 6px;
     text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
   }
   .holo-stats-grid {
-    width: 92%;
+    width: 94%;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 6px 10px;
     margin-top: 4px;
     text-align: center;
-    background: rgba(0, 0, 0, 0.35);
+    background: rgba(0, 0, 0, 0.4);
     padding: 8px 6px;
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -340,7 +382,7 @@
     color: var(--accent);
   }
 
-  /* 5. Hexagonal Radar Chart Card (Feature 3) */
+  /* 5. Hexagonal Radar Chart Card */
   .radar-card-wrap {
     text-align: center;
     margin: 14px 0 18px;
@@ -517,6 +559,7 @@
     from { transform: translateY(30px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
   }
+
   .faceoff-prob-bar {
     display: flex; height: 10px; border-radius: 5px; overflow: hidden;
     background: #141a24; margin-top: 8px; border: 1px solid rgba(255,255,255,0.1);
@@ -4794,7 +4837,7 @@
     }
   }
 
-  /* Render Full Player Profile Screen */
+ /* Render Full Player Profile Screen */
   async function renderPlayerProfile(body, playerId) {
     const p = poolPlayers.find(x => x.id === playerId);
     if (!p) { body.innerHTML = "<p>Player not found.</p>"; return; }
@@ -4824,14 +4867,15 @@
       starsHtml = `<div class="holo-stars-row" title="${totalCountedChamps}x Title Winner (Single & Tag Multi)">${starIcons}</div>`;
     }
 
+    // Scaled-Up Marquee Avatar (125px diameter)
     const avatarCircleHtml = photo
-      ? `<img src="${convertImageUrl(photo)}" class="player-avatar-circle" style="width:78px; height:78px; border-width:3px;" alt="${p.name}">`
-      : `<div class="player-avatar-placeholder" style="width:78px; height:78px; font-size:30px;">${(p.name || "?").slice(0, 1).toUpperCase()}</div>`;
+      ? `<img src="${convertImageUrl(photo)}" class="player-avatar-circle" style="width:125px; height:125px; border-width:3.5px;" alt="${p.name}">`
+      : `<div class="player-avatar-placeholder" style="width:125px; height:125px; font-size:48px;">${(p.name || "?").slice(0, 1).toUpperCase()}</div>`;
 
     body.innerHTML = `
       <button id="backToPlayers">&larr; Back to players</button>
 
-      <!-- 1. Interactive 3D Holographic Foil Card -->
+      <!-- 1. Interactive 3D Holographic Foil Card with Neon Liquid Border -->
       <div class="holo-card-stage">
         <div class="holo-card holo-card-tier-${tier}" id="holoFoilCard">
           <div class="holo-card-glare" id="holoCardGlare"></div>
@@ -4922,7 +4966,6 @@
     attachCard3DTilt(document.getElementById("holoFoilCard"), document.getElementById("holoCardGlare"));
     loadRecentFormAndDrawRadar(p, playerId);
   }
-
   async function loadRecentFormAndDrawRadar(p, playerId) {
     const row = document.getElementById("recentFormRow");
     const snap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "single"), where("status", "==", "completed")));
