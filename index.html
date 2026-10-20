@@ -183,7 +183,7 @@
   }
   .streak-icon { font-size: 11px; margin-left: 2px; vertical-align: middle; }
 
-  /* 4. 3D Gyroscope & Holographic Foil FUT Card with Neon Liquid Stream Border */
+  /* 4. 3D Gyroscope & Holographic Foil Card with True SVG Fluid Border */
   .holo-card-stage {
     perspective: 1100px;
     display: flex;
@@ -196,48 +196,50 @@
     height: 410px;
     border-radius: 20px;
     transform-style: preserve-3d;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 28px rgba(0, 230, 118, 0.28);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.88), 0 0 35px rgba(0, 230, 118, 0.25);
     cursor: grab;
     transition: transform 0.12s ease-out;
-    overflow: hidden;
+    overflow: visible; /* Allows the neon bloom to radiate outside */
     user-select: none;
-    padding: 3px; /* Channel gap for the liquid border */
-    display: flex;
-    align-items: center;
-    justify-content: center;
     background: #06090e;
   }
 
-  /* Neon Liquid Stream (Water Flow) Perimeter Engine */
-  .holo-card::before {
-    content: "";
+  /* SVG Liquid Stream Border Engine */
+  .holo-liquid-svg {
     position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: conic-gradient(
-      transparent,
-      transparent 55%,
-      rgba(0, 230, 118, 0.3) 72%,
-      #00e676 86%,
-      #00e5ff 97%,
-      #ffffff 100%
-    );
-    animation: liquidStreamFlow 3.4s linear infinite;
-    z-index: 1;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
     pointer-events: none;
+    z-index: 10;
+    overflow: visible;
   }
-  @keyframes liquidStreamFlow {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  .holo-liquid-track {
+    fill: none;
+    stroke: rgba(0, 230, 118, 0.16);
+    stroke-width: 2.5;
+  }
+  .holo-liquid-stream {
+    fill: none;
+    stroke: url(#neonLiquidStreamGrad);
+    stroke-width: 4.2;
+    stroke-linecap: round;
+    stroke-dasharray: 28 72;
+    stroke-dashoffset: 0;
+    animation: liquidBorderFlow 3.2s linear infinite;
+    filter: drop-shadow(0 0 8px #00e676) drop-shadow(0 0 16px #00e5ff);
+  }
+  @keyframes liquidBorderFlow {
+    0% { stroke-dashoffset: 100; }
+    100% { stroke-dashoffset: 0; }
   }
 
   /* Iridescent Rainbow Hologram Glare Sheen */
   .holo-card-glare {
     position: absolute;
-    inset: 3px;
-    border-radius: 17px;
+    inset: 2px;
+    border-radius: 18px;
     background: linear-gradient(
       125deg,
       transparent 15%,
@@ -259,7 +261,7 @@
     position: relative;
     width: 100%;
     height: 100%;
-    border-radius: 17px;
+    border-radius: 18px;
     padding: 16px 14px;
     display: flex;
     flex-direction: column;
@@ -267,6 +269,7 @@
     justify-content: space-between;
     transform: translateZ(28px);
     z-index: 2;
+    overflow: hidden;
   }
   .holo-card-tier-gold .holo-card-inner {
     background: radial-gradient(circle at 50% 18%, #3a2a0a 0%, #161208 60%, #0a0804 100%);
@@ -300,7 +303,7 @@
     text-transform: uppercase;
   }
 
-  /* Championship Jersey Stars on 3D Card */
+  /* Championship Jersey Stars */
   .holo-stars-row {
     display: flex;
     justify-content: center;
@@ -321,7 +324,7 @@
     100% { transform: scale(1.15); opacity: 1; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 1)); }
   }
 
-  /* Enlarged Marquee Avatar Section */
+  /* Scaled-Up Marquee Avatar Section */
   .holo-avatar-wrap {
     margin-top: -2px;
     position: relative;
@@ -332,10 +335,10 @@
     transform: translateZ(34px);
   }
   .holo-avatar-wrap .player-avatar-circle {
-    box-shadow: 0 0 18px rgba(0, 230, 118, 0.45), 0 8px 16px rgba(0, 0, 0, 0.65) !important;
+    box-shadow: 0 0 20px rgba(0, 230, 118, 0.5), 0 8px 18px rgba(0, 0, 0, 0.7) !important;
   }
   .holo-avatar-wrap .player-avatar-placeholder {
-    box-shadow: 0 0 18px rgba(0, 230, 118, 0.35), 0 8px 16px rgba(0, 0, 0, 0.65) !important;
+    box-shadow: 0 0 20px rgba(0, 230, 118, 0.4), 0 8px 18px rgba(0, 0, 0, 0.7) !important;
   }
 
   .holo-player-name {
@@ -4689,7 +4692,7 @@
 
       ctx.clearRect(0, 0, width, height);
 
-      // Draw 3 concentric hexagonal grid levels (33%, 66%, 100%)
+      // 3 concentric hexagonal grid levels
       const levels = [0.33, 0.66, 1.0];
       levels.forEach(lvl => {
         ctx.beginPath();
@@ -4837,7 +4840,7 @@
     }
   }
 
- /* Render Full Player Profile Screen */
+  /* Render Full Player Profile Screen */
   async function renderPlayerProfile(body, playerId) {
     const p = poolPlayers.find(x => x.id === playerId);
     if (!p) { body.innerHTML = "<p>Player not found.</p>"; return; }
@@ -4875,10 +4878,28 @@
     body.innerHTML = `
       <button id="backToPlayers">&larr; Back to players</button>
 
-      <!-- 1. Interactive 3D Holographic Foil Card with Neon Liquid Border -->
+      <!-- 1. Interactive 3D Holographic Foil Card with True SVG Neon Liquid Stream -->
       <div class="holo-card-stage">
         <div class="holo-card holo-card-tier-${tier}" id="holoFoilCard">
+          
+          <!-- Liquid Stream Perimeter Engine -->
+          <svg class="holo-liquid-svg" viewBox="0 0 270 410">
+            <defs>
+              <linearGradient id="neonLiquidStreamGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" />
+                <stop offset="30%" stop-color="#00e5ff" />
+                <stop offset="75%" stop-color="#00e676" />
+                <stop offset="100%" stop-color="rgba(0, 230, 118, 0)" />
+              </linearGradient>
+            </defs>
+            <!-- Guide Glass Tube Rail -->
+            <rect x="2" y="2" width="266" height="406" rx="18" class="holo-liquid-track" />
+            <!-- Continuous Fluid Liquid Stream -->
+            <rect x="2" y="2" width="266" height="406" rx="18" class="holo-liquid-stream" pathLength="100" />
+          </svg>
+
           <div class="holo-card-glare" id="holoCardGlare"></div>
+          
           <div class="holo-card-inner">
             <div class="holo-header-row">
               <div style="text-align:center;">
@@ -4887,11 +4908,14 @@
               </div>
               <div style="font-size:18px;" title="${totalCountedChamps > 0 ? `${totalCountedChamps}x Champion` : 'Contender'}">${crownIcon}</div>
             </div>
+            
             <div class="holo-avatar-wrap">
               ${starsHtml}
               ${avatarCircleHtml}
             </div>
+            
             <div class="holo-player-name">${p.name}</div>
+            
             <div class="holo-stats-grid" id="holoStatsGrid">
               <div class="holo-stat-item"><span class="holo-stat-val" id="statATT">--</span><span class="holo-stat-lbl">ATT</span></div>
               <div class="holo-stat-item"><span class="holo-stat-val" id="statDEF">--</span><span class="holo-stat-lbl">DEF</span></div>
@@ -4966,6 +4990,7 @@
     attachCard3DTilt(document.getElementById("holoFoilCard"), document.getElementById("holoCardGlare"));
     loadRecentFormAndDrawRadar(p, playerId);
   }
+
   async function loadRecentFormAndDrawRadar(p, playerId) {
     const row = document.getElementById("recentFormRow");
     const snap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "single"), where("status", "==", "completed")));
