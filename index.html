@@ -183,7 +183,157 @@
   }
   .streak-icon { font-size: 11px; margin-left: 2px; vertical-align: middle; }
 
-  /* 4. Qualification & Elimination Strips */
+  /* 4. 3D Gyroscope & Holographic Foil FUT Card (Feature 2) */
+  .holo-card-stage {
+    perspective: 1100px;
+    display: flex;
+    justify-content: center;
+    margin: 16px 0 22px;
+  }
+  .holo-card {
+    position: relative;
+    width: 250px;
+    height: 370px;
+    border-radius: 18px;
+    transform-style: preserve-3d;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.75), 0 0 20px rgba(242, 201, 76, 0.25);
+    cursor: grab;
+    transition: transform 0.12s ease-out;
+    overflow: hidden;
+    user-select: none;
+    border: 2px solid rgba(255, 215, 0, 0.6);
+  }
+  .holo-card-tier-gold {
+    background: radial-gradient(circle at 50% 20%, #3a2a0a 0%, #161208 60%, #0a0804 100%);
+    border-color: #ffd700;
+  }
+  .holo-card-tier-silver {
+    background: radial-gradient(circle at 50% 20%, #2b333c 0%, #171c22 60%, #0a0d10 100%);
+    border-color: #c0c9d4;
+  }
+  .holo-card-tier-bronze {
+    background: radial-gradient(circle at 50% 20%, #3c2415 0%, #1e120a 60%, #0c0704 100%);
+    border-color: #cd7f32;
+  }
+
+  /* Iridescent Rainbow Hologram Glare Sheen */
+  .holo-card-glare {
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    background: linear-gradient(
+      125deg,
+      transparent 15%,
+      rgba(255, 0, 128, 0.4) 32%,
+      rgba(0, 229, 255, 0.45) 48%,
+      rgba(255, 235, 59, 0.5) 54%,
+      transparent 75%
+    );
+    background-size: 260% 260%;
+    background-position: 50% 50%;
+    mix-blend-mode: color-dodge;
+    pointer-events: none;
+    z-index: 6;
+    opacity: 0.75;
+    transition: opacity 0.3s ease;
+  }
+
+  .holo-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    transform: translateZ(28px);
+    z-index: 2;
+  }
+  .holo-header-row {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .holo-ovr-num {
+    font-family: var(--font-heading);
+    font-size: 34px;
+    font-weight: 900;
+    line-height: 0.9;
+    color: var(--accent);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 70%, transparent);
+  }
+  .holo-pos-label {
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+  .holo-avatar-wrap {
+    margin-top: -6px;
+    position: relative;
+    transform: translateZ(32px);
+  }
+  .holo-player-name {
+    font-family: var(--font-heading);
+    font-size: 19px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: #ffffff;
+    text-transform: uppercase;
+    text-align: center;
+    border-bottom: 1.5px solid var(--border-strong);
+    width: 88%;
+    padding-bottom: 6px;
+    margin-top: 4px;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+  }
+  .holo-stats-grid {
+    width: 92%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px 10px;
+    margin-top: 4px;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 8px 6px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .holo-stat-item {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 4px;
+  }
+  .holo-stat-val {
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 900;
+    color: #ffffff;
+  }
+  .holo-stat-lbl {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  /* 5. Hexagonal Radar Chart Card (Feature 3) */
+  .radar-card-wrap {
+    text-align: center;
+    margin: 14px 0 18px;
+    position: relative;
+  }
+  #profileRadarCanvas {
+    max-width: 100%;
+    display: block;
+    margin: 0 auto;
+    filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45));
+  }
+
+  /* 6. Qualification & Elimination Strips */
   table tbody tr.row-qual td:first-child { border-left: 4.5px solid #00e676; font-weight: 800; color: #00e676; }
   table tbody tr.row-qual { background: linear-gradient(90deg, rgba(0, 230, 118, 0.12) 0%, rgba(0, 230, 118, 0.02) 100%); }
   table tbody tr.row-elim td:first-child { border-left: 4.5px solid rgba(255, 82, 82, 0.7); font-weight: 800; color: #ff5252; }
@@ -192,7 +342,7 @@
   .qual-tag-q { background: rgba(0, 230, 118, 0.2); color: #00e676; border: 1px solid rgba(0, 230, 118, 0.6); }
   .qual-tag-e { background: rgba(255, 82, 82, 0.18); color: #ff5252; border: 1px solid rgba(255, 82, 82, 0.5); }
 
-  /* 5. Scoreboard Capsule & Steppers */
+  /* 7. Scoreboard Capsule & Steppers */
   .scoreboard-capsule {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     background: rgba(0, 0, 0, 0.45); padding: 5px 12px; border-radius: 8px;
@@ -211,7 +361,7 @@
   .stepper-btn:hover { background: var(--accent); color: var(--accent-contrast); }
   .stepper-wrap input[type=number] { width: 34px !important; height: 32px !important; border: none !important; background: transparent !important; text-align: center; font-weight: 800; font-size: 15px; color: var(--text-primary); padding: 0 !important; }
 
-  /* 6. Winner Highlight & Loser Dimming */
+  /* 8. Winner Highlight & Loser Dimming */
   .match-fixture .name.side-winner .player-avatar-circle,
   .match-fixture .name.side-winner .player-avatar-placeholder {
     border-color: var(--accent) !important;
@@ -221,7 +371,7 @@
   .match-fixture .name.side-winner .side-name { font-weight: 800; }
   .match-fixture .name.side-loser { opacity: 0.55; filter: grayscale(25%); }
 
-  /* 7. Stage Badges & Filter Pills */
+  /* 9. Stage Badges & Filter Pills */
   .stage-badge {
     display: inline-flex; align-items: center; gap: 8px;
     background: var(--bg-surface-alt); border: 1px solid var(--border-strong);
@@ -241,7 +391,7 @@
   .filter-pill { padding: 5px 12px; font-size: 12px; font-weight: 700; border-radius: 14px; border: 1px solid var(--border-strong); background: var(--bg-surface-alt); color: var(--text-secondary); cursor: pointer; }
   .filter-pill.active { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
 
-  /* 8. Cinematic Fighting Game Clash Screen (Theatrical Timing) */
+  /* 10. Cinematic Clash Screen */
   .faceoff-modal-overlay {
     position: fixed; inset: 0; background: rgba(5, 7, 12, 0.94);
     backdrop-filter: blur(14px); display: flex; align-items: center; justify-content: center;
@@ -283,8 +433,6 @@
     justify-content: center; padding: 26px 16px; text-align: center; gap: 12px;
     position: relative; z-index: 1;
   }
-
-  /* Sequenced Deliberate Anime Entrances (Beat 1: Left at 0.2s, Beat 2: Right at 0.6s) */
   .faceoff-left {
     background: linear-gradient(135deg, rgba(0, 229, 255, 0.25) 0%, rgba(0, 0, 0, 0.75) 100%);
     animation: animeSlideLeft 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
@@ -304,7 +452,6 @@
     100% { transform: translateX(0) skewX(0); opacity: 1; }
   }
 
-  /* Center VS Slam Impact (Arrives at 1.2s after fighters are staged) */
   .faceoff-vs-shield {
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
@@ -341,7 +488,6 @@
     to { transform: scale(1); opacity: 1; }
   }
 
-  /* Predictor Deck (Revealed at 1.7s) */
   .faceoff-stat-strip {
     background: rgba(0,0,0,0.65); padding: 16px 22px;
     border-top: 1px solid var(--border-strong);
@@ -351,7 +497,6 @@
     from { transform: translateY(30px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
   }
-
   .faceoff-prob-bar {
     display: flex; height: 10px; border-radius: 5px; overflow: hidden;
     background: #141a24; margin-top: 8px; border: 1px solid rgba(255,255,255,0.1);
@@ -365,7 +510,7 @@
     transition: width 1.4s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  /* 9. Tale of the Tape H2H Modal */
+  /* 11. Tale of the Tape H2H Modal */
   .h2h-modal-overlay {
     position: fixed; inset: 0; background: rgba(0, 0, 0, 0.78);
     backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center;
@@ -388,7 +533,7 @@
   .h2h-bar-fill-a { background: var(--accent); transition: width 0.4s ease; }
   .h2h-bar-fill-b { background: #ff5252; transition: width 0.4s ease; }
 
-  /* 10. Matchday Story Button & Confetti Overlay */
+  /* 12. Matchday Story Button & Confetti Overlay */
   .share-story-btn {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 8px 18px; font-size: 13px; font-weight: 800; border-radius: 20px;
@@ -4397,8 +4542,9 @@
       row.style.alignItems = "center";
       row.style.gap = "8px";
 
-      const imgHtml = p.imageUrl
-        ? `<img src="${convertImageUrl(p.imageUrl)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid var(--accent);">`
+      const photo = p.photoUrl || p.imageUrl;
+      const imgHtml = photo
+        ? `<img src="${convertImageUrl(photo)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid var(--accent);">`
         : `<div style="width:28px;height:28px;border-radius:50%;background:var(--bg-surface-alt);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;">${p.name.slice(0, 1)}</div>`;
 
       const btn = document.createElement("button");
@@ -4412,30 +4558,289 @@
     });
   }
 
-  function renderPlayerProfile(body, playerId) {
+  /* Compute 6 Dynamic Player Attributes for Hex Radar (Scale: 50 - 99) */
+  function computePlayerRadarAttributes(p, recentFormList) {
+    const matches = num(p.singleMatchesPlayed);
+    const wins = num(p.singleWins);
+    const gf = num(p.singleGoalsFor);
+    const ga = num(p.singleGoalsAgainst);
+    const champs = num(p.singleChampionships);
+    const totalTitles = champs + num(p.tagMultiChampionships) + num(p.tagRegularChampionships);
+
+    // 1. Attack (Goals per match)
+    const avgGf = matches > 0 ? (gf / matches) : 1.6;
+    const att = Math.min(99, Math.max(50, Math.round(52 + (avgGf * 15))));
+
+    // 2. Defense (Goals conceded per match)
+    const avgGa = matches > 0 ? (ga / matches) : 2.0;
+    const def = Math.min(99, Math.max(50, Math.round(98 - (avgGa * 15))));
+
+    // 3. Clutch (Winning percentage & finals conversion)
+    const winRate = matches > 0 ? (wins / matches) : 0.5;
+    const clu = Math.min(99, Math.max(50, Math.round(55 + (winRate * 28) + (champs * 2.5))));
+
+    // 4. Dominance (Average goal differential per game)
+    const avgGd = matches > 0 ? ((gf - ga) / matches) : 0;
+    const dom = Math.min(99, Math.max(50, Math.round(70 + (avgGd * 9))));
+
+    // 5. Pedigree (Total career trophies across all 3 formats)
+    const ped = Math.min(99, Math.max(50, Math.round(62 + (totalTitles * 5.5))));
+
+    // 6. Form (Last 5 match points: W = +7, D = +2, L = -5)
+    let formScore = 72;
+    if (recentFormList && recentFormList.length > 0) {
+      recentFormList.forEach(r => {
+        if (r.result === "W") formScore += 5.5;
+        else if (r.result === "D") formScore += 1.5;
+        else if (r.result === "L") formScore -= 4.5;
+      });
+    }
+    const frm = Math.min(99, Math.max(50, Math.round(formScore)));
+
+    return { ATT: att, DEF: def, CLU: clu, DOM: dom, PED: ped, FRM: frm };
+  }
+
+  /* Render Hexagonal Radar Spider Chart on Canvas */
+  function drawHexagonalRadar(canvas, attributes) {
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const width = canvas.width;
+    const height = canvas.height;
+    const cx = width / 2;
+    const cy = height / 2 + 6;
+    const maxRadius = Math.min(cx, cy) - 46;
+
+    const labels = ["ATT", "DEF", "CLU", "DOM", "PED", "FRM"];
+    const values = [attributes.ATT, attributes.DEF, attributes.CLU, attributes.DOM, attributes.PED, attributes.FRM];
+    const numAxes = labels.length;
+    const angleStep = (Math.PI * 2) / numAxes;
+
+    let animProgress = 0;
+    const startTime = performance.now();
+    const duration = 750;
+
+    function render(now) {
+      animProgress = Math.min((now - startTime) / duration, 1);
+      const ease = 1 - Math.pow(1 - animProgress, 3); // cubic ease-out
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Draw 3 concentric hexagonal grid levels (33%, 66%, 100%)
+      const levels = [0.33, 0.66, 1.0];
+      levels.forEach(lvl => {
+        ctx.beginPath();
+        for (let i = 0; i < numAxes; i++) {
+          const a = (i * angleStep) - (Math.PI / 2);
+          const r = maxRadius * lvl;
+          const x = cx + r * Math.cos(a);
+          const y = cy + r * Math.sin(a);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = lvl === 1.0 ? "rgba(255, 255, 255, 0.22)" : "rgba(255, 255, 255, 0.08)";
+        ctx.lineWidth = lvl === 1.0 ? 1.5 : 1;
+        ctx.stroke();
+      });
+
+      // Draw spoke lines from center to outer vertices
+      for (let i = 0; i < numAxes; i++) {
+        const a = (i * angleStep) - (Math.PI / 2);
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + maxRadius * Math.cos(a), cy + maxRadius * Math.sin(a));
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      // Draw the animated data polygon
+      ctx.beginPath();
+      for (let i = 0; i < numAxes; i++) {
+        const a = (i * angleStep) - (Math.PI / 2);
+        const normVal = (values[i] / 100) * ease;
+        const r = maxRadius * normVal;
+        const x = cx + r * Math.cos(a);
+        const y = cy + r * Math.sin(a);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+
+      // Glowing Neon Gradient Fill
+      const grad = ctx.createRadialGradient(cx, cy, 10, cx, cy, maxRadius);
+      grad.addColorStop(0, "rgba(0, 230, 118, 0.55)");
+      grad.addColorStop(0.7, "rgba(0, 229, 255, 0.28)");
+      grad.addColorStop(1, "rgba(0, 229, 255, 0.05)");
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      ctx.strokeStyle = "#00e676";
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = "#00e676";
+      ctx.shadowBlur = 12;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Draw data point circles and vertex labels
+      for (let i = 0; i < numAxes; i++) {
+        const a = (i * angleStep) - (Math.PI / 2);
+        const normVal = (values[i] / 100) * ease;
+        const r = maxRadius * normVal;
+        const x = cx + r * Math.cos(a);
+        const y = cy + r * Math.sin(a);
+
+        // Dot
+        ctx.beginPath();
+        ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+
+        // Outer Text Label & Value
+        const labelR = maxRadius + 22;
+        const lx = cx + labelR * Math.cos(a);
+        const ly = cy + labelR * Math.sin(a);
+
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "800 11px monospace";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+        ctx.fillText(labels[i], lx, ly - 6);
+
+        ctx.font = "900 13px monospace";
+        ctx.fillStyle = "#00e676";
+        const animatedVal = Math.round(values[i] * ease);
+        ctx.fillText(animatedVal, lx, ly + 8);
+      }
+
+      if (animProgress < 1) requestAnimationFrame(render);
+    }
+    requestAnimationFrame(render);
+  }
+
+  /* Attach 3D Gyroscope (Mobile) & Cursor Hover (Desktop) Tilt Handlers */
+  function attachCard3DTilt(cardEl, glareEl) {
+    if (!cardEl) return;
+
+    // Desktop: Cursor tracking tilt
+    cardEl.addEventListener("mousemove", (e) => {
+      const rect = cardEl.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+
+      const rotX = ((y - cy) / cy) * -16;
+      const rotY = ((x - cx) / cx) * 16;
+      cardEl.style.transform = `rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) scale3d(1.04, 1.04, 1.04)`;
+
+      if (glareEl) {
+        const px = (x / rect.width) * 100;
+        const py = (y / rect.height) * 100;
+        glareEl.style.backgroundPosition = `${px}% ${py}%`;
+        glareEl.style.opacity = "0.9";
+      }
+    });
+
+    cardEl.addEventListener("mouseleave", () => {
+      cardEl.style.transform = "rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)";
+      if (glareEl) {
+        glareEl.style.backgroundPosition = "50% 50%";
+        glareEl.style.opacity = "0.6";
+      }
+    });
+
+    // Mobile Phone: Gyroscope device orientation tilt
+    const handleOrientation = (e) => {
+      if (!cardEl || !document.body.contains(cardEl)) {
+        window.removeEventListener("deviceorientation", handleOrientation);
+        return;
+      }
+      if (e.gamma === null || e.beta === null) return;
+      const gamma = Math.max(-25, Math.min(25, e.gamma)); // tilt left/right (-25 to 25)
+      const beta = Math.max(15, Math.min(65, e.beta));    // normal holding angle ~40 deg
+      const rotY = (gamma / 25) * 18;
+      const rotX = -((beta - 40) / 25) * 18;
+
+      cardEl.style.transform = `rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) scale3d(1.02, 1.02, 1.02)`;
+
+      if (glareEl) {
+        const px = ((gamma + 25) / 50) * 100;
+        const py = (((beta - 15) / 50)) * 100;
+        glareEl.style.backgroundPosition = `${px}% ${py}%`;
+      }
+    };
+
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener("deviceorientation", handleOrientation, { passive: true });
+    }
+  }
+
+  /* Render Full Player Profile Screen */
+  async function renderPlayerProfile(body, playerId) {
     const p = poolPlayers.find(x => x.id === playerId);
     if (!p) { body.innerHTML = "<p>Player not found.</p>"; return; }
+
     const matches = num(p.singleMatchesPlayed), wins = num(p.singleWins);
     const winPct = matches > 0 ? Math.round((wins / matches) * 100) : 0;
-
     const multiMatches = num(p.tagMultiMatchesPlayed), multiWins = num(p.tagMultiWins);
     const multiWinPct = multiMatches > 0 ? Math.round((multiWins / multiMatches) * 100) : 0;
-
     const regMatches = num(p.tagRegularTournamentsPlayed), regWins = num(p.tagRegularChampionships);
     const regWinPct = regMatches > 0 ? Math.round((regWins / regMatches) * 100) : 0;
 
-    const headerAvatar = p.imageUrl
-      ? `<img src="${convertImageUrl(p.imageUrl)}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);box-shadow:0 3px 10px rgba(0,0,0,0.25);margin-bottom:8px;">`
-      : `<div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg, var(--bg-surface-alt), var(--accent));border:2px solid var(--border-strong);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:bold;color:var(--accent-contrast);margin-bottom:8px;">${p.name.slice(0,1)}</div>`;
+    const ovr = computePlayerOVR(p.name);
+    const tier = ovr >= 83 ? "gold" : (ovr >= 75 ? "silver" : "bronze");
+    const photo = p.photoUrl || p.imageUrl;
+
+    const avatarCircleHtml = photo
+      ? `<img src="${convertImageUrl(photo)}" class="player-avatar-circle" style="width:78px; height:78px; border-width:3px;" alt="${p.name}">`
+      : `<div class="player-avatar-placeholder" style="width:78px; height:78px; font-size:30px;">${(p.name || "?").slice(0, 1).toUpperCase()}</div>`;
 
     body.innerHTML = `
       <button id="backToPlayers">&larr; Back to players</button>
-      <div style="display:flex; flex-direction:column; align-items:center; margin-top:10px;">
-        ${headerAvatar}
-        <h2 style="margin-top:2px;">${p.name}</h2>
+
+      <!-- 1. Interactive 3D Holographic Foil Card -->
+      <div class="holo-card-stage">
+        <div class="holo-card holo-card-tier-${tier}" id="holoFoilCard">
+          <div class="holo-card-glare" id="holoCardGlare"></div>
+          <div class="holo-card-inner">
+            <div class="holo-header-row">
+              <div style="text-align:center;">
+                <div class="holo-ovr-num">${ovr}</div>
+                <div class="holo-pos-label">PRO</div>
+              </div>
+              <div style="font-size:18px;">👑</div>
+            </div>
+            <div class="holo-avatar-wrap">
+              ${avatarCircleHtml}
+            </div>
+            <div class="holo-player-name">${p.name}</div>
+            <div class="holo-stats-grid" id="holoStatsGrid">
+              <div class="holo-stat-item"><span class="holo-stat-val" id="statATT">--</span><span class="holo-stat-lbl">ATT</span></div>
+              <div class="holo-stat-item"><span class="holo-stat-val" id="statDEF">--</span><span class="holo-stat-lbl">DEF</span></div>
+              <div class="holo-stat-item"><span class="holo-stat-val" id="statCLU">--</span><span class="holo-stat-lbl">CLU</span></div>
+              <div class="holo-stat-item"><span class="holo-stat-val" id="statDOM">--</span><span class="holo-stat-lbl">DOM</span></div>
+              <div class="holo-stat-item"><span class="holo-stat-val" id="statPED">--</span><span class="holo-stat-lbl">PED</span></div>
+              <div class="holo-stat-item"><span class="holo-stat-val" id="statFRM">--</span><span class="holo-stat-lbl">FRM</span></div>
+            </div>
+          </div>
+        </div>
       </div>
+      <p style="text-align:center; font-size:11px; color:var(--text-muted); margin-top:-14px; margin-bottom:18px;">
+        💡 Tilt your phone or move your mouse to inspect 3D holographic sheen
+      </p>
+
+      <!-- 2. Hexagonal Attribute Radar (Spider Chart) -->
+      <div class="card radar-card-wrap">
+        <div style="font-size:12px; font-weight:900; color:var(--accent); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">
+          Esports Performance Hexagon
+        </div>
+        <canvas id="profileRadarCanvas" width="340" height="290"></canvas>
+      </div>
+
       <h3>Recent form</h3>
-      <div id="recentFormRow" style="display:flex; gap:6px;"><span class="status-msg">Loading...</span></div>
+      <div id="recentFormRow" style="display:flex; gap:6px; margin-bottom:12px;"><span class="status-msg">Loading...</span></div>
+
       <h3>Tournament participation</h3>
       <div class="stat-grid">
         <div class="stat-card"><div class="label">Single player tournaments</div><div class="value">${num(p.singleTournamentsPlayed)}</div></div>
@@ -4448,6 +4853,7 @@
         <div class="stat-card"><div class="label">Tag-team multi championships</div><div class="value">${num(p.tagMultiChampionships)}</div></div>
         <div class="stat-card"><div class="label">Tag-team multi runner-ups</div><div class="value">${num(p.tagMultiRunnerUps)}</div></div>
       </div>
+
       <h3>Single player match stats</h3>
       <div class="stat-grid">
         <div class="stat-card"><div class="label">Matches played</div><div class="value">${matches}</div></div>
@@ -4457,6 +4863,7 @@
         <div class="stat-card"><div class="label">Goals scored</div><div class="value">${num(p.singleGoalsFor)}</div></div>
         <div class="stat-card"><div class="label">Goals against</div><div class="value">${num(p.singleGoalsAgainst)}</div></div>
       </div>
+
       <h3>Tag-team multi controller match stats</h3>
       <div class="stat-grid">
         <div class="stat-card"><div class="label">Matches played</div><div class="value">${multiMatches}</div></div>
@@ -4464,6 +4871,7 @@
         <div class="stat-card"><div class="label">Wins</div><div class="value">${num(p.tagMultiWins)}</div></div>
         <div class="stat-card"><div class="label">Losses</div><div class="value">${num(p.tagMultiLosses)}</div></div>
       </div>
+
       <h3>Tag-team regular controller matches</h3>
       <div class="stat-grid">
         <div class="stat-card"><div class="label">Matches played</div><div class="value">${regMatches}</div></div>
@@ -4472,15 +4880,24 @@
         <div class="stat-card"><div class="label">Losses</div><div class="value">${num(p.tagRegularRunnerUps)}</div></div>
       </div>
     `;
-    document.getElementById("backToPlayers").addEventListener("click", () => { viewingPlayerId = null; renderRecordsBody(); });
-    loadRecentForm(playerId);
+
+    document.getElementById("backToPlayers").addEventListener("click", () => {
+      viewingPlayerId = null;
+      renderRecordsBody();
+    });
+
+    // Attach 3D tilt engine
+    attachCard3DTilt(document.getElementById("holoFoilCard"), document.getElementById("holoCardGlare"));
+
+    // Fetch form and draw radar chart
+    loadRecentFormAndDrawRadar(p, playerId);
   }
 
-  async function loadRecentForm(playerId) {
+  async function loadRecentFormAndDrawRadar(p, playerId) {
     const row = document.getElementById("recentFormRow");
-    const tournamentsSnap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "single"), where("status", "==", "completed")));
+    const snap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "single"), where("status", "==", "completed")));
     const tournaments = [];
-    tournamentsSnap.forEach(d => tournaments.push(d.data()));
+    snap.forEach(d => tournaments.push(d.data()));
     tournaments.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
 
     const results = [];
@@ -4488,25 +4905,47 @@
       let matchList = [];
       if (data.finalScore) matchList.push({ sideA: data.participants[0].name, sideB: data.participants[1].name, scoreA: data.finalScore.side1, scoreB: data.finalScore.side2 });
       if (data.matches) matchList = matchList.concat(data.matches.filter(m => m.scoreA !== null && m.scoreB !== null));
-      if (data.knockout) data.knockout.stages.forEach(stage => { matchList = matchList.concat(stage.matches.filter(m => m.scoreA !== null && m.scoreB !== null)); });
+      if (data.knockout) data.knockout.stages.forEach(st => { matchList = matchList.concat(st.matches.filter(m => m.scoreA !== null && m.scoreB !== null)); });
+
       matchList.forEach(m => {
         const refA = sideRef(data, m.sideA)[0], refB = sideRef(data, m.sideB)[0];
         let mine = null, opp = null;
         if (refA && refA.id === playerId) { mine = m.scoreA; opp = m.scoreB; }
         else if (refB && refB.id === playerId) { mine = m.scoreB; opp = m.scoreA; }
         else return;
-        const result = mine > opp ? "W" : mine < opp ? "L" : "D";
-        results.push({ result });
+        results.push({ result: mine > opp ? "W" : (mine < opp ? "L" : "D") });
       });
     });
-    const last5 = results.slice(-5);
-    if (!row) return;
-    if (last5.length === 0) { row.innerHTML = "<span class='status-msg'>No single player matches yet.</span>"; return; }
-    const colors = { W: "#2ecc71", L: "#e74c3c", D: "#999" };
-    row.innerHTML = last5.map(r => `<span style="width:26px; height:26px; border-radius:50%; background:${colors[r.result]}; color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold;">${r.result}</span>`).join("");
-  }
-// comment ==> 36. Player Profile & Recent Form ends here
 
+    const last5 = results.slice(-5);
+    if (row) {
+      if (last5.length === 0) {
+        row.innerHTML = "<span class='status-msg'>No single player matches yet.</span>";
+      } else {
+        const colors = { W: "#2ecc71", L: "#e74c3c", D: "#999" };
+        row.innerHTML = last5.map(r => `<span style="width:26px; height:26px; border-radius:50%; background:${colors[r.result]}; color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold;">${r.result}</span>`).join("");
+      }
+    }
+
+    // Compute 6 attributes and populate card values + canvas radar chart
+    const attrs = computePlayerRadarAttributes(p, last5);
+
+    const setCardStat = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    setCardStat("statATT", attrs.ATT);
+    setCardStat("statDEF", attrs.DEF);
+    setCardStat("statCLU", attrs.CLU);
+    setCardStat("statDOM", attrs.DOM);
+    setCardStat("statPED", attrs.PED);
+    setCardStat("statFRM", attrs.FRM);
+
+    const canvas = document.getElementById("profileRadarCanvas");
+    if (canvas) drawHexagonalRadar(canvas, attrs);
+  }
+
+  // Backward compatibility alias
+  const loadRecentForm = loadRecentFormAndDrawRadar;
+// comment ==> 36. Player Profile & Recent Form ends here
+ 
 // comment ==> 37. Fun Records & Tournament Archive Cache starts from here
   async function computeDuoStats() {
     const tournamentsSnap = await getDocs(query(collection(db, "tournaments"), where("format", "==", "tagteam"), where("status", "==", "completed")));
