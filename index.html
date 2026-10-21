@@ -3650,10 +3650,7 @@
   }
 
   function renderFormDotsHtml(formArr) {
-    if (!formArr || formArr.length === 0) return "";
-    return `<div class="form-dots-cluster">` +
-      formArr.map(f => `<span class="form-dot form-dot-${f.toLowerCase()}" title="${f === 'W' ? 'Win' : f === 'L' ? 'Loss' : 'Draw'}">${f}</span>`).join("") +
-      `</div>`;
+    return "";
   }
 
   function standingsTable(title, rows, initialOrder, qualCount = 0) {
@@ -3825,14 +3822,14 @@
 
         row.innerHTML = `
           <div class="match-fixture">
-            <span class="name${classA}">${renderPlayerBadge(m.sideA)}${formDotsA}</span>
+            <span class="name${classA}">${renderPlayerBadge(m.sideA)}</span>
             ${scoreCapsule}
-            <span class="name${classB}">${renderPlayerBadge(m.sideB)}${formDotsB}</span>
+            <span class="name${classB}">${renderPlayerBadge(m.sideB)}</span>
           </div>`;
       } else {
         row.innerHTML = `
           <div class="match-fixture">
-            <span class="name${classA}">${renderPlayerBadge(m.sideA)}${formDotsA}</span>
+            <span class="name${classA}">${renderPlayerBadge(m.sideA)}</span>
             <div class="score-box">
               <div class="stepper-wrap">
                 <button type="button" class="stepper-btn stepper-minus">&minus;</button>
@@ -3846,7 +3843,7 @@
                 <button type="button" class="stepper-btn stepper-plus">&plus;</button>
               </div>
             </div>
-            <span class="name${classB}">${renderPlayerBadge(m.sideB)}${formDotsB}</span>
+            <span class="name${classB}">${renderPlayerBadge(m.sideB)}</span>
           </div>`;
         const btn = document.createElement("button");
         btn.className = "match-save-btn";
