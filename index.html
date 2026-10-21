@@ -14,6 +14,9 @@
 <meta name="apple-mobile-web-app-title" content="FC26 Tracker">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700;800&family=Teko:wght@600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&display=swap" rel="stylesheet">
 <!-- comment ==> 01. Head & Meta Tags ends here -->
 
@@ -164,7 +167,7 @@
   }
   .streak-icon { font-size: 11px; margin-left: 2px; vertical-align: middle; }
 
-  /* Fixed 3D Card */
+  /* Profile Screen Fixed 3D Card */
   .holo-card-stage {
     perspective: 1200px;
     display: flex;
@@ -185,8 +188,6 @@
     background: #06090e;
     user-select: none;
   }
-
-  /* Traveling Border Beam */
   .holo-card::before {
     content: "";
     position: absolute;
@@ -211,20 +212,11 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
-
-  /* Fixed Holographic Foil Sheen */
   .holo-card-glare {
     position: absolute;
     inset: 3px;
     border-radius: 17px;
-    background: linear-gradient(
-      128deg,
-      transparent 20%,
-      rgba(255, 0, 128, 0.32) 38%,
-      rgba(0, 229, 255, 0.38) 49%,
-      rgba(255, 235, 59, 0.42) 56%,
-      transparent 72%
-    );
+    background: linear-gradient(128deg, transparent 20%, rgba(255, 0, 128, 0.32) 38%, rgba(0, 229, 255, 0.38) 49%, rgba(255, 235, 59, 0.42) 56%, transparent 72%);
     background-size: 180% 180%;
     background-position: 52% 48%;
     mix-blend-mode: color-dodge;
@@ -232,8 +224,6 @@
     z-index: 5;
     opacity: 0.72;
   }
-
-  /* Inner Card Body */
   .holo-card-inner {
     position: relative;
     width: 100%;
@@ -248,7 +238,6 @@
     z-index: 2;
     transform: translateZ(26px);
   }
-
   .holo-header-row {
     width: 100%;
     display: flex;
@@ -272,8 +261,6 @@
     text-transform: uppercase;
     margin-top: 2px;
   }
-
-  /* Stars */
   .holo-stars-row {
     display: flex;
     justify-content: center;
@@ -288,8 +275,6 @@
     line-height: 1;
     filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.9));
   }
-
-  /* Avatar Section */
   .holo-avatar-wrap {
     margin-top: -4px;
     position: relative;
@@ -305,7 +290,6 @@
   .holo-avatar-wrap .player-avatar-placeholder {
     box-shadow: 0 0 20px rgba(0, 230, 118, 0.3), 0 8px 18px rgba(0, 0, 0, 0.8) !important;
   }
-
   .holo-player-name {
     font-family: var(--font-heading);
     font-size: 19px;
@@ -331,38 +315,15 @@
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.08);
   }
-  .holo-stat-item {
-    display: flex;
-    justify-content: center;
-    align-items: baseline;
-    gap: 4px;
-  }
-  .holo-stat-val {
-    font-family: var(--font-heading);
-    font-size: 14px;
-    font-weight: 900;
-    color: #ffffff;
-  }
-  .holo-stat-lbl {
-    font-size: 10px;
-    font-weight: 800;
-    color: var(--accent);
-  }
+  .holo-stat-item { display: flex; justify-content: center; align-items: baseline; gap: 4px; }
+  .holo-stat-val { font-family: var(--font-heading); font-size: 14px; font-weight: 900; color: #ffffff; }
+  .holo-stat-lbl { font-size: 10px; font-weight: 800; color: var(--accent); }
 
-  /* Hexagonal Radar Chart Card */
-  .radar-card-wrap {
-    text-align: center;
-    margin: 14px 0 18px;
-    position: relative;
-  }
-  #profileRadarCanvas {
-    max-width: 100%;
-    display: block;
-    margin: 0 auto;
-    filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45));
-  }
+  /* Radar Spider Chart */
+  .radar-card-wrap { text-align: center; margin: 14px 0 18px; position: relative; }
+  #profileRadarCanvas { max-width: 100%; display: block; margin: 0 auto; filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45)); }
 
-  /* Strips, Badges & Tables */
+  /* Tables, Badges, Steppers */
   table tbody tr.row-qual td:first-child { border-left: 4.5px solid #00e676; font-weight: 800; color: #00e676; }
   table tbody tr.row-qual { background: linear-gradient(90deg, rgba(0, 230, 118, 0.12) 0%, rgba(0, 230, 118, 0.02) 100%); }
   table tbody tr.row-elim td:first-child { border-left: 4.5px solid rgba(255, 82, 82, 0.7); font-weight: 800; color: #ff5252; }
@@ -417,104 +378,272 @@
   .filter-pill { padding: 5px 12px; font-size: 12px; font-weight: 700; border-radius: 14px; border: 1px solid var(--border-strong); background: var(--bg-surface-alt); color: var(--text-secondary); cursor: pointer; }
   .filter-pill.active { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
 
-  /* Face-Off Modal: Slow Pacing */
+  /* ========================================================= */
+  /* CYBER ESPORTS CINEMATIC FACE-OFF MODAL & PROBABILITY BAR   */
+  /* ========================================================= */
   .faceoff-modal-overlay {
-    position: fixed; inset: 0; background: rgba(5, 7, 12, 0.94);
+    position: fixed; inset: 0; background: rgba(5, 7, 12, 0.95);
     backdrop-filter: blur(14px); display: flex; align-items: center; justify-content: center;
-    z-index: 99999; padding: 14px; animation: modalFadeIn 0.5s ease;
+    z-index: 99999; padding: 14px; animation: modalFadeIn 0.4s ease;
+    overflow-y: auto;
   }
   @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-  .faceoff-card {
-    position: relative; width: 100%; max-width: 660px;
-    background: #080c14; border: 2.5px solid var(--accent);
-    border-radius: 18px; overflow: hidden;
-    box-shadow: 0 0 50px rgba(0, 0, 0, 0.95), 0 0 35px color-mix(in srgb, var(--accent) 45%, transparent);
-  }
-  .faceoff-header {
-    text-align: center; padding: 14px; background: rgba(0,0,0,0.7);
-    border-bottom: 1px solid var(--border-strong);
-    font-family: var(--font-heading); font-size: 13px; font-weight: 900;
-    letter-spacing: 2px; color: var(--accent); text-transform: uppercase;
-  }
-  .faceoff-split {
-    display: flex; position: relative; min-height: 290px; overflow: hidden;
-  }
-  .faceoff-side {
-    flex: 1; display: flex; flex-direction: column; align-items: center;
-    justify-content: center; padding: 26px 16px; text-align: center; gap: 12px;
-    position: relative; z-index: 1;
+  .faceoff-stage-container {
+    position: relative; width: 100%; max-width: 980px;
+    display: flex; flex-direction: column; align-items: center;
+    perspective: 1200px;
   }
 
-  /* Measured Entrances */
-  .faceoff-left {
-    background: linear-gradient(135deg, rgba(0, 229, 255, 0.25) 0%, rgba(0, 0, 0, 0.75) 100%);
-    animation: animeSlideLeft 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+  .faceoff-top-bar {
+    width: 100%; display: flex; justify-content: space-between; align-items: center;
+    background: rgba(6, 11, 16, 0.92); border: 1px solid rgba(79, 255, 210, 0.35);
+    border-radius: 12px; padding: 10px 20px; margin-bottom: 12px;
   }
-  .faceoff-right {
-    background: linear-gradient(225deg, rgba(255, 68, 68, 0.25) 0%, rgba(0, 0, 0, 0.75) 100%);
-    animation: animeSlideRight 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.9s both;
+  .faceoff-top-bar .title {
+    font-size: 13px; font-weight: 900; letter-spacing: 2px;
+    color: #4fffd2; text-transform: uppercase; display: flex; align-items: center; gap: 8px;
   }
-  @keyframes animeSlideLeft {
-    0% { transform: translateX(-180px); opacity: 0; filter: blur(5px); }
-    100% { transform: translateX(0); opacity: 1; filter: blur(0); }
+  .faceoff-close-btn {
+    background: none; border: none; font-size: 24px; font-weight: bold;
+    color: #8fa5af; cursor: pointer; line-height: 1; transition: color 0.2s;
   }
-  @keyframes animeSlideRight {
-    0% { transform: translateX(180px); opacity: 0; filter: blur(5px); }
-    100% { transform: translateX(0); opacity: 1; filter: blur(0); }
-  }
+  .faceoff-close-btn:hover { color: #ffffff; }
 
-  /* Central VS Badge: Landing at 2.6s */
-  .faceoff-vs-shield {
-    position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 64px; height: 64px; border-radius: 50%;
-    background: radial-gradient(circle, #202b42 0%, #080c14 100%);
-    border: 2.5px solid var(--accent);
+  /* Duel Arena Zone */
+  .arena-duel-zone {
+    position: relative; width: 100%; height: 460px;
     display: flex; align-items: center; justify-content: center;
-    font-family: var(--font-heading); font-size: 22px; font-weight: 900;
-    color: var(--accent); z-index: 3;
-    animation: vsSlamImpact 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) 2.6s both;
+    overflow: hidden;
+  }
+  .arena-backdrop {
+    position: absolute; inset: 0; display: flex; pointer-events: none; opacity: 0.85;
+  }
+  .backdrop-half.left {
+    flex: 1; background: radial-gradient(circle at 20% 50%, rgba(79, 255, 210, 0.12) 0%, transparent 70%);
+  }
+  .backdrop-half.right {
+    flex: 1; background: radial-gradient(circle at 80% 50%, rgba(255, 82, 82, 0.12) 0%, transparent 70%);
+  }
+
+  /* 3.2s Smooth Cinematic Slide-in Animations */
+  .card-slot {
+    position: absolute; top: 15px; display: flex; flex-direction: column; align-items: center;
+    will-change: transform, opacity;
+  }
+  .card-slot.left-fighter {
+    left: 40px; animation: slowSlideInLeft 3.2s cubic-bezier(0.12, 0.88, 0.22, 1) both;
+  }
+  .card-slot.right-fighter {
+    right: 40px; animation: slowSlideInRight 3.2s cubic-bezier(0.12, 0.88, 0.22, 1) both;
+  }
+  @keyframes slowSlideInLeft {
+    0% { transform: translateX(-520px) rotateY(18deg) scale(0.9); opacity: 0; filter: blur(10px); }
+    40% { opacity: 0.6; filter: blur(4px); }
+    100% { transform: translateX(0) rotateY(6deg) scale(1); opacity: 1; filter: blur(0); }
+  }
+  @keyframes slowSlideInRight {
+    0% { transform: translateX(520px) rotateY(-18deg) scale(0.9); opacity: 0; filter: blur(10px); }
+    40% { opacity: 0.6; filter: blur(4px); }
+    100% { transform: translateX(0) rotateY(-6deg) scale(1); opacity: 1; filter: blur(0); }
+  }
+
+  /* Central VS Shield */
+  .faceoff-vs-shield {
+    position: absolute; top: 48%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 66px; height: 66px; border-radius: 50%;
+    background: radial-gradient(circle, #15222b 0%, #060a0d 100%);
+    border: 2px solid #4fffd2;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 900;
+    color: #4fffd2; z-index: 10;
+    box-shadow: 0 0 25px rgba(79, 255, 210, 0.45);
+    animation: vsPopIn 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) 2.9s both;
   }
   .faceoff-vs-shield::after {
     content: ""; position: absolute; inset: -12px; border-radius: 50%;
-    border: 2.5px solid var(--accent);
-    animation: shockwaveBurst 2.4s ease-out 3.7s infinite;
+    border: 2px solid #4fffd2; animation: vsShockwave 2.2s ease-out 3.7s infinite;
+    pointer-events: none;
   }
-  @keyframes vsSlamImpact {
-    0% { transform: translate(-50%, -50%) scale(3.5); opacity: 0; filter: blur(8px); }
-    60% { transform: translate(-50%, -50%) scale(0.9); opacity: 1; filter: blur(0); }
-    80% { transform: translate(-50%, -50%) scale(1.1); }
+  @keyframes vsPopIn {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 0; filter: blur(8px); }
+    70% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; filter: blur(0); }
     100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
   }
-  @keyframes shockwaveBurst {
-    0% { transform: scale(0.8); opacity: 1; }
+  @keyframes vsShockwave {
+    0% { transform: scale(0.85); opacity: 0.9; }
     100% { transform: scale(2.4); opacity: 0; }
   }
 
-  .faceoff-ovr-box {
-    font-family: var(--font-heading); font-size: 30px; font-weight: 900;
+  /* Cyber Frame Structure */
+  .cyber-frame-wrapper {
+    position: relative; width: 275px; height: 405px;
+    display: flex; align-items: center; justify-content: center;
   }
-  .faceoff-stat-strip {
-    background: rgba(0,0,0,0.65); padding: 16px 22px;
-    border-top: 1px solid var(--border-strong);
+  .tech-chassis-svg {
+    position: absolute; inset: -14px; width: calc(100% + 28px); height: calc(100% + 28px);
+    pointer-events: none; z-index: 4;
+  }
+  .left-fighter .tech-chassis-svg { filter: drop-shadow(0 0 8px rgba(79, 255, 210, 0.45)); }
+  .right-fighter .tech-chassis-svg { filter: drop-shadow(0 0 8px rgba(255, 82, 82, 0.45)); }
+
+  .cyber-card-shell {
+    position: relative; width: 100%; height: 100%;
+    background: linear-gradient(180deg, #0e171b 0%, #080d10 60%, #05080a 100%);
+    border-radius: 14px; overflow: hidden; display: flex; flex-direction: column;
+  }
+  .left-fighter .cyber-card-shell {
+    border: 1.5px solid #4fffd2;
+    box-shadow: 0 0 25px rgba(54, 199, 162, 0.25), inset 0 0 35px rgba(0, 0, 0, 0.85);
+  }
+  .right-fighter .cyber-card-shell {
+    border: 1.5px solid #ff5252;
+    box-shadow: 0 0 25px rgba(255, 82, 82, 0.25), inset 0 0 35px rgba(0, 0, 0, 0.85);
+  }
+  .card-bg-graphics {
+    position: absolute; inset: 0; pointer-events: none; z-index: 1; opacity: 0.18;
+    background: 
+      linear-gradient(135deg, transparent 40%, rgba(255, 255, 255, 0.1) 40%, rgba(255, 255, 255, 0.1) 41%, transparent 41%),
+      linear-gradient(225deg, transparent 40%, rgba(255, 255, 255, 0.1) 40%, rgba(255, 255, 255, 0.1) 41%, transparent 41%);
+    background-size: 100% 100%;
   }
 
-  /* Extended Bar Shift: 3.5s smooth transition */
-  .faceoff-prob-bar {
-    display: flex; height: 10px; border-radius: 5px; overflow: hidden;
-    background: #141a24; margin-top: 8px; border: 1px solid rgba(255,255,255,0.1);
+  .cyber-card-header {
+    position: relative; z-index: 3; display: flex; justify-content: space-between;
+    align-items: flex-start; padding: 12px 14px 0;
   }
-  .faceoff-prob-fill-a {
-    background: linear-gradient(90deg, #00e5ff, var(--accent));
+  .cyber-team-crest { width: 38px; height: 38px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.8)); }
+  .cyber-ovr-badge {
+    background: rgba(9, 16, 20, 0.92); border-radius: 4px;
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%);
+    padding: 3px 10px 5px; text-align: center; min-width: 52px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+  }
+  .left-fighter .cyber-ovr-badge { border: 1px solid rgba(79, 255, 210, 0.35); }
+  .right-fighter .cyber-ovr-badge { border: 1px solid rgba(255, 82, 82, 0.35); }
+  .cyber-ovr-number {
+    font-family: 'Teko', sans-serif; font-size: 34px; font-weight: 700;
+    line-height: 0.85; color: #ffffff; letter-spacing: 1px;
+  }
+  .cyber-ovr-label {
+    font-family: 'Rajdhani', sans-serif; font-size: 10px; font-weight: 800;
+    color: #92a4ad; letter-spacing: 1.5px; line-height: 1; margin-top: 2px;
+  }
+
+  .cyber-portrait-stage {
+    position: relative; flex: 1; margin-top: -24px; z-index: 2;
+    display: flex; justify-content: center; align-items: flex-end;
+  }
+  .cyber-cutout-img {
+    width: 215px; height: auto; max-height: 245px; object-fit: cover;
+    object-position: top center; filter: contrast(1.05) drop-shadow(0 10px 18px rgba(0, 0, 0, 0.85));
+    mask-image: linear-gradient(to bottom, black 76%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 76%, transparent 100%);
+  }
+
+  .cyber-name-bar {
+    position: relative; z-index: 3; margin: 0 6px;
+    background: linear-gradient(90deg, rgba(8, 14, 18, 0.95) 0%, rgba(13, 24, 29, 0.95) 50%, rgba(8, 14, 18, 0.95) 100%);
+    padding: 5px 0 3px; text-align: center;
+  }
+  .left-fighter .cyber-name-bar {
+    border-top: 1.5px solid #4fffd2; border-bottom: 1.5px solid #4fffd2;
+    box-shadow: 0 0 12px rgba(79, 255, 210, 0.2);
+  }
+  .right-fighter .cyber-name-bar {
+    border-top: 1.5px solid #ff5252; border-bottom: 1.5px solid #ff5252;
+    box-shadow: 0 0 12px rgba(255, 82, 82, 0.2);
+  }
+  .cyber-player-name {
+    font-family: 'Teko', sans-serif; font-size: 30px; font-weight: 700;
+    letter-spacing: 3px; text-transform: uppercase; color: #ffffff;
+    line-height: 1; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+  }
+
+  .cyber-stats-tray {
+    position: relative; z-index: 3; display: grid; grid-template-columns: repeat(4, 1fr);
+    background: rgba(6, 11, 14, 0.96); padding: 8px 6px 12px; margin: 0 6px 6px;
+    border-radius: 0 0 8px 8px;
+  }
+  .cyber-stat-col {
+    display: flex; flex-direction: column; align-items: center; position: relative;
+  }
+  .cyber-stat-col:not(:last-child)::after {
+    content: ""; position: absolute; right: 0; top: 15%; height: 70%; width: 1px;
+    background: rgba(255, 255, 255, 0.12);
+  }
+  .cyber-stat-col .label {
+    font-size: 10px; font-weight: 700; color: #8da0a9; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .cyber-stat-col .val {
+    font-family: 'Teko', sans-serif; font-size: 24px; font-weight: 700; color: #ffffff;
+    line-height: 1; margin-top: 1px;
+  }
+
+  .cyber-reflection {
+    width: 250px; height: 35px; margin-top: 6px; filter: blur(5px); transform: scaleY(0.4); opacity: 0.8;
+  }
+  .left-fighter .cyber-reflection { background: radial-gradient(ellipse at 50% 0%, rgba(79, 255, 210, 0.35) 0%, transparent 80%); }
+  .right-fighter .cyber-reflection { background: radial-gradient(ellipse at 50% 0%, rgba(255, 82, 82, 0.35) 0%, transparent 80%); }
+
+  /* Bottom Esports Probability Bar */
+  .cyber-prob-panel {
+    position: relative; width: 100%; max-width: 820px;
+    background: rgba(6, 11, 16, 0.92); border: 1.5px solid rgba(79, 255, 210, 0.35);
+    border-radius: 14px; padding: 16px 24px; margin-top: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(79, 255, 210, 0.12);
+    animation: probPanelSlideUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) 3.1s both;
+  }
+  @keyframes probPanelSlideUp {
+    0% { transform: translateY(30px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+
+  .cyber-prob-meta {
+    text-align: center; font-size: 11px; font-weight: 800; color: #8fa5af;
+    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px;
+  }
+  .cyber-prob-labels {
+    display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;
+  }
+  .player-prob-tag { display: flex; align-items: baseline; gap: 8px; }
+  .player-prob-tag .name { font-size: 15px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+  .player-prob-tag .wins { font-size: 11px; color: #8fa5af; font-weight: 600; }
+  .player-prob-tag.left { color: #4fffd2; }
+  .player-prob-tag.right { color: #ff5252; }
+  .prob-center-tag {
+    font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: #ffffff; opacity: 0.75; text-transform: uppercase;
+  }
+
+  .prob-digits-row {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;
+  }
+  .cyber-prob-num {
+    font-family: 'Teko', sans-serif; font-size: 28px; font-weight: 700; line-height: 1; letter-spacing: 0.5px;
+  }
+  .cyber-prob-num.left { color: #4fffd2; text-shadow: 0 0 10px rgba(79, 255, 210, 0.5); }
+  .cyber-prob-num.right { color: #ff5252; text-shadow: 0 0 10px rgba(255, 82, 82, 0.5); }
+
+  .cyber-prob-track-outer {
+    position: relative; height: 14px; background: #0d161d;
+    border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 7px; overflow: hidden;
+    display: flex; padding: 1.5px;
+  }
+  .cyber-prob-fill-left {
+    height: 100%; width: 50%;
+    background: linear-gradient(90deg, #1de9b6, #4fffd2); border-radius: 5px 0 0 5px;
+    box-shadow: 0 0 12px rgba(79, 255, 210, 0.6);
     transition: width 3.5s cubic-bezier(0.2, 0.8, 0.25, 1);
   }
-  .faceoff-prob-fill-b {
-    background: linear-gradient(90deg, #ff5252, #ff7979);
+  .cyber-prob-fill-right {
+    height: 100%; width: 50%;
+    background: linear-gradient(90deg, #ff7979, #ff5252); border-radius: 0 5px 5px 0;
+    box-shadow: 0 0 12px rgba(255, 82, 82, 0.6);
     transition: width 3.5s cubic-bezier(0.2, 0.8, 0.25, 1);
   }
 
-  /* H2H Modal */
+  /* Tale of the Tape Modal */
   .h2h-modal-overlay {
     position: fixed; inset: 0; background: rgba(0, 0, 0, 0.78);
     backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center;
@@ -560,7 +689,7 @@
   .stat-card .label { font-size: 11px; color: var(--text-muted); }
   .stat-card .value { font-size: 15px; font-weight: bold; color: var(--text-primary); }
   .player-name-link { color: var(--accent); text-decoration: underline; cursor: pointer; background: none; border: none; font-size: 14px; padding: 0; font-family: var(--font-body); }
-/* comment ==> 04. CSS Components (Cards, Buttons, Inputs, Tables) ends here */
+/* comment ==> 04. CSS Components (Cards, Buttons, Inputs, Tables) ends here */ 
  
 /* comment ==> 05. CSS Player Avatar & Badge System starts from here */
   .player-badge-col {
@@ -5307,14 +5436,12 @@
 
   setTimeout(() => refreshPlayerStreaks(), 1000);
 
-  /* Gradual Digital Percentage Roll (3500ms duration) */
-  function runDigitalCounter(el, targetVal, duration = 3500) {
+  /* Gradual Digital Counter (3500ms Duration) */
+  function runDigitalCounter(el, startVal, targetVal, duration = 3500) {
     if (!el) return;
-    const startVal = 50;
     const startTime = performance.now();
     function step(now) {
       const elapsed = Math.min((now - startTime) / duration, 1);
-      // Soft-out deceleration curve
       const ease = 1 - Math.pow(1 - elapsed, 2.8);
       const cur = Math.round(startVal + (targetVal - startVal) * ease);
       el.textContent = cur + "%";
@@ -5323,7 +5450,62 @@
     requestAnimationFrame(step);
   }
 
-  /* 3. Cinematic Clash Screen with Staged Odds Reveal */
+  /* Helper: Build Single Cyber Esports Card HTML */
+  function buildCyberEsportsCardHtml(sideName, themeColor, strokeColor) {
+    const p = poolPlayers.find(x => x.name.trim().toLowerCase() === sideName.trim().toLowerCase()) || {};
+    const ovr = computePlayerOVR(sideName);
+    const photo = p.photoUrl || p.imageUrl;
+    const attrs = computePlayerRadarAttributes(p, []);
+
+    const avatarHtml = photo
+      ? `<img class="cyber-cutout-img" src="${convertImageUrl(photo)}" alt="${sideName}">`
+      : `<div class="cyber-cutout-img" style="display:flex; align-items:center; justify-content:center; font-family:'Teko'; font-size:80px; color:${themeColor}; background:#141c24;">${(sideName || "?").slice(0, 2).toUpperCase()}</div>`;
+
+    return `
+      <div class="cyber-frame-wrapper">
+        <svg class="tech-chassis-svg" viewBox="0 0 348 468" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 50 10 L 22 10 L 10 22 L 10 70 L 16 76 L 16 120" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M 298 10 L 326 10 L 338 22 L 338 70 L 332 76 L 332 120" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M 16 348 L 16 392 L 10 398 L 10 446 L 22 458 L 70 458 L 78 450 L 130 450" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M 332 348 L 332 392 L 338 398 L 338 446 L 326 458 L 278 458 L 270 450 L 218 450" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="332" y1="150" x2="332" y2="162" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+          <line x1="332" y1="172" x2="332" y2="184" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+          <line x1="16" y1="150" x2="16" y2="162" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+          <line x1="16" y1="172" x2="16" y2="184" stroke="${strokeColor}" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
+        </svg>
+
+        <div class="cyber-card-shell">
+          <div class="card-bg-graphics"></div>
+          <div class="cyber-card-header">
+            <svg class="cyber-team-crest" viewBox="0 0 100 100" fill="none">
+              <path d="M12 18 L46 36 L36 92 L24 82 L34 46 L12 36 Z" fill="#ffffff"/>
+              <path d="M88 18 L54 36 L64 92 L76 82 L66 46 L88 36 Z" fill="#ffffff"/>
+              <path d="M38 52 L62 52 L58 64 L42 64 Z" fill="#ffffff"/>
+            </svg>
+            <div class="cyber-ovr-badge">
+              <div class="cyber-ovr-number">${ovr}</div>
+              <div class="cyber-ovr-label">OVR</div>
+            </div>
+          </div>
+          <div class="cyber-portrait-stage">
+            ${avatarHtml}
+          </div>
+          <div class="cyber-name-bar">
+            <div class="cyber-player-name">${sideName}</div>
+          </div>
+          <div class="cyber-stats-tray">
+            <div class="cyber-stat-col"><span class="label">ATT</span><span class="val">${attrs.ATT}</span></div>
+            <div class="cyber-stat-col"><span class="label">DEF</span><span class="val">${attrs.DEF}</span></div>
+            <div class="cyber-stat-col"><span class="label">CLU</span><span class="val">${attrs.CLU}</span></div>
+            <div class="cyber-stat-col"><span class="label">PED</span><span class="val">${attrs.PED}</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="cyber-reflection"></div>
+    `;
+  }
+
+  /* 3. Cyber Esports Face-Off Modal with 3.2s Entrance & Probability Reveal */
   async function openFaceOffModal(sideA, sideB, matchLabel = "CHAMPIONSHIP FACE-OFF") {
     if (!sideA || !sideB || sideA === sideB) return;
     const overlay = document.createElement("div");
@@ -5388,40 +5570,57 @@
       : `FIRST-TIME CLASH &bull; ELO RATED`;
 
     overlay.innerHTML = `
-      <div class="faceoff-card">
-        <button class="h2h-close-btn" id="faceOffClose" style="color:#fff; z-index:10;">&times;</button>
-        <div class="faceoff-header">${matchLabel}</div>
-        <div class="faceoff-split">
-          <div class="faceoff-side faceoff-left">
-            ${renderPlayerBadge(sideA)}
-            <div class="faceoff-ovr-box" style="color:var(--accent);">${ovrA} OVR</div>
-            <div id="probNumA" style="font-size:16px; font-weight:900; color:var(--accent);">50%</div>
+      <div class="faceoff-stage-container">
+        <!-- Top Bar -->
+        <div class="faceoff-top-bar">
+          <div class="title"><span class="live-pulse-dot" style="width:8px;height:8px;border-radius:50%;background:#4fffd2;box-shadow:0 0 8px #4fffd2;"></span>${matchLabel}</div>
+          <button class="faceoff-close-btn" id="faceOffClose">&times;</button>
+        </div>
+
+        <!-- Cards Duel Zone -->
+        <div class="arena-duel-zone">
+          <div class="arena-backdrop">
+            <div class="backdrop-half left"></div>
+            <div class="backdrop-half right"></div>
           </div>
+
           <div class="faceoff-vs-shield">VS</div>
-          <div class="faceoff-side faceoff-right">
-            ${renderPlayerBadge(sideB)}
-            <div class="faceoff-ovr-box" style="color:#ff5252;">${ovrB} OVR</div>
-            <div id="probNumB" style="font-size:16px; font-weight:900; color:#ff5252;">50%</div>
+
+          <!-- Left Contender (Cyan Cyber Card) -->
+          <div class="card-slot left-fighter">
+            ${buildCyberEsportsCardHtml(sideA, "#4fffd2", "#4fffd2")}
+          </div>
+
+          <!-- Right Contender (Red/Orange Cyber Card) -->
+          <div class="card-slot right-fighter">
+            ${buildCyberEsportsCardHtml(sideB, "#ff5252", "#ff5252")}
           </div>
         </div>
-        <div class="faceoff-stat-strip">
-          <div style="text-align:center; font-size:10px; font-weight:800; color:#8899a6; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">
-            ${h2hTopHeadline}
+
+        <!-- Bottom Cyber Probability Bar Panel -->
+        <div class="cyber-prob-panel">
+          <div class="cyber-prob-meta">${h2hTopHeadline}</div>
+
+          <div class="cyber-prob-labels">
+            <div class="player-prob-tag left">
+              <span class="name">${sideA}</span>
+              ${totalH2H > 0 ? `<span class="wins">(${winsA}W)</span>` : ''}
+            </div>
+            <div class="prob-center-tag">WIN PROBABILITY</div>
+            <div class="player-prob-tag right">
+              ${totalH2H > 0 ? `<span class="wins">(${winsB}W)</span>` : ''}
+              <span class="name">${sideB}</span>
+            </div>
           </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; font-weight:900; letter-spacing:0.5px; gap:10px;">
-            <span style="color:var(--accent); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:40%;">
-              ${sideA}&nbsp;${totalH2H > 0 ? `(${winsA}W)` : ''}
-            </span>
-            <span style="color:#8899a6; font-size:9.5px; text-transform:uppercase; flex-shrink:0; text-align:center;">
-              WIN PROBABILITY
-            </span>
-            <span style="color:#ff5252; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:40%; text-align:right;">
-              ${totalH2H > 0 ? `(${winsB}W)&nbsp;` : ''}${sideB}
-            </span>
+
+          <div class="prob-digits-row">
+            <div class="cyber-prob-num left" id="probNumA">50%</div>
+            <div class="cyber-prob-num right" id="probNumB">50%</div>
           </div>
-          <div class="faceoff-prob-bar">
-            <div id="probBarA" class="faceoff-prob-fill-a" style="width:50%;"></div>
-            <div id="probBarB" class="faceoff-prob-fill-b" style="width:50%;"></div>
+
+          <div class="cyber-prob-track-outer">
+            <div class="cyber-prob-fill-left" id="probBarA"></div>
+            <div class="cyber-prob-fill-right" id="probBarB"></div>
           </div>
         </div>
       </div>
@@ -5431,17 +5630,25 @@
     overlay.querySelector("#faceOffClose").addEventListener("click", () => overlay.remove());
     overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
 
-    // Hold at 50-50 until 3.8s, then smoothly roll to actual odds
+    // Choreographed Timeline:
+    // 0.0s - 3.2s: Both Cyber Cards slide in with smooth deceleration
+    // 2.9s - 3.8s: Central VS Crest pops into place
+    // 3.1s - 4.2s: Bottom probability panel slides up, held at 50% vs 50%
+    // 4.2s - 7.7s: Over 3.5s, meter widths and digital numbers smoothly transition to true odds
     setTimeout(() => {
       const barA = overlay.querySelector("#probBarA");
       const barB = overlay.querySelector("#probBarB");
+      const probNumA = overlay.querySelector("#probNumA");
+      const probNumB = overlay.querySelector("#probNumB");
+
       if (barA && barB) {
         barA.style.width = probA + "%";
         barB.style.width = probB + "%";
       }
-      runDigitalCounter(overlay.querySelector("#probNumA"), probA, 3500);
-      runDigitalCounter(overlay.querySelector("#probNumB"), probB, 3500);
-    }, 3800);
+
+      runDigitalCounter(probNumA, 50, probA, 3500);
+      runDigitalCounter(probNumB, 50, probB, 3500);
+    }, 4200);
   }
 
   /* 4. Tale of the Tape H2H Modal */
