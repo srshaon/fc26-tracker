@@ -6299,33 +6299,111 @@
     showNextUpClashModal(tid, data, chosenMatch, container);
   }
 
-  function showNextUpClashModal(tid, data, match, container) {
+  async function showNextUpClashModal(tid, data, match, container) {
     const overlay = document.createElement("div");
     overlay.className = "faceoff-modal-overlay";
 
     const sideA = match.sideA;
     const sideB = match.sideB;
+
+    // 1. Calculate Probability & Lifetime H2H
     const ovrA = computePlayerOVR(sideA);
     const ovrB = computePlayerOVR(sideB);
+    const ovrDiff = ovrA - ovrB;
+    const pElo = 1 / (1 + Math.pow(10, -ovrDiff / 14));
 
+    let winsA = 0, winsB = 0, draws = 0, totalH2H = 0;
+    try {
+      const snap = await getDocs(collection(db, "tournaments"));
+      snap.forEach(docSnap => {
+        const t = docSnap.data();
+        const matches = [];
+        if (Array.isArray(t.matches)) matches.push(...t.matches);
+        if (t.knockout && Array.isArray(t.knockout.stages)) {
+          t.knockout.stages.forEach(st => { if (Array.isArray(st.matches)) matches.push(...st.matches); });
+        }
+        if (t.finalScore && t.teams) {
+          matches.push({ sideA: t.teams[0].teamName, sideB: t.teams[1].teamName, scoreA: t.finalScore.side1, scoreB: t.finalScore.side2 });
+        }
+
+        matches.forEach(m => {
+          if (m.scoreA === null || m.scoreB === null) return;
+          const isA_B = (m.sideA === sideA && m.sideB === sideB);
+          const isB_A = (m.sideA === sideB && m.sideB === sideA);
+          if (!isA_B && !isB_A) return;
+          totalH2H++;
+          const scA = isA_B ? m.scoreA : m.scoreB;
+          const scB = isA_B ? m.scoreB : m.scoreA;
+          if (scA > scB) winsA++;
+          else if (scB > scA) winsB++;
+          else draws++;
+        });
+      });
+    } catch (err) {}
+
+    let pForm = 0.50;
+    const streakA = window.__playerStreaksCache ? window.__playerStreaksCache[sideA.toUpperCase()] : null;
+    const streakB = window.__playerStreaksCache ? window.__playerStreaksCache[sideB.toUpperCase()] : null;
+    if (streakA === "fire") pForm += 0.12;
+    if (streakA === "ice") pForm -= 0.12;
+    if (streakB === "fire") pForm -= 0.12;
+    if (streakB === "ice") pForm += 0.12;
+
+    const finalProbRatio = totalH2H >= 1
+      ? ((((winsA + 1) / (winsA + winsB + 2)) * 0.55) + (pElo * 0.30) + (pForm * 0.15))
+      : ((pElo * 0.75) + (pForm * 0.25));
+
+    const probA = Math.round(Math.max(0.07, Math.min(0.93, finalProbRatio)) * 100);
+    const probB = 100 - probA;
+
+    const h2hTopHeadline = totalH2H > 0
+      ? `LIFETIME H2H &bull; ${totalH2H} MATCH${totalH2H === 1 ? '' : 'ES'} (${draws} DRAWS)`
+      : `FIRST-TIME CLASH &bull; ELO RATED`;
+
+    // 2. Build Stage Layout
     overlay.innerHTML = `
       <div class="faceoff-stage-container">
         <div class="faceoff-top-bar">
-          <div class="title"><span class="live-pulse-dot" style="background:#00e676;"></span>⚔️ NEXT UP CLASH REVEAL</div>
+          <div class="title"><span class="live-pulse-dot" style="background:#00e676;"></span>⚔️ NEXT UP CLASH DRAW</div>
           <button class="faceoff-close-btn" id="clashModalClose">&times;</button>
         </div>
 
         <div class="arena-duel-zone">
-          <div class="faceoff-vs-shield">VS</div>
-          <div class="card-slot left-fighter">
+          <div class="faceoff-vs-shield" id="clashVsShield" style="opacity:0; transform:translate(-50%, -50%) scale(0);">VS</div>
+          <div class="card-slot left-fighter" id="reelSlotA">
             ${buildCyberEsportsCardHtml(sideA, "#4fffd2", "#4fffd2")}
           </div>
-          <div class="card-slot right-fighter">
+          <div class="card-slot right-fighter" id="reelSlotB">
             ${buildCyberEsportsCardHtml(sideB, "#ff5252", "#ff5252")}
           </div>
         </div>
 
-        <div style="display:flex; justify-content:center; gap:12px; margin-top:14px; width:100%;">
+        <!-- Animated Win Probability Bar -->
+        <div class="cyber-prob-panel" id="clashProbPanel" style="opacity:0; transform:translateY(25px); transition:all 0.6s ease;">
+          <div class="cyber-prob-meta">${h2hTopHeadline}</div>
+          <div class="cyber-prob-labels">
+            <div class="player-prob-tag left">
+              <span class="name">${sideA}</span>
+              ${totalH2H > 0 ? `<span class="wins">(${winsA}W)</span>` : ''}
+            </div>
+            <div class="prob-center-tag">WIN PROBABILITY</div>
+            <div class="player-prob-tag right">
+              ${totalH2H > 0 ? `<span class="wins">(${winsB}W)</span>` : ''}
+              <span class="name">${sideB}</span>
+            </div>
+          </div>
+          <div class="prob-digits-row">
+            <div class="cyber-prob-num left" id="clashProbNumA">50%</div>
+            <div class="cyber-prob-num right" id="clashProbNumB">50%</div>
+          </div>
+          <div class="cyber-prob-track-outer">
+            <div class="cyber-prob-fill-left" id="clashProbBarA" style="width:50%;"></div>
+            <div class="cyber-prob-fill-right" id="clashProbBarB" style="width:50%;"></div>
+          </div>
+        </div>
+
+        <!-- Action Controls -->
+        <div id="clashActionsBar" style="display:flex; justify-content:center; gap:12px; margin-top:14px; width:100%; opacity:0; transition:opacity 0.4s ease;">
           <button class="btn-initiate-clash" id="startClashMatchBtn" style="padding:10px 24px; font-size:15px;">▶ START MATCH</button>
           <button class="toggle-stage-btn" id="skipClashMatchBtn" style="margin:0; padding:10px 18px; font-size:13px; font-weight:bold;">⏭ SKIP DRAW</button>
         </div>
@@ -6336,7 +6414,89 @@
 
     overlay.querySelector("#clashModalClose").addEventListener("click", () => overlay.remove());
 
-    // Skip Button: temporarily adds to rest list and rolls again
+    // 3. Casino Reel Roll Engine
+    const slotA = overlay.querySelector("#reelSlotA");
+    const slotB = overlay.querySelector("#reelSlotB");
+    const vsShield = overlay.querySelector("#clashVsShield");
+    const probPanel = overlay.querySelector("#clashProbPanel");
+    const actionsBar = overlay.querySelector("#clashActionsBar");
+
+    const candidateNames = poolPlayers && poolPlayers.length >= 4 
+      ? poolPlayers.map(p => p.name) 
+      : [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
+
+    let spinInterval = 75;
+    let elapsed = 0;
+    const totalSpinTime = 2200;
+
+    function playReelTick() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.frequency.setValueAtTime(420, ctx.currentTime);
+        g.gain.setValueAtTime(0.04, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+        osc.connect(g);
+        g.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.05);
+      } catch (e) {}
+    }
+
+    slotA.style.filter = "blur(4px)";
+    slotB.style.filter = "blur(4px)";
+
+    const reelTimer = setInterval(() => {
+      elapsed += spinInterval;
+
+      const randomA = candidateNames[Math.floor(Math.random() * candidateNames.length)];
+      const randomB = candidateNames[Math.floor(Math.random() * candidateNames.length)];
+      slotA.innerHTML = buildCyberEsportsCardHtml(randomA, "#4fffd2", "#4fffd2");
+      slotB.innerHTML = buildCyberEsportsCardHtml(randomB, "#ff5252", "#ff5252");
+      playReelTick();
+
+      if (elapsed >= totalSpinTime) {
+        clearInterval(reelTimer);
+
+        // Snap decisively to the actual contenders
+        slotA.style.filter = "none";
+        slotB.style.filter = "none";
+        slotA.innerHTML = buildCyberEsportsCardHtml(sideA, "#4fffd2", "#4fffd2");
+        slotB.innerHTML = buildCyberEsportsCardHtml(sideB, "#ff5252", "#ff5252");
+
+        // Slam central VS
+        vsShield.style.transition = "all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)";
+        vsShield.style.opacity = "1";
+        vsShield.style.transform = "translate(-50%, -50%) scale(1)";
+
+        // Reveal Probability Bar and Buttons
+        setTimeout(() => {
+          probPanel.style.opacity = "1";
+          probPanel.style.transform = "translateY(0)";
+          actionsBar.style.opacity = "1";
+
+          const barA = overlay.querySelector("#clashProbBarA");
+          const barB = overlay.querySelector("#clashProbBarB");
+          const probNumA = overlay.querySelector("#clashProbNumA");
+          const probNumB = overlay.querySelector("#clashProbNumB");
+
+          if (barA && barB) {
+            barA.style.transition = "width 2.2s cubic-bezier(0.2, 0.8, 0.25, 1)";
+            barB.style.transition = "width 2.2s cubic-bezier(0.2, 0.8, 0.25, 1)";
+            barA.style.width = probA + "%";
+            barB.style.width = probB + "%";
+          }
+
+          runDigitalCounter(probNumA, 50, probA, 2200);
+          runDigitalCounter(probNumB, 50, probB, 2200);
+        }, 350);
+      }
+    }, spinInterval);
+
+    // Skip Button Handler
     overlay.querySelector("#skipClashMatchBtn").addEventListener("click", () => {
       overlay.remove();
       const skipRest = [...(sideA.split(" & ")), ...(sideB.split(" & "))];
@@ -6344,7 +6504,7 @@
       launchNextUpClash(tid, tempData, container);
     });
 
-    // Start Match: Locks in Active Match HUD
+    // Start Match Handler
     overlay.querySelector("#startClashMatchBtn").addEventListener("click", async () => {
       overlay.remove();
       const nextPtr = data.groups ? ((data.nextGroupPointer ?? 0) + 1) % data.groups.length : 0;
