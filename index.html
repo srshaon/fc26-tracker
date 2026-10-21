@@ -3708,10 +3708,10 @@
     const finishedMatches = data.matches.filter(m => m.scoreA !== null && m.scoreB !== null).length;
     const toPlayMatches = totalMatches - finishedMatches;
 
-    // --- NEXT UP CLASH HUD & TRIGGER ---
-    const allGroupMatchesDone = data.matches.every(m => m.scoreA !== null && m.scoreB !== null);
+// --- NEXT UP CLASH HUD & TRIGGER ---
+    const isGroupStageFinished = data.matches.every(m => m.scoreA !== null && m.scoreB !== null);
 
-    if (data.clashMode && !allGroupMatchesDone) {
+    if (data.clashMode && !isGroupStageFinished) {
       const clashHub = document.createElement("div");
 
       // Find if a match is actively in progress
@@ -3778,7 +3778,7 @@
       <button type="button" class="filter-pill" data-filter="finished">Finished (${finishedMatches})</button>
     `;
     // Only show filter bar if not in clash mode, or when finished
-    if (!data.clashMode || allGroupMatchesDone) {
+    if (!data.clashMode || isGroupStageFinished) {
       container.appendChild(filterBar);
     }
 
