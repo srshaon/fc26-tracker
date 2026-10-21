@@ -382,23 +382,23 @@
   /* CYBER ESPORTS CINEMATIC FACE-OFF MODAL & PROBABILITY BAR   */
   /* ========================================================= */
   .faceoff-modal-overlay {
-    position: fixed; inset: 0; background: rgba(5, 7, 12, 0.95);
+    position: fixed; inset: 0; background: rgba(5, 7, 12, 0.96);
     backdrop-filter: blur(14px); display: flex; align-items: center; justify-content: center;
-    z-index: 99999; padding: 14px; animation: modalFadeIn 0.4s ease;
-    overflow-y: auto;
+    z-index: 99999; padding: 10px; animation: modalFadeIn 0.4s ease;
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
   }
   @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
   .faceoff-stage-container {
     position: relative; width: 100%; max-width: 980px;
     display: flex; flex-direction: column; align-items: center;
-    perspective: 1200px;
+    perspective: 1200px; margin: auto;
   }
 
   .faceoff-top-bar {
     width: 100%; display: flex; justify-content: space-between; align-items: center;
     background: rgba(6, 11, 16, 0.92); border: 1px solid rgba(79, 255, 210, 0.35);
-    border-radius: 12px; padding: 10px 20px; margin-bottom: 12px;
+    border-radius: 12px; padding: 10px 16px; margin-bottom: 8px;
   }
   .faceoff-top-bar .title {
     font-size: 13px; font-weight: 900; letter-spacing: 2px;
@@ -410,14 +410,14 @@
   }
   .faceoff-close-btn:hover { color: #ffffff; }
 
-  /* Duel Arena Zone */
+  /* Duel Arena Zone (Flex Container to prevent overlap) */
   .arena-duel-zone {
-    position: relative; width: 100%; height: 460px;
-    display: flex; align-items: center; justify-content: center;
+    position: relative; width: 100%; height: 450px;
+    display: flex; align-items: center; justify-content: space-around;
     overflow: hidden;
   }
   .arena-backdrop {
-    position: absolute; inset: 0; display: flex; pointer-events: none; opacity: 0.85;
+    position: absolute; inset: 0; display: flex; pointer-events: none; opacity: 0.85; z-index: 0;
   }
   .backdrop-half.left {
     flex: 1; background: radial-gradient(circle at 20% 50%, rgba(79, 255, 210, 0.12) 0%, transparent 70%);
@@ -426,25 +426,26 @@
     flex: 1; background: radial-gradient(circle at 80% 50%, rgba(255, 82, 82, 0.12) 0%, transparent 70%);
   }
 
-  /* 3.2s Smooth Cinematic Slide-in Animations */
+  /* Responsive Card Slots */
   .card-slot {
-    position: absolute; top: 15px; display: flex; flex-direction: column; align-items: center;
+    position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center;
     will-change: transform, opacity;
   }
   .card-slot.left-fighter {
-    left: 40px; animation: slowSlideInLeft 3.2s cubic-bezier(0.12, 0.88, 0.22, 1) both;
+    animation: slowSlideInLeft 3.2s cubic-bezier(0.12, 0.88, 0.22, 1) both;
   }
   .card-slot.right-fighter {
-    right: 40px; animation: slowSlideInRight 3.2s cubic-bezier(0.12, 0.88, 0.22, 1) both;
+    animation: slowSlideInRight 3.2s cubic-bezier(0.12, 0.88, 0.22, 1) both;
   }
+
   @keyframes slowSlideInLeft {
-    0% { transform: translateX(-520px) rotateY(18deg) scale(0.9); opacity: 0; filter: blur(10px); }
-    40% { opacity: 0.6; filter: blur(4px); }
+    0% { transform: translateX(-240px) rotateY(18deg) scale(0.85); opacity: 0; filter: blur(8px); }
+    40% { opacity: 0.6; filter: blur(3px); }
     100% { transform: translateX(0) rotateY(6deg) scale(1); opacity: 1; filter: blur(0); }
   }
   @keyframes slowSlideInRight {
-    0% { transform: translateX(520px) rotateY(-18deg) scale(0.9); opacity: 0; filter: blur(10px); }
-    40% { opacity: 0.6; filter: blur(4px); }
+    0% { transform: translateX(240px) rotateY(-18deg) scale(0.85); opacity: 0; filter: blur(8px); }
+    40% { opacity: 0.6; filter: blur(3px); }
     100% { transform: translateX(0) rotateY(-6deg) scale(1); opacity: 1; filter: blur(0); }
   }
 
@@ -452,17 +453,17 @@
   .faceoff-vs-shield {
     position: absolute; top: 48%; left: 50%;
     transform: translate(-50%, -50%);
-    width: 66px; height: 66px; border-radius: 50%;
+    width: 60px; height: 60px; border-radius: 50%;
     background: radial-gradient(circle, #15222b 0%, #060a0d 100%);
     border: 2px solid #4fffd2;
     display: flex; align-items: center; justify-content: center;
-    font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 900;
+    font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 900;
     color: #4fffd2; z-index: 10;
     box-shadow: 0 0 25px rgba(79, 255, 210, 0.45);
     animation: vsPopIn 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) 2.9s both;
   }
   .faceoff-vs-shield::after {
-    content: ""; position: absolute; inset: -12px; border-radius: 50%;
+    content: ""; position: absolute; inset: -10px; border-radius: 50%;
     border: 2px solid #4fffd2; animation: vsShockwave 2.2s ease-out 3.7s infinite;
     pointer-events: none;
   }
@@ -480,6 +481,7 @@
   .cyber-frame-wrapper {
     position: relative; width: 275px; height: 405px;
     display: flex; align-items: center; justify-content: center;
+    transform-origin: center center;
   }
   .tech-chassis-svg {
     position: absolute; inset: -14px; width: calc(100% + 28px); height: calc(100% + 28px);
@@ -513,17 +515,17 @@
     position: relative; z-index: 3; display: flex; justify-content: space-between;
     align-items: flex-start; padding: 12px 14px 0;
   }
-  .cyber-team-crest { width: 38px; height: 38px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.8)); }
+  .cyber-team-crest { width: 36px; height: 36px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.8)); }
   .cyber-ovr-badge {
     background: rgba(9, 16, 20, 0.92); border-radius: 4px;
     clip-path: polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%);
-    padding: 3px 10px 5px; text-align: center; min-width: 52px;
+    padding: 3px 10px 5px; text-align: center; min-width: 48px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
   }
   .left-fighter .cyber-ovr-badge { border: 1px solid rgba(79, 255, 210, 0.35); }
   .right-fighter .cyber-ovr-badge { border: 1px solid rgba(255, 82, 82, 0.35); }
   .cyber-ovr-number {
-    font-family: 'Teko', sans-serif; font-size: 34px; font-weight: 700;
+    font-family: 'Teko', sans-serif; font-size: 32px; font-weight: 700;
     line-height: 0.85; color: #ffffff; letter-spacing: 1px;
   }
   .cyber-ovr-label {
@@ -556,8 +558,8 @@
     box-shadow: 0 0 12px rgba(255, 82, 82, 0.2);
   }
   .cyber-player-name {
-    font-family: 'Teko', sans-serif; font-size: 30px; font-weight: 700;
-    letter-spacing: 3px; text-transform: uppercase; color: #ffffff;
+    font-family: 'Teko', sans-serif; font-size: 28px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase; color: #ffffff;
     line-height: 1; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
   }
 
@@ -574,15 +576,15 @@
     background: rgba(255, 255, 255, 0.12);
   }
   .cyber-stat-col .label {
-    font-size: 10px; font-weight: 700; color: #8da0a9; letter-spacing: 1px; text-transform: uppercase;
+    font-size: 9px; font-weight: 700; color: #8da0a9; letter-spacing: 1px; text-transform: uppercase;
   }
   .cyber-stat-col .val {
-    font-family: 'Teko', sans-serif; font-size: 24px; font-weight: 700; color: #ffffff;
+    font-family: 'Teko', sans-serif; font-size: 22px; font-weight: 700; color: #ffffff;
     line-height: 1; margin-top: 1px;
   }
 
   .cyber-reflection {
-    width: 250px; height: 35px; margin-top: 6px; filter: blur(5px); transform: scaleY(0.4); opacity: 0.8;
+    width: 250px; height: 30px; margin-top: 6px; filter: blur(5px); transform: scaleY(0.4); opacity: 0.8;
   }
   .left-fighter .cyber-reflection { background: radial-gradient(ellipse at 50% 0%, rgba(79, 255, 210, 0.35) 0%, transparent 80%); }
   .right-fighter .cyber-reflection { background: radial-gradient(ellipse at 50% 0%, rgba(255, 82, 82, 0.35) 0%, transparent 80%); }
@@ -591,7 +593,7 @@
   .cyber-prob-panel {
     position: relative; width: 100%; max-width: 820px;
     background: rgba(6, 11, 16, 0.92); border: 1.5px solid rgba(79, 255, 210, 0.35);
-    border-radius: 14px; padding: 16px 24px; margin-top: 10px;
+    border-radius: 14px; padding: 14px 20px; margin-top: 8px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(79, 255, 210, 0.12);
     animation: probPanelSlideUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) 3.1s both;
   }
@@ -641,6 +643,116 @@
     background: linear-gradient(90deg, #ff7979, #ff5252); border-radius: 0 5px 5px 0;
     box-shadow: 0 0 12px rgba(255, 82, 82, 0.6);
     transition: width 3.5s cubic-bezier(0.2, 0.8, 0.25, 1);
+  }
+
+  /* Mobile Breakpoints: Proportional scaling for phones */
+  @media (max-width: 768px) {
+    .faceoff-modal-overlay {
+      padding: 6px;
+      align-items: flex-start;
+    }
+    .faceoff-stage-container {
+      max-width: 100%;
+    }
+    .arena-duel-zone {
+      height: 330px;
+      justify-content: center;
+      gap: 12px;
+    }
+    .cyber-frame-wrapper {
+      width: 170px;
+      height: 260px;
+    }
+    .card-slot.left-fighter {
+      transform-origin: right center;
+    }
+    .card-slot.right-fighter {
+      transform-origin: left center;
+    }
+    .cyber-card-header {
+      padding: 8px 10px 0;
+    }
+    .cyber-team-crest {
+      width: 26px;
+      height: 26px;
+    }
+    .cyber-ovr-badge {
+      padding: 2px 6px 3px;
+      min-width: 38px;
+    }
+    .cyber-ovr-number {
+      font-size: 22px;
+    }
+    .cyber-ovr-label {
+      font-size: 8px;
+    }
+    .cyber-portrait-stage {
+      margin-top: -14px;
+    }
+    .cyber-cutout-img {
+      width: 140px;
+      max-height: 155px;
+    }
+    .cyber-name-bar {
+      padding: 3px 0 2px;
+    }
+    .cyber-player-name {
+      font-size: 20px;
+      letter-spacing: 1.5px;
+    }
+    .cyber-stats-tray {
+      padding: 5px 4px 8px;
+      margin: 0 4px 4px;
+    }
+    .cyber-stat-col .label {
+      font-size: 8px;
+      letter-spacing: 0.5px;
+    }
+    .cyber-stat-col .val {
+      font-size: 16px;
+    }
+    .faceoff-vs-shield {
+      width: 44px;
+      height: 44px;
+      font-size: 15px;
+      top: 45%;
+    }
+    .cyber-reflection {
+      width: 150px;
+      height: 20px;
+    }
+    .cyber-prob-panel {
+      padding: 12px 14px;
+      margin-top: 6px;
+    }
+    .player-prob-tag .name {
+      font-size: 13px;
+    }
+    .cyber-prob-num {
+      font-size: 24px;
+    }
+    .prob-center-tag {
+      font-size: 9px;
+    }
+    .cyber-prob-meta {
+      font-size: 9.5px;
+      letter-spacing: 1px;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .cyber-frame-wrapper {
+      width: 150px;
+      height: 235px;
+    }
+    .cyber-cutout-img {
+      width: 120px;
+      max-height: 135px;
+    }
+    .arena-duel-zone {
+      height: 290px;
+      gap: 6px;
+    }
   }
 
   /* Tale of the Tape Modal */
@@ -5505,7 +5617,7 @@
     `;
   }
 
-  /* 3. Cyber Esports Face-Off Modal with 3.2s Entrance & Probability Reveal */
+  /* 3. Cyber Esports Face-Off Modal with Responsive 3.2s Entrance & Probability Reveal */
   async function openFaceOffModal(sideA, sideB, matchLabel = "CHAMPIONSHIP FACE-OFF") {
     if (!sideA || !sideB || sideA === sideB) return;
     const overlay = document.createElement("div");
@@ -5690,7 +5802,7 @@
         const allMatches = [];
         if (Array.isArray(t.matches)) allMatches.push(...t.matches);
         if (t.knockout && Array.isArray(t.knockout.stages)) {
-          t.knockout.stages.forEach(st => { if (Array.isArray(st.matches)) allMatches.push(...st.matches); });
+          t.knockout.stages.forEach(st => { if (Array.isArray(st.matches)) matches.push(...st.matches); });
         }
         if (t.finalScore && t.teams) {
           allMatches.push({ sideA: t.teams[0].teamName, sideB: t.teams[1].teamName, scoreA: t.finalScore.side1, scoreB: t.finalScore.side2 });
