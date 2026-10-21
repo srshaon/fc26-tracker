@@ -3752,6 +3752,20 @@
           updateDoc(doc(db, "tournaments", tid), { activeClashMatchId: null, lastDrawnPlayers: justPlayed });
           saveGroupMatch(tid, data, activeIdx, container, e.target);
         });
+
+        // Enable +/- stepper buttons on the Active Clash Card
+        clashHub.addEventListener("click", (e) => {
+          const btn = e.target.closest(".stepper-btn");
+          if (!btn) return;
+          e.preventDefault();
+          const wrap = btn.closest(".stepper-wrap");
+          const input = wrap.querySelector("input[type=number]");
+          let val = parseInt(input.value, 10);
+          if (isNaN(val)) val = 0;
+          if (btn.classList.contains("stepper-plus")) val++;
+          else if (btn.classList.contains("stepper-minus")) val = Math.max(0, val - 1);
+          input.value = val;
+        });
       } else if (currentAdmin) {
         clashHub.innerHTML = `
           <div class="clash-trigger-wrap">
