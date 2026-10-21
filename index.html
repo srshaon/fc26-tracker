@@ -3742,11 +3742,11 @@
             ${currentAdmin ? `<button class="match-save-btn" id="saveActiveClashBtn" style="margin-top:10px !important;">Save Score & End Match</button>` : ''}
           </div>
         `;
-        clashHub.querySelector("#saveActiveClashBtn")?.addEventListener("click", (e) => {
+        clashHub.querySelector("#saveActiveClashBtn")?.addEventListener("click", async (e) => {
           e.target.disabled = true;
           // Register cooldown for these players
           const justPlayed = [...(activeMatch.sideA.split(" & ")), ...(activeMatch.sideB.split(" & "))];
-          updateDoc(doc(db, "tournaments", tid), { activeClashMatchId: null, lastDrawnPlayers: justPlayed });
+          await updateDoc(doc(db, "tournaments", tid), { activeClashMatchId: null, lastDrawnPlayers: justPlayed });
           saveGroupMatch(tid, data, activeIdx, container, e.target);
         });
 
@@ -6256,34 +6256,42 @@
  /* ========================================================= */
   /* NEXT UP CLASH ENGINE: COOLDOWNS, ROTATION & DRAW REEL     */
   /* ========================================================= */
-  async function launchNextUpClash(tid, data, container) {
+  async function launchNextUpClash(tid, data, container, forcedGroup = null) {
     if (!currentAdmin) return;
-    const unplayed = data.matches.filter(m => m.scoreA === null || m.scoreB === null);
+
+    // Fetch fresh tournament data directly from Firestore so nextGroupPointer is never stale
+    const snap = await getDoc(doc(db, "tournaments", tid));
+    if (!snap.exists()) return;
+    const freshData = snap.data();
+
+    const unplayed = freshData.matches.filter(m => m.scoreA === null || m.scoreB === null);
     if (unplayed.length === 0) {
       showToast("All group stage matches have been played!", "info");
       return;
     }
 
     let candidatePool = [...unplayed];
+    let chosenGroup = forcedGroup !== null ? forcedGroup : (freshData.nextGroupPointer ?? 0);
 
-    // 1. Group Stage Rotation Filter (if tournament has groups)
-    if (data.groups && data.groups.length > 1) {
-      let activeGroup = data.nextGroupPointer ?? 0;
-      let groupMatches = candidatePool.filter(m => m.groupIndex === activeGroup);
+    // 1. Group Rotation Logic
+    if (freshData.groups && freshData.groups.length > 1) {
+      let groupMatches = candidatePool.filter(m => m.groupIndex === chosenGroup);
 
-      // If active group is depleted, advance until we find one with unplayed games
+      // If active group has no unplayed matches left, cycle forward until we find one that does
       if (groupMatches.length === 0) {
-        for (let step = 1; step <= data.groups.length; step++) {
-          activeGroup = (activeGroup + 1) % data.groups.length;
-          groupMatches = candidatePool.filter(m => m.groupIndex === activeGroup);
+        for (let step = 1; step <= freshData.groups.length; step++) {
+          chosenGroup = (chosenGroup + 1) % freshData.groups.length;
+          groupMatches = candidatePool.filter(m => m.groupIndex === chosenGroup);
           if (groupMatches.length > 0) break;
         }
       }
-      if (groupMatches.length > 0) candidatePool = groupMatches;
+      if (groupMatches.length > 0) {
+        candidatePool = groupMatches;
+      }
     }
 
-    // 2. Cooldown Filter (Shield recent players from back-to-back fatigue)
-    const rested = data.lastDrawnPlayers || [];
+    // 2. Cooldown Filter (avoid picking players who just finished playing)
+    const rested = data.lastDrawnPlayers || freshData.lastDrawnPlayers || [];
     let cooldownFiltered = candidatePool.filter(m => {
       const partsA = (m.sideA || "").split(" & ").map(s => s.trim());
       const partsB = (m.sideB || "").split(" & ").map(s => s.trim());
@@ -6291,15 +6299,13 @@
       return !allInMatch.some(p => rested.includes(p));
     });
 
-    // Deadlock safety fallback: If strict cooldown empties the pool, relax it
     const finalPool = cooldownFiltered.length > 0 ? cooldownFiltered : candidatePool;
     const chosenMatch = finalPool[Math.floor(Math.random() * finalPool.length)];
 
-    // 3. Open Reel Modal
-    showNextUpClashModal(tid, data, chosenMatch, container);
+    showNextUpClashModal(tid, freshData, chosenMatch, container, chosenGroup);
   }
 
-  async function showNextUpClashModal(tid, data, match, container) {
+async function showNextUpClashModal(tid, data, match, container, activeGroupIndex) {
     const overlay = document.createElement("div");
     overlay.className = "faceoff-modal-overlay";
 
@@ -6322,10 +6328,6 @@
         if (t.knockout && Array.isArray(t.knockout.stages)) {
           t.knockout.stages.forEach(st => { if (Array.isArray(st.matches)) matches.push(...st.matches); });
         }
-        if (t.finalScore && t.teams) {
-          matches.push({ sideA: t.teams[0].teamName, sideB: t.teams[1].teamName, scoreA: t.finalScore.side1, scoreB: t.finalScore.side2 });
-        }
-
         matches.forEach(m => {
           if (m.scoreA === null || m.scoreB === null) return;
           const isA_B = (m.sideA === sideA && m.sideB === sideB);
@@ -6356,15 +6358,16 @@
     const probA = Math.round(Math.max(0.07, Math.min(0.93, finalProbRatio)) * 100);
     const probB = 100 - probA;
 
+    const groupLabel = match.groupIndex !== null ? `GROUP ${match.groupIndex + 1}` : 'LEAGUE';
     const h2hTopHeadline = totalH2H > 0
-      ? `LIFETIME H2H &bull; ${totalH2H} MATCH${totalH2H === 1 ? '' : 'ES'} (${draws} DRAWS)`
-      : `FIRST-TIME CLASH &bull; ELO RATED`;
+      ? `${groupLabel} &bull; LIFETIME H2H: ${totalH2H} MATCH${totalH2H === 1 ? '' : 'ES'} (${draws} DRAWS)`
+      : `${groupLabel} &bull; FIRST-TIME CLASH &bull; ELO RATED`;
 
     // 2. Build Stage Layout
     overlay.innerHTML = `
       <div class="faceoff-stage-container">
         <div class="faceoff-top-bar">
-          <div class="title"><span class="live-pulse-dot" style="background:#00e676;"></span>⚔️ NEXT UP CLASH DRAW</div>
+          <div class="title"><span class="live-pulse-dot" style="background:#00e676;"></span>⚔️ NEXT UP CLASH DRAW &bull; ${groupLabel}</div>
           <button class="faceoff-close-btn" id="clashModalClose">&times;</button>
         </div>
 
@@ -6405,7 +6408,7 @@
         <!-- Action Controls -->
         <div id="clashActionsBar" style="display:flex; justify-content:center; gap:12px; margin-top:14px; width:100%; opacity:0; transition:opacity 0.4s ease;">
           <button class="btn-initiate-clash" id="startClashMatchBtn" style="padding:10px 24px; font-size:15px;">▶ START MATCH</button>
-          <button class="toggle-stage-btn" id="skipClashMatchBtn" style="margin:0; padding:10px 18px; font-size:13px; font-weight:bold;">⏭ SKIP DRAW</button>
+          <button class="toggle-stage-btn" id="skipClashMatchBtn" style="margin:0; padding:10px 18px; font-size:13px; font-weight:bold;">⏭ SKIP TO NEXT GROUP</button>
         </div>
       </div>
     `;
@@ -6414,16 +6417,16 @@
 
     overlay.querySelector("#clashModalClose").addEventListener("click", () => overlay.remove());
 
-    // 3. Casino Reel Roll Engine
+    // 3. Slot Reel Animation
     const slotA = overlay.querySelector("#reelSlotA");
     const slotB = overlay.querySelector("#reelSlotB");
     const vsShield = overlay.querySelector("#clashVsShield");
     const probPanel = overlay.querySelector("#clashProbPanel");
     const actionsBar = overlay.querySelector("#clashActionsBar");
 
-    const candidateNames = poolPlayers && poolPlayers.length >= 4 
-      ? poolPlayers.map(p => p.name) 
-      : [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
+    const currentGroupMembers = data.groups && data.groups[match.groupIndex]
+      ? data.groups[match.groupIndex].members
+      : poolPlayers.map(p => p.name);
 
     let spinInterval = 75;
     let elapsed = 0;
@@ -6452,8 +6455,8 @@
     const reelTimer = setInterval(() => {
       elapsed += spinInterval;
 
-      const randomA = candidateNames[Math.floor(Math.random() * candidateNames.length)];
-      const randomB = candidateNames[Math.floor(Math.random() * candidateNames.length)];
+      const randomA = currentGroupMembers[Math.floor(Math.random() * currentGroupMembers.length)];
+      const randomB = currentGroupMembers[Math.floor(Math.random() * currentGroupMembers.length)];
       slotA.innerHTML = buildCyberEsportsCardHtml(randomA, "#4fffd2", "#4fffd2");
       slotB.innerHTML = buildCyberEsportsCardHtml(randomB, "#ff5252", "#ff5252");
       playReelTick();
@@ -6461,18 +6464,15 @@
       if (elapsed >= totalSpinTime) {
         clearInterval(reelTimer);
 
-        // Snap decisively to the actual contenders
         slotA.style.filter = "none";
         slotB.style.filter = "none";
         slotA.innerHTML = buildCyberEsportsCardHtml(sideA, "#4fffd2", "#4fffd2");
         slotB.innerHTML = buildCyberEsportsCardHtml(sideB, "#ff5252", "#ff5252");
 
-        // Slam central VS
         vsShield.style.transition = "all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)";
         vsShield.style.opacity = "1";
         vsShield.style.transform = "translate(-50%, -50%) scale(1)";
 
-        // Reveal Probability Bar and Buttons
         setTimeout(() => {
           probPanel.style.opacity = "1";
           probPanel.style.transform = "translateY(0)";
@@ -6496,21 +6496,23 @@
       }
     }, spinInterval);
 
-    // Skip Button Handler
-    overlay.querySelector("#skipClashMatchBtn").addEventListener("click", () => {
+    // Compute pointer for next rotation
+    const totalGroups = data.groups ? data.groups.length : 1;
+    const nextGroupIndex = (activeGroupIndex + 1) % totalGroups;
+
+    // ⏭ SKIP DRAW: Advances immediately to the other group
+    overlay.querySelector("#skipClashMatchBtn").addEventListener("click", async () => {
       overlay.remove();
-      const skipRest = [...(sideA.split(" & ")), ...(sideB.split(" & "))];
-      const tempData = { ...data, lastDrawnPlayers: skipRest };
-      launchNextUpClash(tid, tempData, container);
+      await updateDoc(doc(db, "tournaments", tid), { nextGroupPointer: nextGroupIndex });
+      launchNextUpClash(tid, data, container, nextGroupIndex);
     });
 
-    // Start Match Handler
+    // ▶ START MATCH: Locks active match and updates next pointer for the match after this
     overlay.querySelector("#startClashMatchBtn").addEventListener("click", async () => {
       overlay.remove();
-      const nextPtr = data.groups ? ((data.nextGroupPointer ?? 0) + 1) % data.groups.length : 0;
       await updateDoc(doc(db, "tournaments", tid), {
         activeClashMatchId: match.id,
-        nextGroupPointer: nextPtr
+        nextGroupPointer: nextGroupIndex
       });
       refreshTournamentCard(tid, container);
     });
