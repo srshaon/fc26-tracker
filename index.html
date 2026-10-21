@@ -1491,8 +1491,49 @@
       width: 100%;
     }
   }
-/* comment ==> 08. CSS Responsive Media Queries ends here */
  
+/* comment ==> 08. CSS Responsive Media Queries ends here */
+ /* --- NEXT UP CLASH STYLES --- */
+.clash-trigger-wrap {
+  text-align: center;
+  margin: 18px 0;
+}
+.btn-initiate-clash {
+  padding: 14px 28px;
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #05070c;
+  background: linear-gradient(135deg, #00e676 0%, #00e5ff 100%);
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(0, 230, 118, 0.45);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.btn-initiate-clash:hover {
+  transform: scale(1.04);
+  box-shadow: 0 0 28px rgba(0, 229, 255, 0.7);
+}
+.active-clash-card {
+  border: 2px solid var(--accent) !important;
+  box-shadow: 0 0 16px rgba(0, 230, 118, 0.25);
+  background: var(--bg-surface) !important;
+  margin: 14px 0 !important;
+}
+.clash-status-pill {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  background: rgba(0, 230, 118, 0.15);
+  color: #00e676;
+  border: 1px solid #00e676;
+  padding: 2px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+}
 </style>
 </head>
 
@@ -3163,15 +3204,21 @@
       return;
     }
     bracketEl.style.display = "block";
-    bracketEl.innerHTML = `
+   bracketEl.innerHTML = `
       <h3>5. Bracket style (${count} participants)</h3>
       <div class="options" id="styleOptions">
         <button class="option-btn" data-v="group">Group based</button>
         <button class="option-btn" data-v="roundrobin">Round-robin</button>
       </div>
+      <div style="margin-top:10px;">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:bold;">
+          <input type="checkbox" id="nextUpClashToggle" checked style="width:18px; height:18px;">
+          <span>Enable ⚔️ Next Up Clash Mode (Masked Fixtures + Live Reel Reveal)</span>
+        </label>
+      </div>
       <div id="groupConfigArea"></div>
-    `;
-    document.getElementById("styleOptions").addEventListener("click", (e) => {
+    `; 
+   document.getElementById("styleOptions").addEventListener("click", (e) => {
       if (!e.target.classList.contains("option-btn")) return;
       bracketStyle = e.target.dataset.v; groups = [];
       markSelected("styleOptions", e.target);
@@ -3326,8 +3373,20 @@
       let idx = 0;
       groups.forEach((g, gi) => { roundRobinMatches(g).forEach(m => { matches.push({ ...m, id: "m" + idx, groupIndex: gi }); idx++; }); });
     }
-    await addDoc(collection(db, "tournaments"), { ...base, ...extra, bracketStyle, groups: groupsData, matches, status: "in-progress" });
-    statusEl.textContent = "Tournament and matches created. Go to Live tournaments to enter scores.";
+   const clashEnabled = document.getElementById("nextUpClashToggle") ? document.getElementById("nextUpClashToggle").checked : false;
+    await addDoc(collection(db, "tournaments"), {
+      ...base,
+      ...extra,
+      bracketStyle,
+      groups: groupsData,
+      matches,
+      clashMode: clashEnabled,
+      activeClashMatchId: null,
+      lastDrawnPlayers: [],
+      nextGroupPointer: 0,
+      status: "in-progress"
+    }); 
+   statusEl.textContent = "Tournament and matches created. Go to Live tournaments to enter scores.";
   }
 // comment ==> 25. Group Stage Config & Tournament Saving ends here
 
@@ -3649,6 +3708,67 @@
     const finishedMatches = data.matches.filter(m => m.scoreA !== null && m.scoreB !== null).length;
     const toPlayMatches = totalMatches - finishedMatches;
 
+    // --- NEXT UP CLASH HUD & TRIGGER ---
+    const allGroupMatchesDone = data.matches.every(m => m.scoreA !== null && m.scoreB !== null);
+
+    if (data.clashMode && !allGroupMatchesDone) {
+      const clashHub = document.createElement("div");
+
+      // Find if a match is actively in progress
+      const activeMatch = data.activeClashMatchId ? data.matches.find(m => m.id === data.activeClashMatchId) : null;
+
+      if (activeMatch && activeMatch.scoreA === null) {
+        const activeIdx = data.matches.findIndex(m => m.id === activeMatch.id);
+        clashHub.innerHTML = `
+          <div class="card active-clash-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span class="clash-status-pill">&#9679; ON PITCH NOW</span>
+              <span style="font-size:11px; color:var(--text-muted); font-weight:bold;">${activeMatch.groupIndex !== null ? 'Group ' + (activeMatch.groupIndex + 1) : 'League Match'}</span>
+            </div>
+            <div class="match-fixture">
+              <span class="name">${renderPlayerBadge(activeMatch.sideA)}</span>
+              <div class="score-box">
+                <div class="stepper-wrap">
+                  <button type="button" class="stepper-btn stepper-minus">&minus;</button>
+                  <input type="number" min="0" value="0" data-idx="${activeIdx}" data-side="A">
+                  <button type="button" class="stepper-btn stepper-plus">&plus;</button>
+                </div>
+                <span>:</span>
+                <div class="stepper-wrap">
+                  <button type="button" class="stepper-btn stepper-minus">&minus;</button>
+                  <input type="number" min="0" value="0" data-idx="${activeIdx}" data-side="B">
+                  <button type="button" class="stepper-btn stepper-plus">&plus;</button>
+                </div>
+              </div>
+              <span class="name">${renderPlayerBadge(activeMatch.sideB)}</span>
+            </div>
+            ${currentAdmin ? `<button class="match-save-btn" id="saveActiveClashBtn" style="margin-top:10px !important;">Save Score & End Match</button>` : ''}
+          </div>
+        `;
+        clashHub.querySelector("#saveActiveClashBtn")?.addEventListener("click", (e) => {
+          e.target.disabled = true;
+          // Register cooldown for these players
+          const justPlayed = [...(activeMatch.sideA.split(" & ")), ...(activeMatch.sideB.split(" & "))];
+          updateDoc(doc(db, "tournaments", tid), { activeClashMatchId: null, lastDrawnPlayers: justPlayed });
+          saveGroupMatch(tid, data, activeIdx, container, e.target);
+        });
+      } else if (currentAdmin) {
+        clashHub.innerHTML = `
+          <div class="clash-trigger-wrap">
+            <button class="btn-initiate-clash" id="initiateClashBtn">⚡ INITIATE CLASH</button>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:6px;">Next fixture is hidden &bull; Hit to draw contenders</div>
+          </div>
+        `;
+        clashHub.querySelector("#initiateClashBtn")?.addEventListener("click", () => {
+          launchNextUpClash(tid, data, container);
+        });
+      } else {
+        clashHub.innerHTML = `<p class="status-msg" style="text-align:center;">Waiting for tournament host to initiate next clash...</p>`;
+      }
+
+      container.appendChild(clashHub);
+    }
+
     const filterBar = document.createElement("div");
     filterBar.className = "match-filter-bar";
     filterBar.innerHTML = `
@@ -3657,11 +3777,14 @@
       <button type="button" class="filter-pill" data-filter="unplayed">To Play (${toPlayMatches})</button>
       <button type="button" class="filter-pill" data-filter="finished">Finished (${finishedMatches})</button>
     `;
-    container.appendChild(filterBar);
+    // Only show filter bar if not in clash mode, or when finished
+    if (!data.clashMode || allGroupMatchesDone) {
+      container.appendChild(filterBar);
+    }
 
     const matchesDiv = document.createElement("div");
     matchesDiv.style.display = "none";
-    matchesDiv.innerHTML = `<div class="stage-badge"><span class="live-pulse-dot"></span> Group stage fixtures</div>`;
+    matchesDiv.innerHTML = `<div class="stage-badge"><span class="live-pulse-dot"></span> ${data.clashMode ? 'Completed Results Log' : 'Group stage fixtures'}</div>`;
 
     data.matches.forEach((m, idx) => {
       const row = document.createElement("div");
@@ -6091,6 +6214,108 @@
     launchConfetti();
     playVictoryFanfare();
     updateStadiumLighting("final");
+  } 
+ /* ========================================================= */
+  /* NEXT UP CLASH ENGINE: COOLDOWNS, ROTATION & DRAW REEL     */
+  /* ========================================================= */
+  async function launchNextUpClash(tid, data, container) {
+    if (!currentAdmin) return;
+    const unplayed = data.matches.filter(m => m.scoreA === null || m.scoreB === null);
+    if (unplayed.length === 0) {
+      showToast("All group stage matches have been played!", "info");
+      return;
+    }
+
+    let candidatePool = [...unplayed];
+
+    // 1. Group Stage Rotation Filter (if tournament has groups)
+    if (data.groups && data.groups.length > 1) {
+      let activeGroup = data.nextGroupPointer ?? 0;
+      let groupMatches = candidatePool.filter(m => m.groupIndex === activeGroup);
+
+      // If active group is depleted, advance until we find one with unplayed games
+      if (groupMatches.length === 0) {
+        for (let step = 1; step <= data.groups.length; step++) {
+          activeGroup = (activeGroup + 1) % data.groups.length;
+          groupMatches = candidatePool.filter(m => m.groupIndex === activeGroup);
+          if (groupMatches.length > 0) break;
+        }
+      }
+      if (groupMatches.length > 0) candidatePool = groupMatches;
+    }
+
+    // 2. Cooldown Filter (Shield recent players from back-to-back fatigue)
+    const rested = data.lastDrawnPlayers || [];
+    let cooldownFiltered = candidatePool.filter(m => {
+      const partsA = (m.sideA || "").split(" & ").map(s => s.trim());
+      const partsB = (m.sideB || "").split(" & ").map(s => s.trim());
+      const allInMatch = [...partsA, ...partsB];
+      return !allInMatch.some(p => rested.includes(p));
+    });
+
+    // Deadlock safety fallback: If strict cooldown empties the pool, relax it
+    const finalPool = cooldownFiltered.length > 0 ? cooldownFiltered : candidatePool;
+    const chosenMatch = finalPool[Math.floor(Math.random() * finalPool.length)];
+
+    // 3. Open Reel Modal
+    showNextUpClashModal(tid, data, chosenMatch, container);
+  }
+
+  function showNextUpClashModal(tid, data, match, container) {
+    const overlay = document.createElement("div");
+    overlay.className = "faceoff-modal-overlay";
+
+    const sideA = match.sideA;
+    const sideB = match.sideB;
+    const ovrA = computePlayerOVR(sideA);
+    const ovrB = computePlayerOVR(sideB);
+
+    overlay.innerHTML = `
+      <div class="faceoff-stage-container">
+        <div class="faceoff-top-bar">
+          <div class="title"><span class="live-pulse-dot" style="background:#00e676;"></span>⚔️ NEXT UP CLASH REVEAL</div>
+          <button class="faceoff-close-btn" id="clashModalClose">&times;</button>
+        </div>
+
+        <div class="arena-duel-zone">
+          <div class="faceoff-vs-shield">VS</div>
+          <div class="card-slot left-fighter">
+            ${buildCyberEsportsCardHtml(sideA, "#4fffd2", "#4fffd2")}
+          </div>
+          <div class="card-slot right-fighter">
+            ${buildCyberEsportsCardHtml(sideB, "#ff5252", "#ff5252")}
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:center; gap:12px; margin-top:14px; width:100%;">
+          <button class="btn-initiate-clash" id="startClashMatchBtn" style="padding:10px 24px; font-size:15px;">▶ START MATCH</button>
+          <button class="toggle-stage-btn" id="skipClashMatchBtn" style="margin:0; padding:10px 18px; font-size:13px; font-weight:bold;">⏭ SKIP DRAW</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    overlay.querySelector("#clashModalClose").addEventListener("click", () => overlay.remove());
+
+    // Skip Button: temporarily adds to rest list and rolls again
+    overlay.querySelector("#skipClashMatchBtn").addEventListener("click", () => {
+      overlay.remove();
+      const skipRest = [...(sideA.split(" & ")), ...(sideB.split(" & "))];
+      const tempData = { ...data, lastDrawnPlayers: skipRest };
+      launchNextUpClash(tid, tempData, container);
+    });
+
+    // Start Match: Locks in Active Match HUD
+    overlay.querySelector("#startClashMatchBtn").addEventListener("click", async () => {
+      overlay.remove();
+      const nextPtr = data.groups ? ((data.nextGroupPointer ?? 0) + 1) % data.groups.length : 0;
+      await updateDoc(doc(db, "tournaments", tid), {
+        activeClashMatchId: match.id,
+        nextGroupPointer: nextPtr
+      });
+      refreshTournamentCard(tid, container);
+    });
   }
 // comment ==> 39. Esports Broadcast Engine (Streaks, Face-Off & Story) ends here
 
