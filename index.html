@@ -3883,17 +3883,44 @@
       });
     });
 
+    // In Clash Mode, mask unplayed matches unless Master Admin overrides
+    if (data.clashMode && !isGroupStageFinished) {
+      matchesDiv.querySelectorAll(".match-row").forEach(row => {
+        const isDone = row.dataset.scored === "true";
+        // Hide unplayed matches completely from non-masters
+        if (!isDone && (!currentAdmin || !currentAdmin.isMaster)) {
+          row.style.display = "none";
+        }
+      });
+    }
+
+    // Toggle button setup
     const toggleBtn = document.createElement("button");
     toggleBtn.className = "toggle-stage-btn";
-    toggleBtn.innerHTML = "&#9662; Show group stage matches";
+    
+    // Custom label for Next Up Clash mode
+    const defaultLabel = data.clashMode && !isGroupStageFinished 
+      ? (currentAdmin && currentAdmin.isMaster ? "&#9662; Master Override: View All Fixtures" : "&#9662; View Played Matches Log")
+      : "&#9662; Show group stage matches";
+
+    toggleBtn.innerHTML = defaultLabel;
+
     toggleBtn.addEventListener("click", () => {
       const showing = matchesDiv.style.display !== "none";
       matchesDiv.style.display = showing ? "none" : "block";
-      toggleBtn.innerHTML = showing ? "&#9662; Show group stage matches" : "&#9652; Hide group stage matches";
+      toggleBtn.innerHTML = showing 
+        ? defaultLabel 
+        : (data.clashMode && !isGroupStageFinished 
+            ? (currentAdmin && currentAdmin.isMaster ? "&#9652; Hide Fixtures" : "&#9652; Hide Matches Log")
+            : "&#9652; Hide group stage matches");
     });
-    container.appendChild(toggleBtn);
-    container.appendChild(matchesDiv);
 
+    // Only display the button if there are finished matches to show, or if user is Master Admin
+    const hasFinishedMatches = data.matches.some(m => m.scoreA !== null && m.scoreB !== null);
+    if (!data.clashMode || isGroupStageFinished || hasFinishedMatches || (currentAdmin && currentAdmin.isMaster)) {
+      container.appendChild(toggleBtn);
+      container.appendChild(matchesDiv);
+    }
     const allGroupMatchesDone = data.matches.every(m => m.scoreA !== null && m.scoreB !== null);
     if (allGroupMatchesDone) {
       if (!data.knockout) {
