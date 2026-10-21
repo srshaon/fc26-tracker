@@ -132,8 +132,6 @@
   body.lighting-knockout { background: radial-gradient(circle at 50% -15%, rgba(0, 229, 255, 0.16) 0%, transparent 68%), var(--bg-page); }
   body.lighting-final { background: radial-gradient(circle at 50% -15%, rgba(255, 215, 0, 0.22) 0%, transparent 72%), var(--bg-page); }
 
-  /* Broadcast Lower-Third News Ticker */
-  
   /* FUT Streaks */
   .fut-badge {
     display: inline-flex; align-items: center; justify-content: center;
@@ -154,6 +152,7 @@
     from { box-shadow: 0 0 0 2px #ff5722, 0 0 10px rgba(255, 87, 34, 0.5); }
     to { box-shadow: 0 0 0 2.5px #ff9800, 0 0 20px rgba(255, 152, 0, 0.9); }
   }
+
   .streak-ice .player-avatar-circle,
   .streak-ice .player-avatar-placeholder {
     border-color: #00e5ff !important; box-shadow: 0 0 0 2px #00e5ff, 0 0 14px rgba(0, 229, 255, 0.65) !important;
@@ -165,9 +164,9 @@
   }
   .streak-icon { font-size: 11px; margin-left: 2px; vertical-align: middle; }
 
-  /* 3D Holographic Card & Flowing Neon Border */
+  /* Fixed 3D Card (No Gyro/Mouse Dependency, Constant Aesthetic Tilt & Depth) */
   .holo-card-stage {
-    perspective: 1000px;
+    perspective: 1200px;
     display: flex;
     justify-content: center;
     margin: 16px 0 20px;
@@ -178,16 +177,16 @@
     height: 415px;
     border-radius: 20px;
     transform-style: preserve-3d;
-    box-shadow: 0 24px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 230, 118, 0.22);
+    transform: rotateX(7deg) rotateY(-5deg);
+    box-shadow: 18px 24px 45px rgba(0, 0, 0, 0.92), -4px -4px 18px rgba(255, 255, 255, 0.05), 0 0 25px rgba(0, 230, 118, 0.25);
     overflow: hidden;
     padding: 3px;
     display: flex;
     background: #06090e;
     user-select: none;
-    transition: transform 0.12s ease-out;
   }
 
-  /* Seamless Traveling Border Beam */
+  /* Traveling Border Beam */
   .holo-card::before {
     content: "";
     position: absolute;
@@ -213,25 +212,25 @@
     100% { transform: rotate(360deg); }
   }
 
-  /* Foil Sheen */
+  /* Fixed Holographic Foil Sheen */
   .holo-card-glare {
     position: absolute;
     inset: 3px;
     border-radius: 17px;
     background: linear-gradient(
-      125deg,
+      128deg,
       transparent 20%,
-      rgba(255, 0, 128, 0.35) 35%,
-      rgba(0, 229, 255, 0.4) 48%,
-      rgba(255, 235, 59, 0.45) 55%,
+      rgba(255, 0, 128, 0.32) 38%,
+      rgba(0, 229, 255, 0.38) 49%,
+      rgba(255, 235, 59, 0.42) 56%,
       transparent 72%
     );
-    background-size: 250% 250%;
-    background-position: 50% 50%;
+    background-size: 180% 180%;
+    background-position: 52% 48%;
     mix-blend-mode: color-dodge;
     pointer-events: none;
     z-index: 5;
-    opacity: 0.7;
+    opacity: 0.72;
   }
 
   /* Inner Card Body */
@@ -418,11 +417,11 @@
   .filter-pill { padding: 5px 12px; font-size: 12px; font-weight: 700; border-radius: 14px; border: 1px solid var(--border-strong); background: var(--bg-surface-alt); color: var(--text-secondary); cursor: pointer; }
   .filter-pill.active { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
 
-  /* Face-Off Modal Overlay */
+  /* Face-Off Modal: Half-Speed (2x Slower & Smoother) Animations */
   .faceoff-modal-overlay {
     position: fixed; inset: 0; background: rgba(5, 7, 12, 0.94);
     backdrop-filter: blur(14px); display: flex; align-items: center; justify-content: center;
-    z-index: 99999; padding: 14px; animation: modalFadeIn 0.4s ease;
+    z-index: 99999; padding: 14px; animation: modalFadeIn 0.5s ease;
   }
   @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
@@ -446,25 +445,26 @@
     justify-content: center; padding: 26px 16px; text-align: center; gap: 12px;
     position: relative; z-index: 1;
   }
+
+  /* 2x Slower, Smoother Player Entrances (1.6s duration each) */
   .faceoff-left {
     background: linear-gradient(135deg, rgba(0, 229, 255, 0.25) 0%, rgba(0, 0, 0, 0.75) 100%);
-    animation: animeSlideLeft 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+    animation: animeSlideLeft 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
   }
   .faceoff-right {
     background: linear-gradient(225deg, rgba(255, 68, 68, 0.25) 0%, rgba(0, 0, 0, 0.75) 100%);
-    animation: animeSlideRight 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.55s both;
+    animation: animeSlideRight 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.9s both;
   }
   @keyframes animeSlideLeft {
-    0% { transform: translateX(-160px) skewX(-10deg); opacity: 0; filter: blur(6px); }
-    70% { transform: translateX(10px) skewX(2deg); opacity: 1; filter: blur(0); }
-    100% { transform: translateX(0) skewX(0); opacity: 1; }
+    0% { transform: translateX(-180px); opacity: 0; filter: blur(5px); }
+    100% { transform: translateX(0); opacity: 1; filter: blur(0); }
   }
   @keyframes animeSlideRight {
-    0% { transform: translateX(160px) skewX(10deg); opacity: 0; filter: blur(6px); }
-    70% { transform: translateX(-10px) skewX(-2deg); opacity: 1; filter: blur(0); }
-    100% { transform: translateX(0) skewX(0); opacity: 1; }
+    0% { transform: translateX(180px); opacity: 0; filter: blur(5px); }
+    100% { transform: translateX(0); opacity: 1; filter: blur(0); }
   }
 
+  /* VS Center Slam: Deliberate arrival at 2.2s */
   .faceoff-vs-shield {
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
@@ -474,17 +474,17 @@
     display: flex; align-items: center; justify-content: center;
     font-family: var(--font-heading); font-size: 22px; font-weight: 900;
     color: var(--accent); z-index: 3;
-    animation: vsSlamImpact 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 1.15s both;
+    animation: vsSlamImpact 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) 2.2s both;
   }
   .faceoff-vs-shield::after {
     content: ""; position: absolute; inset: -12px; border-radius: 50%;
     border: 2.5px solid var(--accent);
-    animation: shockwaveBurst 2s ease-out 1.7s infinite;
+    animation: shockwaveBurst 2.4s ease-out 3.2s infinite;
   }
   @keyframes vsSlamImpact {
-    0% { transform: translate(-50%, -50%) scale(4.5); opacity: 0; filter: blur(12px); }
-    55% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; filter: blur(0); }
-    75% { transform: translate(-50%, -50%) scale(1.2); }
+    0% { transform: translate(-50%, -50%) scale(3.5); opacity: 0; filter: blur(8px); }
+    60% { transform: translate(-50%, -50%) scale(0.9); opacity: 1; filter: blur(0); }
+    80% { transform: translate(-50%, -50%) scale(1.1); }
     100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
   }
   @keyframes shockwaveBurst {
@@ -505,11 +505,11 @@
   }
   .faceoff-prob-fill-a {
     background: linear-gradient(90deg, #00e5ff, var(--accent));
-    transition: width 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: width 1.8s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .faceoff-prob-fill-b {
     background: linear-gradient(90deg, #ff5252, #ff7979);
-    transition: width 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: width 1.8s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   /* H2H Modal */
@@ -558,7 +558,7 @@
   .stat-card .label { font-size: 11px; color: var(--text-muted); }
   .stat-card .value { font-size: 15px; font-weight: bold; color: var(--text-primary); }
   .player-name-link { color: var(--accent); text-decoration: underline; cursor: pointer; background: none; border: none; font-size: 14px; padding: 0; font-family: var(--font-body); }
-/* comment ==> 04. CSS Components (Cards, Buttons, Inputs, Tables) ends here */
+/* comment ==> 04. CSS Components (Cards, Buttons, Inputs, Tables) ends here */ 
  
 /* comment ==> 05. CSS Player Avatar & Badge System starts from here */
   .player-badge-col {
@@ -4699,63 +4699,7 @@
     requestAnimationFrame(render);
   }
 
-  /* 3D Gyroscope (Mobile) & Cursor Hover (Desktop) Tilt Handlers */
-  function attachCard3DTilt(cardEl, glareEl) {
-    if (!cardEl) return;
-
-    cardEl.addEventListener("mousemove", (e) => {
-      const rect = cardEl.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const cx = rect.width / 2;
-      const cy = rect.height / 2;
-
-      const rotX = ((y - cy) / cy) * -14;
-      const rotY = ((x - cx) / cx) * 14;
-      cardEl.style.transform = `rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) scale3d(1.03, 1.03, 1.03)`;
-
-      if (glareEl) {
-        const px = (x / rect.width) * 100;
-        const py = (y / rect.height) * 100;
-        glareEl.style.backgroundPosition = `${px}% ${py}%`;
-        glareEl.style.opacity = "0.85";
-      }
-    });
-
-    cardEl.addEventListener("mouseleave", () => {
-      cardEl.style.transform = "rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)";
-      if (glareEl) {
-        glareEl.style.backgroundPosition = "50% 50%";
-        glareEl.style.opacity = "0.6";
-      }
-    });
-
-    const handleOrientation = (e) => {
-      if (!cardEl || !document.body.contains(cardEl)) {
-        window.removeEventListener("deviceorientation", handleOrientation);
-        return;
-      }
-      if (e.gamma === null || e.beta === null) return;
-      const gamma = Math.max(-25, Math.min(25, e.gamma));
-      const beta = Math.max(15, Math.min(65, e.beta));
-      const rotY = (gamma / 25) * 15;
-      const rotX = -((beta - 40) / 25) * 15;
-
-      cardEl.style.transform = `rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) scale3d(1.02, 1.02, 1.02)`;
-
-      if (glareEl) {
-        const px = ((gamma + 25) / 50) * 100;
-        const py = (((beta - 15) / 50)) * 100;
-        glareEl.style.backgroundPosition = `${px}% ${py}%`;
-      }
-    };
-
-    if (window.DeviceOrientationEvent) {
-      window.addEventListener("deviceorientation", handleOrientation, { passive: true });
-    }
-  }
-
-  /* Render Full Player Profile Screen (Exact Match to Showcase Video) */
+  /* Render Full Player Profile Screen (Fixed 3D Card Look) */
   async function renderPlayerProfile(body, playerId) {
     const p = poolPlayers.find(x => x.id === playerId);
     if (!p) { body.innerHTML = "<p>Player not found.</p>"; return; }
@@ -4783,7 +4727,6 @@
       starsHtml = `<div class="holo-stars-row" title="${totalCountedChamps}x Title Winner">${starIcons}</div>`;
     }
 
-    // Exact video proportions: 120px diameter circle
     const avatarCircleHtml = photo
       ? `<img src="${convertImageUrl(photo)}" class="player-avatar-circle" style="width:120px; height:120px; border-width:3px; border-color:#00e676;" alt="${p.name}">`
       : `<div class="player-avatar-placeholder" style="width:120px; height:120px; font-size:44px; border-color:#00e676;">${(p.name || "?").slice(0, 1).toUpperCase()}</div>`;
@@ -4791,7 +4734,7 @@
     body.innerHTML = `
       <button id="backToPlayers">&larr; Back to players</button>
 
-      <!-- 1. Interactive 3D Holographic Foil Card (Exact match to video) -->
+      <!-- 1. Fixed 3D Holographic Foil Card -->
       <div class="holo-card-stage">
         <div class="holo-card" id="holoFoilCard">
           <div class="holo-card-glare" id="holoCardGlare"></div>
@@ -4819,9 +4762,6 @@
           </div>
         </div>
       </div>
-      <p style="text-align:center; font-size:11px; color:var(--text-muted); margin-top:-14px; margin-bottom:18px;">
-        💡 Tilt your phone or move your mouse to inspect 3D holographic sheen
-      </p>
 
       <!-- 2. Hexagonal Attribute Radar (Spider Chart) -->
       <div class="card radar-card-wrap">
@@ -4879,7 +4819,6 @@
       renderRecordsBody();
     });
 
-    attachCard3DTilt(document.getElementById("holoFoilCard"), document.getElementById("holoCardGlare"));
     loadRecentFormAndDrawRadar(p, playerId);
   }
 
@@ -5490,6 +5429,7 @@
     overlay.querySelector("#faceOffClose").addEventListener("click", () => overlay.remove());
     overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
 
+   // Sequenced Reveal: Charge probability bar and run digital counter at 2.6s (timed to 2x slower entrance)
     setTimeout(() => {
       const barA = overlay.querySelector("#probBarA");
       const barB = overlay.querySelector("#probBarB");
@@ -5497,9 +5437,9 @@
         barA.style.width = probA + "%";
         barB.style.width = probB + "%";
       }
-      runDigitalCounter(overlay.querySelector("#probNumA"), probA, 1300);
-      runDigitalCounter(overlay.querySelector("#probNumB"), probB, 1300);
-    }, 1800);
+      runDigitalCounter(overlay.querySelector("#probNumA"), probA, 1400);
+      runDigitalCounter(overlay.querySelector("#probNumB"), probB, 1400);
+    }, 2600);
   }
 
   /* 4. Tale of the Tape H2H Modal */
