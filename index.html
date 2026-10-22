@@ -1303,8 +1303,8 @@
   .pool-picker-row input { width: auto; }
   .addSelectedBtn { margin-top: 8px; padding: 8px 12px; font-size: 13px; cursor: pointer; }
 /* comment ==> 07. CSS Bracket Layout ends here */
- 
-/* comment ==> 08. CSS Responsive Media Queries starts from here */
+
+ /* comment ==> 08. CSS Responsive Media Queries starts from here */
   /* Shared Fixture Card Layout (PC & Mobile) */
   .match-row {
     display: flex;
@@ -1353,16 +1353,6 @@
     gap: 8px !important;
     text-align: right !important;
   }
-  /* Full player names without truncation */
-  .match-fixture .side-name {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text-primary);
-    line-height: 1.25;
-    word-break: break-word;
-    white-space: normal;
-    overflow: visible;
-  }
   /* Center score boxes */
   .score-box {
     display: flex;
@@ -1380,7 +1370,7 @@
     color: var(--text-muted);
     flex-shrink: 0;
   }
-  /* Dedicated line-2 save button */
+  /* Dedicated save button */
   .match-save-btn {
     margin: 4px auto 0 !important;
     width: auto !important;
@@ -1397,6 +1387,33 @@
     cursor: pointer;
   }
 
+  /* --- ON PITCH NOW (ACTIVE CLASH CARD) SPLIT-ROW FIX --- */
+  .active-clash-card .match-fixture {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-areas:
+      "teamA teamB"
+      "controls controls" !important;
+    row-gap: 12px !important;
+    width: 100% !important;
+  }
+  .active-clash-card .match-fixture .name:first-child {
+    grid-area: teamA !important;
+    justify-content: flex-start !important;
+    min-width: 0 !important;
+  }
+  .active-clash-card .match-fixture .name:last-of-type {
+    grid-area: teamB !important;
+    justify-content: flex-end !important;
+    min-width: 0 !important;
+  }
+  .active-clash-card .match-fixture .score-box {
+    grid-area: controls !important;
+    justify-self: center !important;
+    margin: 0 auto !important;
+  }
+
+  /* --- SCREEN RESIZING RULES --- */
   @media (max-width: 520px) {
     body { margin: 12px auto; padding: 0 8px; }
     h1 { font-size: 19px; }
@@ -1406,23 +1423,7 @@
     .champ-grid { grid-template-columns: 1fr; }
     .stat-grid { grid-template-columns: 1fr; }
 
-/* Mobile match fixture tuning */
-    .match-row {
-      padding: 10px 8px;
-      margin: 8px 0;
-      gap: 6px;
-    }
-    .match-fixture {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 4px;
-      width: 100%;
-    }
-    .match-fixture .name {
-      min-width: 0;
-      flex: 1 1 0;
-    }
+    /* Single-line player name protection */
     .match-fixture .side-name {
       font-size: 11px;
       line-height: 1.2;
@@ -1430,26 +1431,25 @@
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 85px;
-      word-break: normal;
+      display: inline-block;
     }
+
     .match-fixture .player-avatar-circle,
     .match-fixture .player-avatar-placeholder {
-      width: 30px !important;
-      height: 30px !important;
-      font-size: 11px !important;
+      width: 32px !important;
+      height: 32px !important;
+      font-size: 12px !important;
       border-width: 2px;
     }
     .score-box {
-      padding: 2px 4px;
-      gap: 3px;
-      flex-shrink: 0;
+      padding: 3px 5px;
+      gap: 4px;
     }
     .stepper-wrap {
       border-radius: 6px;
     }
-   
     .stepper-btn {
-      width: 22px;
+      width: 24px;
       height: 28px;
       font-size: 13px;
     }
@@ -1506,8 +1506,8 @@
       width: 100%;
     }
   }
- 
 /* comment ==> 08. CSS Responsive Media Queries ends here */
+
  /* --- NEXT UP CLASH STYLES --- */
 .clash-trigger-wrap {
   text-align: center;
