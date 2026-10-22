@@ -1305,217 +1305,222 @@
 /* comment ==> 07. CSS Bracket Layout ends here */
 
 /* comment ==> 08. CSS Responsive Media Queries starts from here */
-  /* --- 1. GLOBAL BASE STYLES --- */
+  /* ========================================================= */
+  /* 1. BASE MATCH FIXTURE CARD (3-TIER ESPORTS LAYOUT)       */
+  /* ========================================================= */
   .match-row, .active-clash-card {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     background: var(--bg-surface-alt);
     border: 1px solid var(--border);
     border-radius: var(--radius-card);
-    padding: 12px 14px;
-    margin: 10px 0;
-    gap: 10px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    padding: 14px 16px;
+    margin: 12px 0;
+    gap: 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
     width: 100%;
     box-sizing: border-box;
   }
 
-  .match-fixture {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    gap: 10px;
-    box-sizing: border-box;
+  .active-clash-card {
+    border: 2px solid var(--accent) !important;
+    box-shadow: 0 0 18px rgba(0, 230, 118, 0.3) !important;
+    background: var(--bg-surface) !important;
   }
 
-  /* Left Player: Avatar on Left, Name on Right */
-  .match-fixture .name:first-child {
-    flex: 1 1 0%;
+  /* ROW 1: Contenders Header Grid (Team A - V/S - Team B) */
+  .match-fixture-header {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+  }
+
+  /* Left Side: Aligned to Left */
+  .match-side-col.side-a {
     display: flex;
-    justify-content: flex-start;
+    flex-direction: column;
+    align-items: flex-start;
     text-align: left;
     min-width: 0;
   }
-  .match-fixture .name:first-child .player-badge-col {
-    flex-direction: row !important;
-    align-items: center !important;
-    gap: 8px !important;
+  .match-side-col.side-a .player-badge-col {
+    align-items: flex-start !important;
     text-align: left !important;
   }
 
-  /* Right Player: Name on Left, Avatar on Right */
-  .match-fixture .name:last-of-type {
-    flex: 1 1 0%;
+  /* Right Side: Aligned to Right */
+  .match-side-col.side-b {
     display: flex;
-    justify-content: flex-end;
+    flex-direction: column;
+    align-items: flex-end;
     text-align: right;
     min-width: 0;
   }
-  .match-fixture .name:last-of-type .player-badge-col {
-    flex-direction: row-reverse !important;
-    align-items: center !important;
-    gap: 8px !important;
+  .match-side-col.side-b .player-badge-col {
+    align-items: flex-end !important;
     text-align: right !important;
   }
 
-  .match-fixture .side-name {
-    font-size: 13px;
-    font-weight: 700;
+  /* Duo Avatars: Clean Side-by-Side Horizontal Cluster */
+  .match-side-col .player-avatars-cluster {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 4px !important;
+    flex-shrink: 0;
+  }
+
+  .match-side-col .player-avatar-circle,
+  .match-side-col .player-avatar-placeholder {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 13px !important;
+    border-width: 2px !important;
+  }
+
+  /* Uncut Full Player / Duo Name under Avatar */
+  .match-side-col .side-name {
+    margin-top: 6px;
+    font-size: 12.5px;
+    font-weight: 800;
+    font-family: var(--font-heading);
     color: var(--text-primary);
     line-height: 1.25;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: inline-block;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    word-break: break-word;
+    white-space: normal;
+  }
+
+  /* Center V/S Badge */
+  .match-fixture-vs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    padding: 8px 10px 0;
+    user-select: none;
+    cursor: pointer;
+    transition: color 0.15s ease;
+  }
+  .match-fixture-vs:hover {
+    color: var(--accent);
+  }
+
+  /* ROW 2: Scorecard Steppers */
+  .match-fixture-score-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
   }
 
   .score-box {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
-    flex-shrink: 0;
-    background: rgba(0, 0, 0, 0.35);
-    padding: 4px 8px;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.45);
+    padding: 5px 12px;
     border-radius: 8px;
     border: 1px solid var(--border);
   }
-  .score-box span {
-    font-weight: 800;
-    font-size: 15px;
+  .score-box .score-divider {
+    font-weight: 900;
+    font-size: 16px;
     color: var(--text-muted);
-    flex-shrink: 0;
   }
 
+  .stepper-wrap {
+    display: inline-flex;
+    align-items: center;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .stepper-btn {
+    width: 28px;
+    height: 30px;
+    background: var(--bg-surface-alt);
+    color: var(--text-primary);
+    border: none;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .stepper-btn:hover {
+    background: var(--accent);
+    color: var(--accent-contrast);
+  }
+  .stepper-wrap input[type=number] {
+    width: 34px !important;
+    height: 30px !important;
+    border: none !important;
+    background: transparent !important;
+    text-align: center;
+    font-weight: 900;
+    font-size: 15px;
+    color: var(--text-primary);
+    padding: 0 !important;
+  }
+
+  /* ROW 3: Dedicated Action Button */
   .match-save-btn {
     margin: 4px auto 0 !important;
-    width: auto !important;
-    min-width: 140px !important;
-    padding: 7px 22px !important;
-    font-size: 12px !important;
-    font-weight: 800 !important;
+    width: 100% !important;
+    max-width: 280px !important;
+    padding: 9px 24px !important;
+    font-size: 13px !important;
+    font-weight: 900 !important;
     border-radius: 6px !important;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
     background: var(--accent);
     color: var(--accent-contrast);
     border: none;
     cursor: pointer;
-    display: block;
+    box-shadow: 0 2px 8px rgba(0, 230, 118, 0.25);
   }
 
-  /* --- 2. MOBILE RESPONSIVE ENGINE (APPLIES TO EVERY CARD) --- */
-  @media (max-width: 600px) {
-    body { margin: 10px auto; padding: 0 8px; }
-    h1 { font-size: 19px; }
-    nav { gap: 5px; }
-    nav button { padding: 7px 9px; font-size: 12px; }
-
-    /* Forces BOTH the active clash card AND the completed log cards into 2 distinct rows */
-    .match-row .match-fixture,
-    .active-clash-card .match-fixture {
-      display: grid !important;
-      grid-template-columns: 1fr 1fr !important;
-      grid-template-areas:
-        "leftSide rightSide"
-        "scoreCenter scoreCenter" !important;
-      row-gap: 12px !important;
-      column-gap: 6px !important;
-      width: 100% !important;
-      align-items: center !important;
+  /* Responsive Scaling for Narrow Phones */
+  @media (max-width: 480px) {
+    .match-row, .active-clash-card {
+      padding: 12px 10px;
     }
-
-   /* Left Team: Avatars on top, Name underneath (Pinned to Left) */
-    .match-fixture .name:first-child {
-      grid-area: leftSide !important;
-      display: flex !important;
-      justify-content: flex-start !important;
-      width: 100% !important;
-      min-width: 0 !important;
-    }
-    .match-fixture .name:first-child .player-badge-col {
-      flex-direction: column !important;
-      align-items: flex-start !important;
-      text-align: left !important;
-      gap: 4px !important;
-    }
-
-    /* Right Team: Avatars on top, Name underneath (Pinned to Right) */
-    .match-fixture .name:last-of-type {
-      grid-area: rightSide !important;
-      display: flex !important;
-      justify-content: flex-end !important;
-      width: 100% !important;
-      min-width: 0 !important;
-    }
-    .match-fixture .name:last-of-type .player-badge-col {
-      flex-direction: column !important;
-      align-items: flex-end !important;
-      text-align: right !important;
-      gap: 4px !important;
-    }
-
-    /* Give each duo name the entire half width of the card */
-    .match-fixture .side-name {
-      max-width: 140px !important;
-      font-size: 11.5px !important;
-      line-height: 1.2 !important;
-    }
-    
-    /* Centers the score boxes directly underneath on Row 2 with zero overlap */
-    .match-fixture .score-box,
-    .match-fixture .scoreboard-capsule,
-    .match-fixture .score-display {
-      grid-area: scoreCenter !important;
-      justify-self: center !important;
-      margin: 0 auto !important;
-    }
-
-    /* In Tag Teams: Keep duo avatars side-by-side horizontally, not stacked */
-    .match-fixture .player-avatars-cluster {
-      display: flex !important;
-      flex-direction: row !important;
-      align-items: center !important;
-      gap: 3px !important;
-      flex-shrink: 0 !important;
-    }
-
-    .match-fixture .player-avatar-circle,
-    .match-fixture .player-avatar-placeholder {
-      width: 30px !important;
-      height: 30px !important;
-      font-size: 11px !important;
-      border-width: 2px !important;
-      flex-shrink: 0 !important;
-    }
-
-    .match-fixture .side-name {
+    .match-side-col .player-avatar-circle,
+    .match-side-col .player-avatar-placeholder {
+      width: 32px !important;
+      height: 32px !important;
       font-size: 12px !important;
-      max-width: 95px !important;
     }
-
-    .fut-badge {
-      font-size: 9px !important;
-      width: 18px !important;
-      height: 16px !important;
+    .match-side-col .side-name {
+      font-size: 11px;
     }
-
     .stepper-btn {
-      width: 30px !important;
-      height: 30px !important;
-      font-size: 15px !important;
+      width: 26px;
+      height: 28px;
+      font-size: 14px;
     }
-
     .stepper-wrap input[type=number] {
-      width: 34px !important;
-      height: 30px !important;
-      font-size: 15px !important;
+      width: 30px !important;
+      height: 28px !important;
+      font-size: 14px !important;
     }
-
-    table { font-size: 11px; }
-    th, td { padding: 5px 2px; text-align: center; }
-    th:nth-child(2), td:nth-child(2) { text-align: left; }
+    .match-save-btn {
+      font-size: 12px !important;
+      padding: 8px 18px !important;
+    }
   }
 /* comment ==> 08. CSS Responsive Media Queries ends here */
  
@@ -3750,35 +3755,50 @@ function computePlayerOVR(playerName) {
       // Find if a match is actively in progress
       const activeMatch = data.activeClashMatchId ? data.matches.find(m => m.id === data.activeClashMatchId) : null;
 
-      if (activeMatch && activeMatch.scoreA === null) {
+     if (activeMatch && activeMatch.scoreA === null) {
         const activeIdx = data.matches.findIndex(m => m.id === activeMatch.id);
         clashHub.innerHTML = `
           <div class="card active-clash-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
               <span class="clash-status-pill">&#9679; ON PITCH NOW</span>
               <span style="font-size:11px; color:var(--text-muted); font-weight:bold;">${activeMatch.groupIndex !== null ? 'Group ' + (activeMatch.groupIndex + 1) : 'League Match'}</span>
             </div>
-            <div class="match-fixture">
-              <span class="name">${renderPlayerBadge(activeMatch.sideA)}</span>
+
+            <!-- TIER 1: Contenders Header -->
+            <div class="match-fixture-header">
+              <div class="match-side-col side-a">
+                ${renderPlayerBadge(activeMatch.sideA)}
+              </div>
+              <div class="match-fixture-vs" data-sidea="${activeMatch.sideA}" data-sideb="${activeMatch.sideB}" title="View Tale of the Tape H2H">
+                V/S
+              </div>
+              <div class="match-side-col side-b">
+                ${renderPlayerBadge(activeMatch.sideB)}
+              </div>
+            </div>
+
+            <!-- TIER 2: Scorecard Steppers -->
+            <div class="match-fixture-score-row">
               <div class="score-box">
                 <div class="stepper-wrap">
                   <button type="button" class="stepper-btn stepper-minus">&minus;</button>
                   <input type="number" min="0" value="0" data-idx="${activeIdx}" data-side="A">
                   <button type="button" class="stepper-btn stepper-plus">&plus;</button>
                 </div>
-                <span>:</span>
+                <span class="score-divider">:</span>
                 <div class="stepper-wrap">
                   <button type="button" class="stepper-btn stepper-minus">&minus;</button>
                   <input type="number" min="0" value="0" data-idx="${activeIdx}" data-side="B">
                   <button type="button" class="stepper-btn stepper-plus">&plus;</button>
                 </div>
               </div>
-              <span class="name">${renderPlayerBadge(activeMatch.sideB)}</span>
             </div>
-            ${currentAdmin ? `<button class="match-save-btn" id="saveActiveClashBtn" style="margin-top:10px !important;">Save Score & End Match</button>` : ''}
+
+            <!-- TIER 3: Save Button -->
+            ${currentAdmin ? `<button class="match-save-btn" id="saveActiveClashBtn">Save Score & End Match</button>` : ''}
           </div>
-        `;
-        clashHub.querySelector("#saveActiveClashBtn")?.addEventListener("click", async (e) => {
+        `; 
+     clashHub.querySelector("#saveActiveClashBtn")?.addEventListener("click", async (e) => {
           e.target.disabled = true;
           // Register cooldown for these players
           const justPlayed = [...(activeMatch.sideA.split(" & ")), ...(activeMatch.sideB.split(" & "))];
@@ -3833,7 +3853,7 @@ function computePlayerOVR(playerName) {
     matchesDiv.style.display = "none";
     matchesDiv.innerHTML = `<div class="stage-badge"><span class="live-pulse-dot"></span> ${data.clashMode ? 'Completed Results Log' : 'Group stage fixtures'}</div>`;
 
-    data.matches.forEach((m, idx) => {
+data.matches.forEach((m, idx) => {
       const row = document.createElement("div");
       row.className = "match-row";
       const alreadyScored = m.scoreA !== null && m.scoreB !== null;
@@ -3845,9 +3865,6 @@ function computePlayerOVR(playerName) {
       const classA = alreadyScored ? (aWon ? " side-winner" : bWon ? " side-loser" : "") : "";
       const classB = alreadyScored ? (bWon ? " side-winner" : aWon ? " side-loser" : "") : "";
 
-      const formDotsA = renderFormDotsHtml(getPlayerRecentForm(m.sideA, data.matches));
-      const formDotsB = renderFormDotsHtml(getPlayerRecentForm(m.sideB, data.matches));
-
       if (!canEdit || isTvMode) {
         const scoreCapsule = alreadyScored ? `
           <div class="scoreboard-capsule" data-sidea="${m.sideA}" data-sideb="${m.sideB}" title="Tap to view Tale of the Tape H2H">
@@ -3857,30 +3874,57 @@ function computePlayerOVR(playerName) {
           </div>` : `<span class="score-display clickable" data-sidea="${m.sideA}" data-sideb="${m.sideB}" title="Tap to view Tale of the Tape H2H">vs</span>`;
 
         row.innerHTML = `
-          <div class="match-fixture">
-            <span class="name${classA}">${renderPlayerBadge(m.sideA)}</span>
+          <!-- TIER 1: Contenders Header -->
+          <div class="match-fixture-header">
+            <div class="match-side-col side-a${classA}">
+              ${renderPlayerBadge(m.sideA)}
+            </div>
+            <div class="match-fixture-vs" data-sidea="${m.sideA}" data-sideb="${m.sideB}" title="View Tale of the Tape H2H">
+              V/S
+            </div>
+            <div class="match-side-col side-b${classB}">
+              ${renderPlayerBadge(m.sideB)}
+            </div>
+          </div>
+
+          <!-- TIER 2: Scorecard Capsule -->
+          <div class="match-fixture-score-row">
             ${scoreCapsule}
-            <span class="name${classB}">${renderPlayerBadge(m.sideB)}</span>
-          </div>`;
+          </div>
+        `;
       } else {
         row.innerHTML = `
-          <div class="match-fixture">
-            <span class="name${classA}">${renderPlayerBadge(m.sideA)}</span>
+          <!-- TIER 1: Contenders Header -->
+          <div class="match-fixture-header">
+            <div class="match-side-col side-a${classA}">
+              ${renderPlayerBadge(m.sideA)}
+            </div>
+            <div class="match-fixture-vs" data-sidea="${m.sideA}" data-sideb="${m.sideB}" title="View Tale of the Tape H2H">
+              V/S
+            </div>
+            <div class="match-side-col side-b${classB}">
+              ${renderPlayerBadge(m.sideB)}
+            </div>
+          </div>
+
+          <!-- TIER 2: Scorecard Steppers -->
+          <div class="match-fixture-score-row">
             <div class="score-box">
               <div class="stepper-wrap">
                 <button type="button" class="stepper-btn stepper-minus">&minus;</button>
                 <input type="number" min="0" value="${m.scoreA ?? ""}" data-idx="${idx}" data-side="A">
                 <button type="button" class="stepper-btn stepper-plus">&plus;</button>
               </div>
-              <span class="score-display clickable" data-sidea="${m.sideA}" data-sideb="${m.sideB}" title="View H2H">:</span>
+              <span class="score-divider">:</span>
               <div class="stepper-wrap">
                 <button type="button" class="stepper-btn stepper-minus">&minus;</button>
                 <input type="number" min="0" value="${m.scoreB ?? ""}" data-idx="${idx}" data-side="B">
                 <button type="button" class="stepper-btn stepper-plus">&plus;</button>
               </div>
             </div>
-            <span class="name${classB}">${renderPlayerBadge(m.sideB)}</span>
-          </div>`;
+          </div>
+        `;
+
         const btn = document.createElement("button");
         btn.className = "match-save-btn";
         btn.textContent = m.scoreA !== null ? "Update" : "Save";
