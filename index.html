@@ -1426,7 +1426,7 @@
       align-items: center !important;
     }
 
-    /* Pushes Player A to the far left edge */
+   /* Left Team: Avatars on top, Name underneath (Pinned to Left) */
     .match-fixture .name:first-child {
       grid-area: leftSide !important;
       display: flex !important;
@@ -1434,8 +1434,14 @@
       width: 100% !important;
       min-width: 0 !important;
     }
+    .match-fixture .name:first-child .player-badge-col {
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      text-align: left !important;
+      gap: 4px !important;
+    }
 
-    /* Pushes Player B to the far right edge */
+    /* Right Team: Avatars on top, Name underneath (Pinned to Right) */
     .match-fixture .name:last-of-type {
       grid-area: rightSide !important;
       display: flex !important;
@@ -1443,7 +1449,20 @@
       width: 100% !important;
       min-width: 0 !important;
     }
+    .match-fixture .name:last-of-type .player-badge-col {
+      flex-direction: column !important;
+      align-items: flex-end !important;
+      text-align: right !important;
+      gap: 4px !important;
+    }
 
+    /* Give each duo name the entire half width of the card */
+    .match-fixture .side-name {
+      max-width: 140px !important;
+      font-size: 11.5px !important;
+      line-height: 1.2 !important;
+    }
+    
     /* Centers the score boxes directly underneath on Row 2 with zero overlap */
     .match-fixture .score-box,
     .match-fixture .scoreboard-capsule,
