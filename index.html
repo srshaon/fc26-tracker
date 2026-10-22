@@ -1406,33 +1406,48 @@
     .champ-grid { grid-template-columns: 1fr; }
     .stat-grid { grid-template-columns: 1fr; }
 
-    /* Mobile match fixture tuning */
+/* Mobile match fixture tuning */
     .match-row {
       padding: 10px 8px;
       margin: 8px 0;
       gap: 6px;
     }
     .match-fixture {
-      gap: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      width: 100%;
+    }
+    .match-fixture .name {
+      min-width: 0;
+      flex: 1 1 0;
     }
     .match-fixture .side-name {
-      font-size: 11.5px;
+      font-size: 11px;
       line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 85px;
+      word-break: normal;
     }
     .match-fixture .player-avatar-circle,
     .match-fixture .player-avatar-placeholder {
-      width: 36px !important;
-      height: 36px !important;
-      font-size: 13px !important;
+      width: 30px !important;
+      height: 30px !important;
+      font-size: 11px !important;
       border-width: 2px;
     }
     .score-box {
-      padding: 3px 5px;
-      gap: 4px;
+      padding: 2px 4px;
+      gap: 3px;
+      flex-shrink: 0;
     }
     .stepper-wrap {
       border-radius: 6px;
     }
+   
     .stepper-btn {
       width: 22px;
       height: 28px;
@@ -1662,8 +1677,18 @@
     return p && (p.photoUrl || p.imageUrl) ? convertImageUrl(p.photoUrl || p.imageUrl) : null;
   }
 
-  function computePlayerOVR(playerName) {
+function computePlayerOVR(playerName) {
     if (!playerName || !poolPlayers || poolPlayers.length === 0) return 74;
+
+    // Tag-Team Duo: calculate individual ratings and average them
+    if (playerName.includes(" & ")) {
+      const partners = playerName.split(" & ").map(s => s.trim()).filter(Boolean);
+      if (partners.length > 0) {
+        const sum = partners.reduce((acc, pName) => acc + computePlayerOVR(pName), 0);
+        return Math.round(sum / partners.length);
+      }
+    }
+
     const p = poolPlayers.find(x => x.name.toUpperCase() === playerName.toUpperCase());
     if (!p) return 72;
     const played = p.singleMatchesPlayed || 0;
@@ -1674,7 +1699,7 @@
     let ovr = Math.round(70 + (winRate * 18) + (gdPerGame * 2.5) + (titles * 1.5));
     return Math.max(63, Math.min(95, ovr));
   }
-
+ 
   function renderFutBadge(name) {
     if (name.includes(" & ")) return "";
     const ovr = computePlayerOVR(name);
@@ -5958,22 +5983,29 @@
     let winsA = 0, winsB = 0, draws = 0, gfA = 0, gfB = 0, totalMatches = 0;
     try {
       const snap = await getDocs(collection(db, "tournaments"));
+      const cleanA = sideA.trim().toUpperCase();
+      const cleanB = sideB.trim().toUpperCase();
+
       snap.forEach(docSnap => {
         const t = docSnap.data();
         const allMatches = [];
         if (Array.isArray(t.matches)) allMatches.push(...t.matches);
         if (t.knockout && Array.isArray(t.knockout.stages)) {
-          t.knockout.stages.forEach(st => { if (Array.isArray(st.matches)) matches.push(...st.matches); });
+          // Fixed variable name from 'matches' to 'allMatches'
+          t.knockout.stages.forEach(st => { if (Array.isArray(st.matches)) allMatches.push(...st.matches); });
         }
         if (t.finalScore && t.teams) {
           allMatches.push({ sideA: t.teams[0].teamName, sideB: t.teams[1].teamName, scoreA: t.finalScore.side1, scoreB: t.finalScore.side2 });
         }
 
         allMatches.forEach(m => {
-          if (m.scoreA === null || m.scoreB === null) return;
-          const isA_B = (m.sideA === sideA && m.sideB === sideB);
-          const isB_A = (m.sideA === sideB && m.sideB === sideA);
+          if (!m || m.scoreA === null || m.scoreB === null) return;
+          const sA = (m.sideA || "").trim().toUpperCase();
+          const sB = (m.sideB || "").trim().toUpperCase();
+          const isA_B = (sA === cleanA && sB === cleanB);
+          const isB_A = (sA === cleanB && sB === cleanA);
           if (!isA_B && !isB_A) return;
+
           totalMatches++;
           const scoreForA = isA_B ? m.scoreA : m.scoreB;
           const scoreForB = isA_B ? m.scoreB : m.scoreA;
@@ -5989,8 +6021,19 @@
       loadEl.style.display = "none";
       bodyEl.style.display = "block";
 
-      const pctA = totalMatches > 0 ? (winsA / totalMatches) * 100 : 50;
-      const pctB = totalMatches > 0 ? (winsB / totalMatches) * 100 : 50;
+      // If they never played before, display a clean first-time notice instead of breaking
+      if (totalMatches === 0) {
+        bodyEl.innerHTML = `
+          <div style="text-align:center; padding:12px; color:var(--text-muted); font-size:12px;">
+            No official head-to-head records found between these contenders.<br>
+            <strong style="color:var(--accent);">First-time matchup!</strong>
+          </div>
+        `;
+        return;
+      }
+
+      const pctA = (winsA / totalMatches) * 100;
+      const pctB = (winsB / totalMatches) * 100;
 
       bodyEl.innerHTML = `
         <div class="h2h-stat-bar">
@@ -6010,6 +6053,7 @@
         </div>
       `;
     } catch (e) {
+      console.warn("H2H error:", e);
       overlay.querySelector("#h2hStatsLoading").textContent = "Could not fetch rival history.";
     }
   }
@@ -6343,18 +6387,24 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
       });
     } catch (err) {}
 
-    let pForm = 0.50;
-    const streakA = window.__playerStreaksCache ? window.__playerStreaksCache[sideA.toUpperCase()] : null;
-    const streakB = window.__playerStreaksCache ? window.__playerStreaksCache[sideB.toUpperCase()] : null;
-    if (streakA === "fire") pForm += 0.12;
-    if (streakA === "ice") pForm -= 0.12;
-    if (streakB === "fire") pForm -= 0.12;
-    if (streakB === "ice") pForm += 0.12;
+ function getSideMomentum(name) {
+      if (!window.__playerStreaksCache) return 0;
+      const parts = name.split(" & ").map(s => s.trim().toUpperCase());
+      let delta = 0;
+      parts.forEach(p => {
+        const s = window.__playerStreaksCache[p];
+        if (s === "fire") delta += 0.08;
+        else if (s === "ice") delta -= 0.08;
+      });
+      return Math.max(-0.15, Math.min(0.15, delta));
+    }
+
+    const pForm = 0.50 + getSideMomentum(sideA) - getSideMomentum(sideB);
 
     const finalProbRatio = totalH2H >= 1
       ? ((((winsA + 1) / (winsA + winsB + 2)) * 0.55) + (pElo * 0.30) + (pForm * 0.15))
       : ((pElo * 0.75) + (pForm * 0.25));
-
+    
     const probA = Math.round(Math.max(0.07, Math.min(0.93, finalProbRatio)) * 100);
     const probB = 100 - probA;
 
