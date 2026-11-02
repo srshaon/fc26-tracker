@@ -6948,11 +6948,11 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
     const t = syncPlayerTrajectory(playerName, currentRank, currentRating, totalCount, mode);
     const rDelta = t ? Number(t.ratingDelta || 0) : 0;
     const formattedRtg = Math.round(Number(currentRating) || 74);
-    let deltaHtml = `<span class="rating-delta-sub same">0</span>`;
+    let deltaHtml = `<span class="delta-pill same">&mdash;</span>`;
     if (rDelta > 0) {
-      deltaHtml = `<span class="rating-delta-sub up">+${rDelta}</span>`;
+      deltaHtml = `<span class="delta-pill up" title="OVR Upgraded">&#9650;</span>`;
     } else if (rDelta < 0) {
-      deltaHtml = `<span class="rating-delta-sub down">${rDelta}</span>`;
+      deltaHtml = `<span class="delta-pill down" title="OVR Downgraded">&#9660;</span>`;
     }
     return `
       <div class="rating-live-wrap">
