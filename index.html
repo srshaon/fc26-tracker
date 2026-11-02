@@ -7023,7 +7023,7 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
   }
 
   function getMostLethalDuoHTML(tournamentData) {
-    if (!tournamentData || tournamentData.format !== "tagteam") return "";
+    if (!tournamentData || tournamentData.format !== "tagteam" || tournamentData.subMode !== "multi") return "";
     const duoGoals = {};
 
     const addGoals = (side, goals) => {
