@@ -7089,66 +7089,66 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
  /* ========================================================= */
   /* RANK/RATING TRAJECTORY & MOST LETHAL DUO ENGINE           */
   /* ========================================================= */
-  function syncPlayerTrajectory(playerName, currentRank, currentRating, totalPlayersCount = 10, mode = "wins") {
-    if (!playerName) return null;
-    const cleanName = playerName.trim().toUpperCase();
-    const rankKey = `fc26_traj_${mode}_${cleanName}`;
-    const rtgKey = `fc26_rtg_${cleanName}`;
+  // function syncPlayerTrajectory(playerName, currentRank, currentRating, totalPlayersCount = 10, mode = "wins") {
+  //   if (!playerName) return null;
+  //   const cleanName = playerName.trim().toUpperCase();
+  //   const rankKey = `fc26_traj_${mode}_${cleanName}`;
+  //   const rtgKey = `fc26_rtg_${cleanName}`;
 
-    let rankStored = null;
-    let rtgStored = null;
-    try {
-      rankStored = JSON.parse(localStorage.getItem(rankKey) || "null");
-      rtgStored = JSON.parse(localStorage.getItem(rtgKey) || "null");
-    } catch (e) {}
+  //   let rankStored = null;
+  //   let rtgStored = null;
+  //   try {
+  //     rankStored = JSON.parse(localStorage.getItem(rankKey) || "null");
+  //     rtgStored = JSON.parse(localStorage.getItem(rtgKey) || "null");
+  //   } catch (e) {}
 
-    const curRank = Number(currentRank) || 1;
-    const curRtg = Number(currentRating) || computePlayerOVR(playerName);
+  //   const curRank = Number(currentRank) || 1;
+  //   const curRtg = Number(currentRating) || computePlayerOVR(playerName);
 
-    if (!rankStored) {
-      rankStored = {
-        lastSeenRank: curRank,
-        rankDelta: 0,
-        peakRank: curRank,
-        lowestRank: curRank
-      };
-    }
+  //   if (!rankStored) {
+  //     rankStored = {
+  //       lastSeenRank: curRank,
+  //       rankDelta: 0,
+  //       peakRank: curRank,
+  //       lowestRank: curRank
+  //     };
+  //   }
 
-    if (!rtgStored) {
-      rtgStored = {
-        lastSeenRating: curRtg,
-        ratingDelta: 0,
-        peakRating: curRtg,
-        lowestRating: curRtg
-      };
-    }
+  //   if (!rtgStored) {
+  //     rtgStored = {
+  //       lastSeenRating: curRtg,
+  //       ratingDelta: 0,
+  //       peakRating: curRtg,
+  //       lowestRating: curRtg
+  //     };
+  //   }
 
-    // Calculate Rank Movement (+ = moved up, - = dropped down)
-    if (curRank !== rankStored.lastSeenRank) {
-      rankStored.rankDelta = rankStored.lastSeenRank - curRank;
-      rankStored.lastSeenRank = curRank;
-    }
-    if (curRank < rankStored.peakRank || !rankStored.peakRank) rankStored.peakRank = curRank;
-    if (curRank > rankStored.lowestRank || !rankStored.lowestRank) rankStored.lowestRank = curRank;
-    rankStored.currentRank = curRank;
+  //   // Calculate Rank Movement (+ = moved up, - = dropped down)
+  //   if (curRank !== rankStored.lastSeenRank) {
+  //     rankStored.rankDelta = rankStored.lastSeenRank - curRank;
+  //     rankStored.lastSeenRank = curRank;
+  //   }
+  //   if (curRank < rankStored.peakRank || !rankStored.peakRank) rankStored.peakRank = curRank;
+  //   if (curRank > rankStored.lowestRank || !rankStored.lowestRank) rankStored.lowestRank = curRank;
+  //   rankStored.currentRank = curRank;
 
-    // Calculate Live Rating Delta
-    const rtgDiff = +(curRtg - rtgStored.lastSeenRating).toFixed(1);
-    if (Math.abs(rtgDiff) >= 0.1) {
-      rtgStored.ratingDelta = rtgDiff;
-      rtgStored.lastSeenRating = curRtg;
-    }
-    if (curRtg > rtgStored.peakRating || !rtgStored.peakRating) rtgStored.peakRating = curRtg;
-    if (curRtg < rtgStored.lowestRating || !rtgStored.lowestRating) rtgStored.lowestRating = curRtg;
-    rtgStored.currentRating = curRtg;
+  //   // Calculate Live Rating Delta
+  //   const rtgDiff = +(curRtg - rtgStored.lastSeenRating).toFixed(1);
+  //   if (Math.abs(rtgDiff) >= 0.1) {
+  //     rtgStored.ratingDelta = rtgDiff;
+  //     rtgStored.lastSeenRating = curRtg;
+  //   }
+  //   if (curRtg > rtgStored.peakRating || !rtgStored.peakRating) rtgStored.peakRating = curRtg;
+  //   if (curRtg < rtgStored.lowestRating || !rtgStored.lowestRating) rtgStored.lowestRating = curRtg;
+  //   rtgStored.currentRating = curRtg;
 
-    try {
-      localStorage.setItem(rankKey, JSON.stringify(rankStored));
-      localStorage.setItem(rtgKey, JSON.stringify(rtgStored));
-    } catch (e) {}
+  //   try {
+  //     localStorage.setItem(rankKey, JSON.stringify(rankStored));
+  //     localStorage.setItem(rtgKey, JSON.stringify(rtgStored));
+  //   } catch (e) {}
 
-    return { ...rankStored, ...rtgStored };
-  }
+  //   return { ...rankStored, ...rtgStored };
+  // }
 
   function renderRankWithDelta(playerName, currentRank, currentRating, totalCount, mode = "wins") {
     const t = syncPlayerTrajectory(playerName, currentRank, currentRating, totalCount, mode);
