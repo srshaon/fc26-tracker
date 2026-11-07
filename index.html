@@ -5136,7 +5136,8 @@ data.matches.forEach((m, idx) => {
 // comment ==> 33. Records Tabs & Routing ends here
 
 // comment ==> 34. Tournament Detail View starts from here
-  function computeGoldenBoot(data) {
+
+ function computeGoldenBoot(data) {
     if (data.format !== "single" || !data.participants) return null;
     const stats = {};
     data.participants.forEach(p => { stats[p.name] = { goals: 0, matches: 0, gf: 0, ga: 0 }; });
@@ -5153,10 +5154,25 @@ data.matches.forEach((m, idx) => {
 
     const entries = Object.entries(stats).map(([name, s]) => ({ name, goals: s.goals, matches: s.matches, gd: s.gf - s.ga }));
     if (entries.length === 0 || entries.every(e => e.goals === 0)) return null;
-    entries.sort((a, b) => b.goals - a.goals || a.matches - b.matches || b.gd - a.gd);
+    
+    // Sort purely by goals descending
+    entries.sort((a, b) => b.goals - a.goals);
+    
+    const topGoals = entries[0].goals;
+    const topScorers = entries.filter(e => e.goals === topGoals);
+
+    // If there is a tie for top goals, return them as joint winners
+    if (topScorers.length > 1) {
+      return {
+        name: topScorers.map(s => s.name).join(" & "),
+        goals: topGoals,
+        isJoint: true
+      };
+    }
+
     return entries[0];
   }
-
+ 
   async function renderTournamentDetail(body, tid) {
     body.innerHTML = "<p>Loading...</p>";
     const snap = await getDoc(doc(db, "tournaments", tid));
@@ -5175,9 +5191,9 @@ data.matches.forEach((m, idx) => {
       <h2>${data.name}</h2>
     `;
     if (data.winner) html += "<p class='status-msg'>Champion: <strong style='color:var(--accent);'>" + data.winner + "</strong> &middot; Runner-up: " + data.runnerUp + "</p>";
-    const goldenBoot = computeGoldenBoot(data);
-    if (goldenBoot) html += "<p class='status-msg'>&#9917; Golden Boot: <strong style='color:var(--accent);'>" + goldenBoot.name + "</strong> (" + goldenBoot.goals + " goal" + (goldenBoot.goals === 1 ? "" : "s") + ")</p>";
-    html += getMostLethalDuoHTML(data);
+   const goldenBoot = computeGoldenBoot(data);
+    if (goldenBoot) html += "<p class='status-msg'>&#9917; Golden Boot: <strong style='color:var(--accent);'>" + goldenBoot.name + "</strong> (" + goldenBoot.goals + " goal" + (goldenBoot.goals === 1 ? "" : "s") + ")</p>"; 
+   html += getMostLethalDuoHTML(data);
     if (currentAdmin && currentAdmin.isMaster) {
       html += `
         <div class="card">
