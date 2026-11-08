@@ -2123,6 +2123,79 @@
   padding: 2px 8px;
   border-radius: 12px;
   text-transform: uppercase;
+} 
+ /* === SYMMETRICAL 3-COLUMN GRID FOR GROUP STAGE FIXTURES === */
+.match-fixture {
+  display: grid !important;
+  grid-template-columns: 1fr auto 1fr !important;
+  align-items: center !important;
+  justify-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  padding: 6px 4px !important;
+  box-sizing: border-box !important;
+}
+
+.match-fixture > .name {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.match-fixture .player-badge-col {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+.match-fixture .side-name {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+  gap: 5px !important;
+  font-family: var(--font-heading) !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0.5px !important;
+  text-align: center !important;
+}
+
+.match-fixture .side-name .fut-badge {
+  margin-right: 0 !important;
+}
+
+.match-fixture .scoreboard-capsule {
+  min-width: 68px !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
+}
+
+@media (max-width: 480px) {
+  .match-fixture {
+    gap: 8px !important;
+    padding: 4px 2px !important;
+  }
+  .match-fixture .player-avatar-circle,
+  .match-fixture .player-avatar-placeholder {
+    width: 50px !important;
+    height: 50px !important;
+    font-size: 17px !important;
+  }
+  .match-fixture .side-name {
+    font-size: 11.5px !important;
+  }
+  .match-fixture .scoreboard-capsule {
+    min-width: 60px !important;
+    padding: 5px 10px !important;
+  }
 }
 </style>
 </head>
