@@ -5331,17 +5331,19 @@ data.matches.forEach((m, idx) => {
     const entries = Object.entries(stats).map(([name, s]) => ({ name, goals: s.goals, matches: s.matches, gd: s.gf - s.ga }));
     if (entries.length === 0 || entries.every(e => e.goals === 0)) return null;
     
-    // Sort purely by goals descending
-    entries.sort((a, b) => b.goals - a.goals);
-    
-    const topGoals = entries[0].goals;
-    const topScorers = entries.filter(e => e.goals === topGoals);
+    // 1. Most goals | 2. Fewest matches played
+    entries.sort((a, b) => b.goals - a.goals || a.matches - b.matches);
 
-    // If there is a tie for top goals, return them as joint winners
+    const topGoals = entries[0].goals;
+    const minMatches = entries[0].matches;
+    const topScorers = entries.filter(e => e.goals === topGoals && e.matches === minMatches);
+
+    // 3. If both goals and matches are tied, announce Joint Golden Boot winners
     if (topScorers.length > 1) {
       return {
         name: topScorers.map(s => s.name).join(" & "),
         goals: topGoals,
+        matches: minMatches,
         isJoint: true
       };
     }
