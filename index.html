@@ -5370,7 +5370,11 @@ data.matches.forEach((m, idx) => {
     `;
     if (data.winner) html += "<p class='status-msg'>Champion: <strong style='color:var(--accent);'>" + data.winner + "</strong> &middot; Runner-up: " + data.runnerUp + "</p>";
    const goldenBoot = computeGoldenBoot(data);
-    if (goldenBoot) html += "<p class='status-msg'>&#9917; Golden Boot: <strong style='color:var(--accent);'>" + goldenBoot.name + "</strong> (" + goldenBoot.goals + " goal" + (goldenBoot.goals === 1 ? "" : "s") + ")</p>"; 
+    if (goldenBoot) {
+      const bootLabel = goldenBoot.isJoint ? "Joint Golden Boots" : "Golden Boot";
+      const goalSuffix = goldenBoot.isJoint ? " goals each" : (goldenBoot.goals === 1 ? " goal" : " goals");
+      html += "<p class='status-msg'>&#9917; " + bootLabel + ": <strong style='color:var(--accent);'>" + goldenBoot.name + "</strong> (" + goldenBoot.goals + goalSuffix + ")</p>";
+    }
    html += getMostLethalDuoHTML(data);
     if (currentAdmin && currentAdmin.isMaster) {
       html += `
