@@ -2779,13 +2779,16 @@ body {
 function computePlayerOVR(playerName) {
     if (!playerName || !poolPlayers || poolPlayers.length === 0) return 74;
 
-    // Tag-Team Duo: calculate individual ratings and average them
+    // Tag-Team Duo: Option A (Same formula as Single Player OVR, 75 default if 0 matches)
     if (playerName.includes(" & ")) {
-      const partners = playerName.split(" & ").map(s => s.trim()).filter(Boolean);
-      if (partners.length > 0) {
-        const sum = partners.reduce((acc, pName) => acc + computePlayerOVR(pName), 0);
-        return Math.round(sum / partners.length);
-      }
+      const duoKey = playerName.split(" & ").map(s => s.trim().toUpperCase()).filter(Boolean).sort().join(" & ");
+      const d = window.__duoStatsCache && window.__duoStatsCache[duoKey];
+      if (!d || !d.played || d.played === 0) return 75;
+      const winRate = (d.wins || 0) / d.played;
+      const gdPerGame = ((d.gf || 0) - (d.ga || 0)) / d.played;
+      const titles = d.titles || 0;
+      let ovr = Math.round(70 + (winRate * 18) + (gdPerGame * 2.5) + (titles * 1.5));
+      return Math.max(63, Math.min(95, ovr));
     }
 
     const p = poolPlayers.find(x => x.name.toUpperCase() === playerName.toUpperCase());
