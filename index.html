@@ -2541,106 +2541,11 @@
   margin-right: 6px;
   letter-spacing: 0.5px;
 }
-
 /* 4. Design 4: Home Screen Matchday Command Center */
 .command-center-live-banner {
-  background: radial-gradient(circle at 50% 0%, rgba(0, 230, 118, 0.22), rgba(14, 20, 28, 0.96));
-  border: 1.5px solid var(--accent);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  box-shadow: 0 6px 22px rgba(0, 230, 118, 0.18);
-}
-.champ-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 14px 10px !important;
-  transition: transform 0.2s ease, border-color 0.2s ease;
-}
-.champ-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--accent);
-}
-
-/* 5. Design 5: Native Mobile Bottom Navigation Dock */
-body {
-  padding-bottom: 60px;
-}
-@media (max-width: 768px) {
-  body {
-    padding-bottom: 110px !important;
-  }
-  .live-wire-ticker-bar {
-    bottom: 58px;
-    height: 30px;
-  }
-  #mainNav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    margin: 0 !important;
-    padding: 6px 8px !important;
-    background: rgba(12, 16, 23, 0.95);
-    backdrop-filter: blur(14px);
-    border-top: 1px solid var(--border-strong);
-    border-bottom: none;
-    display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    justify-content: space-around;
-    gap: 4px;
-    z-index: 950;
-    box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.65);
-  }
-  #mainNav button {
-    flex: 1 0 auto;
-    padding: 6px 10px !important;
-    font-size: 11px !important;
-    border-radius: 8px !important;
-    white-space: nowrap;
-    text-align: center;
-  }
-  .music-toggle {
-    bottom: 98px !important;
-  }
-}
-
-@media (max-width: 480px) {
-  .match-fixture .player-avatar-circle,
-  .match-fixture .player-avatar-placeholder,
-  .match-side-col .player-avatar-circle,
-  .match-side-col .player-avatar-placeholder {
-    width: 46px !important;
-    height: 46px !important;
-    font-size: 15px !important;
-  }
-  .match-fixture .side-name,
-  .match-side-col .side-name {
-    font-size: 11.5px !important;
-  }
-  .podium-showcase-grid,
-  .rivalry-duel-grid {
-    grid-template-columns: 1fr;
-  }
-  .rivalry-vs-divider {
-    display: none;
-  }
-}
-
-/* 6. Design 6: Wide-Screen Laptop & TV Mode Control Room Split View */
-@media (min-width: 960px) {
-  body {
-    max-width: 1140px !important;
-  }
+  ...
+  (everything in between)
+  ...
   .control-room-split {
     display: grid;
     grid-template-columns: 1.05fr 1fr;
@@ -2648,6 +2553,7 @@ body {
     align-items: start;
   }
 }
+ 
 </style>
 </head>
 
