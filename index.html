@@ -8350,6 +8350,7 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
 // comment ==> 39. Esports Broadcast Engine (Streaks, Face-Off & Story) ends here
 
 /* ========================================================= */
+/* ========================================================= */
   /* 40. MASTER UPGRADE: DUO OVR, PODIUM, RIVALRY & LIVE WIRE  */
   /* ========================================================= */
   window.__duoStatsCache = {};
@@ -8384,7 +8385,7 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
     return list;
   }
 
-  /* 1. Sync Duo Stats Cache (Option A Formula Support) & Broadcast Data */
+  /* 1. Sync Duo Stats Cache (Option A Formula) & Broadcast Data */
   async function syncMasterBroadcastCaches() {
     try {
       const snap = await getDocs(collection(db, "tournaments"));
@@ -8446,7 +8447,7 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
     }
   }
 
-  /* 2. Feature 5 & Design 1: Golden Glove, Upset of the Night & Podium HTML */
+  /* 2. Compute Golden Glove & Upset of the Night */
   function computeGoldenGlove(data) {
     const matches = getAllScoredMatchesFromTournament(data);
     if (matches.length === 0) return null;
@@ -8477,13 +8478,13 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
     if (best.cleanSheets > 0) {
       const tied = list.filter(x => x.cleanSheets === best.cleanSheets && (x.ga / x.matches) === (best.ga / best.matches));
       return {
-        title: tied.length > 1 ? "Joint Golden Gloves" : "Golden Glove",
+        title: "Golden Glove",
         name: tied.map(x => x.name).join(" & "),
         sub: `${best.cleanSheets} Clean Sheet${best.cleanSheets === 1 ? "" : "s"}`
       };
     }
     return {
-      title: "Iron Wall Award",
+      title: "Golden Glove",
       name: best.name,
       sub: `${(best.ga / best.matches).toFixed(1)} GA / Match`
     };
@@ -8522,87 +8523,163 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
     if (bestUpset) {
       return {
         title: "Upset of the Night",
-        name: `${bestUpset.winner} def. ${bestUpset.loser}`,
-        sub: `OVR ${bestUpset.ovrW} stunned OVR ${bestUpset.ovrL} (${bestUpset.winScore}–${bestUpset.loseScore})`
+        name: `${bestUpset.winner}  ${bestUpset.loser}`,
+        sub: `OVR ${bestUpset.ovrW} vs OVR ${bestUpset.ovrL}`
       };
     }
     if (bestThriller) {
       const m = bestThriller.m;
       return {
-        title: "Thriller of the Night",
+        title: "Upset of the Night",
         name: `${m.sideA} ${m.scoreA}–${m.scoreB} ${m.sideB}`,
-        sub: `${bestThriller.totalGoals} Total Goals Scored`
+        sub: `${bestThriller.totalGoals} Goals Scored`
       };
     }
     return null;
   }
 
-  function renderTournamentPodiumAndAwardsHTML(data) {
-    let out = "";
-    if (data.winner) {
-      const winOvr = computePlayerOVR(data.winner);
-      const ruOvr = data.runnerUp ? computePlayerOVR(data.runnerUp) : null;
-      out += `
-        <div class="podium-showcase-grid">
-          <div class="podium-card gold-podium">
-            <span class="podium-rank-pill">&#128081; 1st Place &bull; Champion</span>
-            ${renderPlayerBadge(data.winner)}
-            <span class="podium-ovr-tag">OVR ${winOvr}</span>
-          </div>
-          ${data.runnerUp ? `
-          <div class="podium-card silver-podium">
-            <span class="podium-rank-pill">&#129352; 2nd Place &bull; Runner-Up</span>
-            ${renderPlayerBadge(data.runnerUp)}
-            <span class="podium-ovr-tag">OVR ${ruOvr}</span>
-          </div>` : ""}
-        </div>
-      `;
+  function findThirdPlaceContender(data) {
+    const excluded = new Set([data.winner, data.runnerUp].filter(Boolean));
+    if (data.knockout && Array.isArray(data.knockout.stages) && data.knockout.stages.length >= 2) {
+      const semiStage = data.knockout.stages[data.knockout.stages.length - 2];
+      const semiLosers = [];
+      (semiStage.matches || []).forEach(m => {
+        if (m.scoreA !== null && m.scoreB !== null) {
+          const w = matchWinnerName(m);
+          const l = w === m.sideA ? m.sideB : m.sideA;
+          if (l && !excluded.has(l) && !l.startsWith("TBD")) semiLosers.push(l);
+        }
+      });
+      if (semiLosers.length > 0) return semiLosers[0];
     }
+    if (Array.isArray(data.matches) && data.matches.length > 0) {
+      const allNames = [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
+      const table = computeStandings(allNames, data.matches, data.pointsSystem);
+      const third = table.find(r => !excluded.has(r.name));
+      if (third) return third.name;
+    }
+    return null;
+  }
+
+  function renderPillarAvatarHtml(sideName) {
+    const firstPartner = (sideName || "?").split(" & ")[0].trim();
+    const img = getPlayerImageByName(firstPartner);
+    if (img) {
+      return `<img src="${img}" alt="${sideName}" onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'podium-avatar-fallback',innerText:'${firstPartner.slice(0,1).toUpperCase()}'}));">`;
+    }
+    return `<div class="podium-avatar-fallback">${firstPartner.slice(0, 1).toUpperCase()}</div>`;
+  }
+
+  /* 3. Render 3D Stadium Podium + 3-Column Horizontal Awards (Matches Image 4) */
+  function renderTournamentPodiumAndAwardsHTML(data) {
+    if (!data.winner) return "";
+    const winOvr = computePlayerOVR(data.winner);
+    const ruName = data.runnerUp || "FINALIST";
+    const ruOvr = computePlayerOVR(ruName);
+    const thirdName = findThirdPlaceContender(data) || ruName;
+    const thirdOvr = computePlayerOVR(thirdName);
 
     const goldenBoot = computeGoldenBoot(data);
     const goldenGlove = computeGoldenGlove(data);
     const upsetAward = computeUpsetOfTheNight(data);
 
+    let awardsBarHtml = "";
     if (goldenBoot || goldenGlove || upsetAward) {
-      out += `<div class="awards-ribbon-grid">`;
-      if (goldenBoot) {
-        const bootTitle = goldenBoot.isJoint ? "Joint Golden Boots" : "Golden Boot";
-        const bootSub = goldenBoot.isJoint ? `${goldenBoot.goals} Goals Each` : `${goldenBoot.goals} Goal${goldenBoot.goals === 1 ? "" : "s"}`;
-        out += `
-          <div class="award-card boot-award">
-            <div class="award-icon">&#9917;</div>
-            <div class="award-title">${bootTitle}</div>
-            <div class="award-winner">${goldenBoot.name}</div>
-            <div class="award-sub">${bootSub}</div>
+      const bootWinner = goldenBoot ? goldenBoot.name : data.winner;
+      const bootSub = goldenBoot
+        ? (goldenBoot.isJoint ? `${goldenBoot.goals} Goals Each` : `${goldenBoot.goals} Goals`)
+        : "Top Scorer";
+
+      const gloveWinner = goldenGlove ? goldenGlove.name : data.winner;
+      const gloveSub = goldenGlove ? goldenGlove.sub : "Clean Sheets";
+
+      const upsetWinner = upsetAward ? upsetAward.name : `${data.winner} vs ${ruName}`;
+      const upsetSub = upsetAward ? upsetAward.sub : `OVR ${winOvr} vs OVR ${ruOvr}`;
+
+      awardsBarHtml = `
+        <div class="cyber-awards-bar">
+          <div class="cyber-award-slot boot-slot">
+            <div class="cyber-award-pill">Golden Boot</div>
+            <div class="cyber-award-body">
+              <span class="cyber-award-icon">&#128095;</span>
+              <div class="cyber-award-text">
+                <span class="cyber-award-winner">${bootWinner}</span>
+                <span class="cyber-award-sub">${bootSub}</span>
+              </div>
+            </div>
           </div>
-        `;
-      }
-      if (goldenGlove) {
-        out += `
-          <div class="award-card glove-award">
-            <div class="award-icon">&#129508;</div>
-            <div class="award-title">${goldenGlove.title}</div>
-            <div class="award-winner">${goldenGlove.name}</div>
-            <div class="award-sub">${goldenGlove.sub}</div>
+
+          <div class="cyber-award-slot glove-slot">
+            <div class="cyber-award-pill">Golden Glove</div>
+            <div class="cyber-award-body">
+              <span class="cyber-award-icon">&#129508;</span>
+              <div class="cyber-award-text">
+                <span class="cyber-award-winner">${gloveWinner}</span>
+                <span class="cyber-award-sub">${gloveSub}</span>
+              </div>
+            </div>
           </div>
-        `;
-      }
-      if (upsetAward) {
-        out += `
-          <div class="award-card upset-award">
-            <div class="award-icon">&#9889;</div>
-            <div class="award-title">${upsetAward.title}</div>
-            <div class="award-winner">${upsetAward.name}</div>
-            <div class="award-sub">${upsetAward.sub}</div>
+
+          <div class="cyber-award-slot upset-slot">
+            <div class="cyber-award-pill">&#10038; Upset of the Night</div>
+            <div class="cyber-award-body">
+              <div class="cyber-award-text">
+                <span class="cyber-award-winner">${upsetWinner}</span>
+                <span class="cyber-award-sub">${upsetSub}</span>
+              </div>
+            </div>
           </div>
-        `;
-      }
-      out += `</div>`;
+        </div>
+      `;
     }
-    return out;
+
+    return `
+      <div class="cyber-summary-stage">
+        <div class="summary-stage-heading">TOURNAMENT SUMMARY</div>
+
+        <div class="cyber-podium-arena">
+          <!-- Left: 2nd Place -->
+          <div class="podium-pillar second-place">
+            <div class="podium-shield-frame">
+              <div class="podium-Floating-ovr"><small style="font-size:6px;">OVR</small>${ruOvr}</div>
+              ${renderPillarAvatarHtml(ruName)}
+              <div class="podium-player-tag">${ruName}</div>
+            </div>
+            <div class="podium-cylinder-base">2nd</div>
+          </div>
+
+          <!-- Center: 1st Place Champion -->
+          <div class="podium-pillar first-place">
+            <div class="podium-crown">&#128081;</div>
+            <div class="podium-shield-frame">
+              <div class="podium-Floating-ovr"><small style="font-size:6px;">OVR</small>${winOvr}</div>
+              ${renderPillarAvatarHtml(data.winner)}
+              <div style="font-size:8px; color:#cfd8dc; text-transform:uppercase; line-height:1; margin-top:2px;">Champion</div>
+              <div class="podium-player-tag">${data.winner}</div>
+            </div>
+            <div class="podium-cylinder-base">
+              1st Place
+              <small>Champion</small>
+            </div>
+          </div>
+
+          <!-- Right: 3rd Place -->
+          <div class="podium-pillar third-place">
+            <div class="podium-shield-frame">
+              <div class="podium-Floating-ovr"><small style="font-size:6px;">OVR</small>${thirdOvr}</div>
+              ${renderPillarAvatarHtml(thirdName)}
+              <div class="podium-player-tag">${thirdName}</div>
+            </div>
+            <div class="podium-cylinder-base">3rd</div>
+          </div>
+        </div>
+
+        ${awardsBarHtml}
+      </div>
+    `;
   }
 
-  /* 3. Feature 2 & Design 2: Split-Tone Rivalry Duel Widget on Player Profile */
+  /* 4. Diagonal-Split Rivalry Duel Widget (Matches Image 4) */
   function buildRivalryDuelWidgetForPlayer(playerName) {
     const cleanMe = (playerName || "").trim().toUpperCase();
     const h2h = {};
@@ -8637,37 +8714,49 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
     const customer = customerPool[0] || null;
 
     const renderHalf = (r, type) => {
+      const pillLabel = type === "kryptonite" ? "&#128520; KRYPTONITE" : "&#127869; FAVORITE CUSTOMER";
       if (!r) {
         return `
           <div class="rivalry-half ${type}">
-            <span class="rivalry-pill">${type === "kryptonite" ? "&#128520; Kryptonite" : "&#127869; Favorite Customer"}</span>
-            <div style="font-size:12px; color:var(--text-muted); padding:16px 0;">${type === "kryptonite" ? "Undefeated vs All Rivals" : "No Wins Recorded Yet"}</div>
+            <span class="rivalry-pill">${pillLabel}</span>
+            <div class="rivalry-ovr-crest">
+              <span class="ovr-top">OVR</span>
+              <span class="ovr-num">--</span>
+              <span class="ovr-bot">FUT</span>
+            </div>
+            <div class="rivalry-player-name">NONE YET</div>
+            <div class="rivalry-rec-stat">0W - 0L &bull; 0% Win</div>
           </div>
         `;
       }
       const winPct = Math.round((r.wins / r.played) * 100);
+      const oppOvr = computePlayerOVR(r.name);
       return `
         <div class="rivalry-half ${type}">
-          <span class="rivalry-pill">${type === "kryptonite" ? "&#128520; Kryptonite" : "&#127869; Favorite Customer"}</span>
-          ${renderPlayerBadge(r.name)}
-          <div class="rivalry-rec-stat">${r.wins}W &ndash; ${r.losses}L (${winPct}% WR)</div>
+          <span class="rivalry-pill">${pillLabel}</span>
+          <div class="rivalry-ovr-crest">
+            <span class="ovr-top">OVR</span>
+            <span class="ovr-num">${oppOvr}</span>
+            <span class="ovr-bot">FUT</span>
+          </div>
+          <div class="rivalry-player-name">${r.name}</div>
+          <div class="rivalry-rec-stat">${r.wins}W - ${r.losses}L &bull; ${winPct}% Win</div>
         </div>
       `;
     };
 
     return `
       <div class="rivalry-duel-widget" id="rivalryDuelWidget">
-        <div class="rivalry-duel-header">&#9876; Rivalry Duel &bull; Career H2H Extremes</div>
         <div class="rivalry-duel-grid">
           ${renderHalf(nemesis, "kryptonite")}
-          <div class="rivalry-vs-divider">VS</div>
+          <div class="rivalry-vs-slash">Vs</div>
           ${renderHalf(customer, "customer")}
         </div>
       </div>
     `;
   }
 
-  /* 4. Feature 3 & Design 3: Sky Sports Lower-Third Live Wire Ticker */
+  /* 5. Sky Sports Lower-Third Live Wire Ticker */
   function buildAndMountLiveWireTicker(singleCompleted, liveTourns) {
     let bar = document.getElementById("liveWireTickerBar");
     if (!bar) {
@@ -8678,99 +8767,118 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
     }
 
     const headlines = [];
-
-    if (liveTourns && liveTourns.length > 0) {
-      liveTourns.forEach(lt => {
-        headlines.push(`<span class="ticker-item"><span class="ticker-tag">[LIVE NOW &#128308;]</span>${lt.name} is currently underway on the pitch!</span>`);
-      });
-    }
-
-    if (window.__playerStreaksCache) {
-      Object.entries(window.__playerStreaksCache).forEach(([pName, status]) => {
-        if (status === "fire") {
-          headlines.push(`<span class="ticker-item"><span class="ticker-tag">[ON FIRE &#128293;]</span>${pName} is riding a 3+ match winning streak!</span>`);
-        } else if (status === "ice") {
-          headlines.push(`<span class="ticker-item"><span class="ticker-tag">[COLD SLUMP &#10052;]</span>${pName} is searching for a win after 3 straight defeats.</span>`);
-        }
-      });
-    }
-
-    if (poolPlayers && poolPlayers.length > 0) {
-      const sortedOvr = [...poolPlayers].map(p => ({ name: p.name, ovr: computePlayerOVR(p.name) })).sort((a, b) => b.ovr - a.ovr);
-      if (sortedOvr[0]) {
-        headlines.push(`<span class="ticker-item"><span class="ticker-tag">[TOP RATED &#11088;]</span>${sortedOvr[0].name} leads the player pool at ${sortedOvr[0].ovr} OVR!</span>`);
-      }
-    }
-
     if (singleCompleted && singleCompleted.length > 0) {
       const latest = singleCompleted[singleCompleted.length - 1];
       if (latest && latest.winner) {
-        headlines.push(`<span class="ticker-item"><span class="ticker-tag">[CHAMPION &#127942;]</span>${latest.winner} claimed the ${latest.name} trophy over ${latest.runnerUp || "the field"}!</span>`);
+        headlines.push(`<span class="ticker-item"><span class="ticker-tag">[CHAMPION]</span>${latest.winner} claimed the ${latest.name} trophy over ${latest.runnerUp || "the field"}!</span>`);
       }
       const upset = latest ? computeUpsetOfTheNight(latest) : null;
-      if (upset && upset.title === "Upset of the Night") {
-        headlines.push(`<span class="ticker-item"><span class="ticker-tag">[UPSET ALERT &#9889;]</span>${upset.name} &mdash; ${upset.sub}!</span>`);
+      if (upset) {
+        headlines.push(`<span class="ticker-item"><span class="ticker-tag">[UPSET ALERT &#9889;]</span>${upset.name} (${upset.sub})!</span>`);
       }
     }
-
+    if (liveTourns && liveTourns.length > 0) {
+      liveTourns.forEach(lt => {
+        headlines.push(`<span class="ticker-item"><span class="ticker-tag">[LIVE NOW &#128308;]</span>${lt.name} is underway on the pitch!</span>`);
+      });
+    }
+    if (window.__playerStreaksCache) {
+      Object.entries(window.__playerStreaksCache).forEach(([pName, status]) => {
+        if (status === "fire") {
+          headlines.push(`<span class="ticker-item"><span class="ticker-tag">[BREAKING &#128293;]</span>${pName} extends winning streak to 3+ matches!</span>`);
+        }
+      });
+    }
     if (headlines.length === 0) {
-      headlines.push(`<span class="ticker-item"><span class="ticker-tag">[FC26 BROADCAST]</span>Welcome to the official FC26 Tournament Tracker &bull; All stats &amp; OVR ratings synced live!</span>`);
+      headlines.push(`<span class="ticker-item"><span class="ticker-tag">[LIVE WIRE]</span>FC26 Tracker Broadcast Online &bull; All OVR Ratings &amp; Records Synced!</span>`);
     }
 
     bar.innerHTML = `
-      <div class="live-wire-badge"><span class="live-wire-dot"></span>LIVE WIRE</div>
+      <div class="live-wire-badge"><span class="live-wire-dot"></span>LIVE WIRE -</div>
       <div class="live-wire-track">
         <div class="live-wire-scroll">${headlines.join("")}</div>
       </div>
     `;
   }
 
-  /* 5. Design 4: Upgrade Home Screen with Live Spotlight & Champion Avatars */
+  /* 6. Fancy Horizontal One-Row-Per-Tournament Champions Renderer (Matches Image 1) */
   function enhanceHomeCommandCenter() {
     if (currentView !== "home") return;
     const grid = document.getElementById("champGrid");
     if (!grid) return;
 
-    // Inject Live Match Spotlight Banner if a tournament is active
-    const existingBanner = document.getElementById("homeLiveSpotlight");
-    if (window.__liveTournamentsCache && window.__liveTournamentsCache.length > 0 && !existingBanner) {
-      const activeT = window.__liveTournamentsCache[0];
-      const banner = document.createElement("div");
-      banner.id = "homeLiveSpotlight";
-      banner.className = "command-center-live-banner";
-      banner.innerHTML = `
-        <div>
-          <div class="clash-status-pill" style="display:inline-block; margin-bottom:6px;">&#9679; ON PITCH NOW</div>
-          <div style="font-family:var(--font-heading); font-size:18px; font-weight:900; color:var(--text-primary); text-transform:uppercase;">${activeT.name}</div>
-          <div style="font-size:12px; color:var(--text-secondary);">Live tournament in progress &bull; Tap to view standings &amp; enter scores</div>
-        </div>
-        <button class="btn-initiate-clash" id="jumpToLiveBtn" style="padding:10px 20px; font-size:14px;">&#9889; Open Live Arena</button>
-      `;
-      viewArea.prepend(banner);
-      banner.querySelector("#jumpToLiveBtn")?.addEventListener("click", () => {
-        currentView = "liveTournaments";
-        renderNav();
-        renderView();
-      });
-    }
+    const cards = [...grid.querySelectorAll(".champ-card")];
+    if (cards.length === 0) return;
 
-    // Upgrade Champion Cards with Avatars & OVR Shields
-    grid.querySelectorAll(".champ-card").forEach(card => {
-      if (card.dataset.enhanced === "1") return;
+    const rowMeta = [
+      { theme: "theme-gold", icon: "&#127942;", title: "SINGLE<br>PLAYER" },
+      { theme: "theme-green", icon: "&#128101;", title: "TAG-TEAM<br>REGULAR" },
+      { theme: "theme-blue", icon: "&#127918;", title: "TAG-TEAM<br>MULTI" }
+    ];
+
+    cards.forEach((card, idx) => {
+      if (card.dataset.cyberUpgraded === "1") return;
       const nameEl = card.querySelector(".name");
       if (!nameEl) return;
-      const rawName = nameEl.textContent.trim();
-      if (!rawName || rawName === "-" || rawName === "Loading...") return;
-      card.dataset.enhanced = "1";
+      const rawName = (card.dataset.rawWinner || nameEl.textContent || "").trim();
+      if (!rawName || rawName === "Loading...") return;
+
+      card.dataset.rawWinner = rawName;
+      card.dataset.cyberUpgraded = "1";
+
+      const cfg = rowMeta[idx] || rowMeta[0];
+      card.className = `cyber-champ-row ${cfg.theme}`;
+
+      if (rawName === "-") {
+        card.innerHTML = `
+          <div class="champ-left-chamber">
+            <div class="champ-format-ribbon">
+              <span class="champ-format-icon">${cfg.icon}</span>
+              <span class="champ-format-text">${cfg.title}</span>
+            </div>
+          </div>
+          <div class="champ-right-chamber">
+            <div class="champ-winner-title" style="color:var(--text-muted);">NO CHAMPION YET</div>
+          </div>
+        `;
+        return;
+      }
+
+      const visuals = getSideVisuals(rawName);
+      const isMulti = visuals.length > 1;
       const ovr = computePlayerOVR(rawName);
-      nameEl.innerHTML = `
-        <div style="margin:6px 0;">${renderPlayerBadge(rawName)}</div>
-        <div style="font-size:11px; color:var(--text-secondary); font-weight:800;">OVR ${ovr}</div>
+
+      const avatarsRowHtml = `<div class="champ-avatars-row ${isMulti ? "is-multi" : "is-single"}">` +
+        visuals.map(v => {
+          const inner = v.img
+            ? `<img src="${v.img}" alt="${v.name}" onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'champ-avatar-fallback',innerText:'${(v.name||'?').slice(0,1).toUpperCase()}'}));">`
+            : `<div class="champ-avatar-fallback">${(v.name || "?").slice(0, 1).toUpperCase()}</div>`;
+          return `<div class="champ-ring-avatar">${inner}</div>`;
+        }).join("") +
+        `</div>`;
+
+      card.innerHTML = `
+        <div class="champ-left-chamber">
+          <div class="champ-format-ribbon">
+            <span class="champ-format-icon">${cfg.icon}</span>
+            <span class="champ-format-text">${cfg.title}</span>
+          </div>
+        </div>
+        <div class="champ-right-chamber">
+          ${avatarsRowHtml}
+          <div class="champ-info-footer ${isMulti ? "is-multi" : "is-single"}">
+            <div class="hex-ovr-shield">
+              <span class="lbl">OVR</span>
+              <span class="val">${ovr}</span>
+            </div>
+            <div class="champ-winner-title">${rawName}</div>
+          </div>
+        </div>
       `;
     });
   }
 
-  /* 6. Auto-Enhancer Observer for Profile Rivalry Widget, Derby Alert & Mobile Nav Icons */
+  /* 7. Auto-Enhancer Observer for Menu Icons, Profile Rivalry & Home Banners */
   const navIconMap = {
     "Home": "&#127968; ",
     "Records": "&#128202; ",
@@ -8784,7 +8892,6 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
   };
 
   const broadcastObserver = new MutationObserver(() => {
-    // A. Add icons to nav buttons once
     document.querySelectorAll("#mainNav button").forEach(btn => {
       if (btn.dataset.iconized) return;
       const clean = btn.textContent.trim();
@@ -8794,7 +8901,6 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
       }
     });
 
-    // B. Inject Rivalry Duel Widget below Career Peak Widget on Player Profile
     const careerWidget = document.querySelector(".career-peak-widget");
     if (careerWidget && !document.getElementById("rivalryDuelWidget")) {
       const nameEl = document.querySelector(".holo-player-name");
@@ -8804,27 +8910,13 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
       }
     }
 
-    // C. Inject Historic Derby Alert on Face-Off / Next Up Clash Modal if 5+ H2H matches
-    const probMeta = document.querySelector(".faceoff-modal-overlay .cyber-prob-meta");
-    if (probMeta && !probMeta.dataset.derbyChecked) {
-      probMeta.dataset.derbyChecked = "1";
-      const m = probMeta.textContent.match(/(\d+)\s+MATCH/i);
-      if (m && parseInt(m[1], 10) >= 5) {
-        const titleEl = document.querySelector(".faceoff-modal-overlay .faceoff-top-bar .title");
-        if (titleEl && !titleEl.querySelector(".derby-alert-pill")) {
-          titleEl.insertAdjacentHTML("beforeend", `<span class="derby-alert-pill">&#128293; HISTORIC DERBY</span>`);
-        }
-      }
-    }
-
-    // D. Enhance Home Screen Champion Cards when loaded
     if (currentView === "home") {
       enhanceHomeCommandCenter();
     }
   });
 
   broadcastObserver.observe(document.body, { childList: true, subtree: true });
-  setTimeout(syncMasterBroadcastCaches, 900);
+  setTimeout(syncMasterBroadcastCaches, 800);
  
 </script>
 
