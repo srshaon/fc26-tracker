@@ -8384,10 +8384,46 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
 
 /* ========================================================= */
 /* ========================================================= */
+  /* ========================================================= */
   /* 40. MASTER UPGRADE: DUO OVR, PODIUM, RIVALRY & LIVE WIRE  */
   /* ========================================================= */
   window.__duoStatsCache = {};
   window.__completedSingleTournaments = [];
+
+  /* Real Metallic Golden Boot Trophy SVG (Replaces Blue Running Shoe Emoji) */
+  function getGoldenBootSvgHtml() {
+    return `
+      <svg class="golden-boot-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="goldBootGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFF59D"/>
+            <stop offset="35%" stop-color="#FFD700"/>
+            <stop offset="75%" stop-color="#FFA000"/>
+            <stop offset="100%" stop-color="#FF6F00"/>
+          </linearGradient>
+          <linearGradient id="goldBaseGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#B28704"/>
+            <stop offset="50%" stop-color="#FFE082"/>
+            <stop offset="100%" stop-color="#B28704"/>
+          </linearGradient>
+        </defs>
+        <!-- Boot Upper & Ankle Collar -->
+        <path d="M18 12 L32 14 L35 26 C42 30 50 32 56 33 C59 33.5 60 37 58 40 L12 40 C9 40 8 36 9 32 L14 15 C14.5 13 16 12 18 12 Z" fill="url(#goldBootGrad)" stroke="#FFF8E1" stroke-width="1.5"/>
+        <!-- Iconic Adidas/Nike Speed Stripes -->
+        <path d="M26 22 L22 34 M31 24 L27 35 M36 26 L32 36" stroke="#5D4037" stroke-width="2.2" stroke-linecap="round"/>
+        <!-- Boot Laces -->
+        <path d="M33 17 L37 16 M34 21 L38 20 M35 25 L39 24" stroke="#FFFDE7" stroke-width="1.8" stroke-linecap="round"/>
+        <!-- Sole Plate & Golden Studs -->
+        <rect x="9" y="40" width="49" height="3.5" rx="1.5" fill="#FFC107" stroke="#FFE082" stroke-width="0.8"/>
+        <rect x="13" y="43.5" width="4" height="4.5" rx="1" fill="url(#goldBootGrad)"/>
+        <rect x="21" y="43.5" width="4" height="4.5" rx="1" fill="url(#goldBootGrad)"/>
+        <rect x="42" y="43.5" width="4" height="4.5" rx="1" fill="url(#goldBootGrad)"/>
+        <rect x="50" y="43.5" width="4" height="4.5" rx="1" fill="url(#goldBootGrad)"/>
+        <!-- Trophy Pedestal Base -->
+        <path d="M8 50 L56 50 L59 56 L5 56 Z" fill="url(#goldBaseGrad)" stroke="#FFD54F" stroke-width="1"/>
+      </svg>
+    `;
+  }
 
   function getAllScoredMatchesFromTournament(data) {
     let list = [];
@@ -8480,7 +8516,42 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
     }
   }
 
-  /* 2. Compute Golden Glove & Upset of the Night */
+  /* 2. Universal Golden Boot Calculator (Works for Both Single Player & Duo Tournaments) */
+  function computeUniversalGoldenBoot(data) {
+    const singleBoot = computeGoldenBoot(data);
+    if (singleBoot) return singleBoot;
+
+    const matches = getAllScoredMatchesFromTournament(data);
+    if (matches.length === 0) return null;
+    const stats = {};
+    const ensure = (name) => {
+      if (!name || name.startsWith("TBD")) return null;
+      if (!stats[name]) stats[name] = { name, goals: 0, matches: 0 };
+      return stats[name];
+    };
+    matches.forEach(m => {
+      const sA = ensure(m.sideA);
+      const sB = ensure(m.sideB);
+      if (sA) { sA.goals += Number(m.scoreA) || 0; sA.matches++; }
+      if (sB) { sB.goals += Number(m.scoreB) || 0; sB.matches++; }
+    });
+    const entries = Object.values(stats).filter(e => e.goals > 0);
+    if (entries.length === 0) return null;
+    entries.sort((a, b) => b.goals - a.goals || a.matches - b.matches);
+    const topGoals = entries[0].goals;
+    const minMatches = entries[0].matches;
+    const topScorers = entries.filter(e => e.goals === topGoals && e.matches === minMatches);
+    if (topScorers.length > 1) {
+      return {
+        name: topScorers.map(s => s.name).join(" / "),
+        goals: topGoals,
+        matches: minMatches,
+        isJoint: true
+      };
+    }
+    return entries[0];
+  }
+
   function computeGoldenGlove(data) {
     const matches = getAllScoredMatchesFromTournament(data);
     if (matches.length === 0) return null;
@@ -8511,7 +8582,7 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
     if (best.cleanSheets > 0) {
       const tied = list.filter(x => x.cleanSheets === best.cleanSheets && (x.ga / x.matches) === (best.ga / best.matches));
       return {
-        title: "Golden Glove",
+        title: tied.length > 1 ? "Joint Golden Gloves" : "Golden Glove",
         name: tied.map(x => x.name).join(" & "),
         sub: `${best.cleanSheets} Clean Sheet${best.cleanSheets === 1 ? "" : "s"}`
       };
@@ -8523,6 +8594,7 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
     };
   }
 
+  /* Restored Upset of the Night Format (e.g. RASHED DEF. OSHI | OVR 78 stunned OVR 95 (1-0)) */
   function computeUpsetOfTheNight(data) {
     const matches = getAllScoredMatchesFromTournament(data);
     if (matches.length === 0) return null;
@@ -8556,138 +8628,116 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
     if (bestUpset) {
       return {
         title: "Upset of the Night",
-        name: `${bestUpset.winner}  ${bestUpset.loser}`,
-        sub: `OVR ${bestUpset.ovrW} vs OVR ${bestUpset.ovrL}`
+        name: `${bestUpset.winner} DEF. ${bestUpset.loser}`,
+        sub: `OVR ${bestUpset.ovrW} stunned OVR ${bestUpset.ovrL} (${bestUpset.winScore}-${bestUpset.loseScore})`
       };
     }
     if (bestThriller) {
       const m = bestThriller.m;
       return {
-        title: "Upset of the Night",
-        name: `${m.sideA} ${m.scoreA}–${m.scoreB} ${m.sideB}`,
-        sub: `${bestThriller.totalGoals} Goals Scored`
+        title: "Thriller of the Night",
+        name: `${m.sideA} ${m.scoreA}-${m.scoreB} ${m.sideB}`,
+        sub: `${bestThriller.totalGoals} Total Goals Scored`
       };
     }
     return null;
   }
 
-  function findThirdPlaceContender(data) {
-    const excluded = new Set([data.winner, data.runnerUp].filter(Boolean));
-    if (data.knockout && Array.isArray(data.knockout.stages) && data.knockout.stages.length >= 2) {
-      const semiStage = data.knockout.stages[data.knockout.stages.length - 2];
-      const semiLosers = [];
-      (semiStage.matches || []).forEach(m => {
-        if (m.scoreA !== null && m.scoreB !== null) {
-          const w = matchWinnerName(m);
-          const l = w === m.sideA ? m.sideB : m.sideA;
-          if (l && !excluded.has(l) && !l.startsWith("TBD")) semiLosers.push(l);
-        }
-      });
-      if (semiLosers.length > 0) return semiLosers[0];
-    }
-    if (Array.isArray(data.matches) && data.matches.length > 0) {
-      const allNames = [...new Set(data.matches.flatMap(m => [m.sideA, m.sideB]))];
-      const table = computeStandings(allNames, data.matches, data.pointsSystem);
-      const third = table.find(r => !excluded.has(r.name));
-      if (third) return third.name;
-    }
-    return null;
+  /* Renders Both Partners' Avatars Side-by-Side on the Podium */
+  function renderPillarAvatarsClusterHtml(sideName) {
+    const visuals = getSideVisuals(sideName || "?");
+    const isDuo = visuals.length > 1;
+    const items = visuals.map(v => {
+      if (v.img) {
+        return `<img src="${v.img}" alt="${v.name}" onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'podium-avatar-fallback',innerText:'${(v.name||'?').slice(0,1).toUpperCase()}'}));">`;
+      }
+      return `<div class="podium-avatar-fallback">${(v.name || "?").slice(0, 1).toUpperCase()}</div>`;
+    }).join("");
+    return `<div class="podium-avatars-group ${isDuo ? "is-duo" : "is-single"}">${items}</div>`;
   }
 
-  function renderPillarAvatarHtml(sideName) {
-    const firstPartner = (sideName || "?").split(" & ")[0].trim();
-    const img = getPlayerImageByName(firstPartner);
-    if (img) {
-      return `<img src="${img}" alt="${sideName}" onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'podium-avatar-fallback',innerText:'${firstPartner.slice(0,1).toUpperCase()}'}));">`;
-    }
-    return `<div class="podium-avatar-fallback">${firstPartner.slice(0, 1).toUpperCase()}</div>`;
-  }
-
-  /* 3. Render 3D Stadium Podium + 3-Column Horizontal Awards (Matches Image 4) */
+  /* 3. Render 2-Pillar Stadium Podium (No 3rd Place) + Hidden for Tag-Team Regular */
   function renderTournamentPodiumAndAwardsHTML(data) {
-    if (!data.winner) return "";
+    // Completely hide Tournament Summary for Tag-Team Regular Controller tournaments
+    if (!data || !data.winner || (data.format === "tagteam" && data.subMode === "regular")) {
+      return "";
+    }
+
     const winOvr = computePlayerOVR(data.winner);
     const ruName = data.runnerUp || "FINALIST";
     const ruOvr = computePlayerOVR(ruName);
-    const thirdName = findThirdPlaceContender(data) || ruName;
-    const thirdOvr = computePlayerOVR(thirdName);
 
-    const goldenBoot = computeGoldenBoot(data);
+    const goldenBoot = computeUniversalGoldenBoot(data);
     const goldenGlove = computeGoldenGlove(data);
     const upsetAward = computeUpsetOfTheNight(data);
 
     let awardsBarHtml = "";
     if (goldenBoot || goldenGlove || upsetAward) {
-      const bootWinner = goldenBoot ? goldenBoot.name : data.winner;
-      const bootSub = goldenBoot
-        ? (goldenBoot.isJoint ? `${goldenBoot.goals} Goals Each` : `${goldenBoot.goals} Goals`)
-        : "Top Scorer";
+      let slotsHtml = "";
 
-      const gloveWinner = goldenGlove ? goldenGlove.name : data.winner;
-      const gloveSub = goldenGlove ? goldenGlove.sub : "Clean Sheets";
-
-      const upsetWinner = upsetAward ? upsetAward.name : `${data.winner} vs ${ruName}`;
-      const upsetSub = upsetAward ? upsetAward.sub : `OVR ${winOvr} vs OVR ${ruOvr}`;
-
-      awardsBarHtml = `
-        <div class="cyber-awards-bar">
+      if (goldenBoot) {
+        const bootTitle = goldenBoot.isJoint ? "Joint Golden Boots" : "Golden Boot";
+        const bootSub = goldenBoot.isJoint
+          ? `${goldenBoot.goals} Goals Each`
+          : `${goldenBoot.goals} Goal${goldenBoot.goals === 1 ? "" : "s"}`;
+        slotsHtml += `
           <div class="cyber-award-slot boot-slot">
-            <div class="cyber-award-pill">Golden Boot</div>
+            <div class="cyber-award-pill">${bootTitle}</div>
             <div class="cyber-award-body">
-              <span class="cyber-award-icon">&#128095;</span>
+              ${getGoldenBootSvgHtml()}
               <div class="cyber-award-text">
-                <span class="cyber-award-winner">${bootWinner}</span>
+                <span class="cyber-award-winner">${goldenBoot.name}</span>
                 <span class="cyber-award-sub">${bootSub}</span>
               </div>
             </div>
           </div>
+        `;
+      }
 
+      if (goldenGlove) {
+        slotsHtml += `
           <div class="cyber-award-slot glove-slot">
-            <div class="cyber-award-pill">Golden Glove</div>
+            <div class="cyber-award-pill">${goldenGlove.title}</div>
             <div class="cyber-award-body">
               <span class="cyber-award-icon">&#129508;</span>
               <div class="cyber-award-text">
-                <span class="cyber-award-winner">${gloveWinner}</span>
-                <span class="cyber-award-sub">${gloveSub}</span>
+                <span class="cyber-award-winner">${goldenGlove.name}</span>
+                <span class="cyber-award-sub">${goldenGlove.sub}</span>
               </div>
             </div>
           </div>
+        `;
+      }
 
+      if (upsetAward) {
+        slotsHtml += `
           <div class="cyber-award-slot upset-slot">
-            <div class="cyber-award-pill">&#10038; Upset of the Night</div>
+            <div class="cyber-award-pill">&#9889; ${upsetAward.title}</div>
             <div class="cyber-award-body">
               <div class="cyber-award-text">
-                <span class="cyber-award-winner">${upsetWinner}</span>
-                <span class="cyber-award-sub">${upsetSub}</span>
+                <span class="cyber-award-winner">${upsetAward.name}</span>
+                <span class="cyber-award-sub">${upsetAward.sub}</span>
               </div>
             </div>
           </div>
-        </div>
-      `;
+        `;
+      }
+
+      awardsBarHtml = `<div class="cyber-awards-bar">${slotsHtml}</div>`;
     }
 
     return `
       <div class="cyber-summary-stage">
         <div class="summary-stage-heading">TOURNAMENT SUMMARY</div>
 
-        <div class="cyber-podium-arena">
-          <!-- Left: 2nd Place -->
-          <div class="podium-pillar second-place">
-            <div class="podium-shield-frame">
-              <div class="podium-Floating-ovr"><small style="font-size:6px;">OVR</small>${ruOvr}</div>
-              ${renderPillarAvatarHtml(ruName)}
-              <div class="podium-player-tag">${ruName}</div>
-            </div>
-            <div class="podium-cylinder-base">2nd</div>
-          </div>
-
-          <!-- Center: 1st Place Champion -->
+        <div class="cyber-podium-arena two-pillars">
+          <!-- Left: 1st Place Champion -->
           <div class="podium-pillar first-place">
             <div class="podium-crown">&#128081;</div>
             <div class="podium-shield-frame">
               <div class="podium-Floating-ovr"><small style="font-size:6px;">OVR</small>${winOvr}</div>
-              ${renderPillarAvatarHtml(data.winner)}
-              <div style="font-size:8px; color:#cfd8dc; text-transform:uppercase; line-height:1; margin-top:2px;">Champion</div>
+              ${renderPillarAvatarsClusterHtml(data.winner)}
+              <div style="font-size:8.5px; color:#cfd8dc; text-transform:uppercase; line-height:1; margin-top:2px;">Champion</div>
               <div class="podium-player-tag">${data.winner}</div>
             </div>
             <div class="podium-cylinder-base">
@@ -8696,14 +8746,18 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
             </div>
           </div>
 
-          <!-- Right: 3rd Place -->
-          <div class="podium-pillar third-place">
+          <!-- Right: 2nd Place Runner-Up -->
+          <div class="podium-pillar second-place">
             <div class="podium-shield-frame">
-              <div class="podium-Floating-ovr"><small style="font-size:6px;">OVR</small>${thirdOvr}</div>
-              ${renderPillarAvatarHtml(thirdName)}
-              <div class="podium-player-tag">${thirdName}</div>
+              <div class="podium-Floating-ovr"><small style="font-size:6px;">OVR</small>${ruOvr}</div>
+              ${renderPillarAvatarsClusterHtml(ruName)}
+              <div style="font-size:8.5px; color:#90a4ae; text-transform:uppercase; line-height:1; margin-top:2px;">Runner-Up</div>
+              <div class="podium-player-tag">${ruName}</div>
             </div>
-            <div class="podium-cylinder-base">3rd</div>
+            <div class="podium-cylinder-base">
+              2nd Place
+              <small>Runner-Up</small>
+            </div>
           </div>
         </div>
 
@@ -8712,7 +8766,7 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
     `;
   }
 
-  /* 4. Diagonal-Split Rivalry Duel Widget (Matches Image 4) */
+  /* 4. Diagonal-Split Rivalry Duel Widget */
   function buildRivalryDuelWidgetForPlayer(playerName) {
     const cleanMe = (playerName || "").trim().toUpperCase();
     const h2h = {};
@@ -8807,7 +8861,7 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
       }
       const upset = latest ? computeUpsetOfTheNight(latest) : null;
       if (upset) {
-        headlines.push(`<span class="ticker-item"><span class="ticker-tag">[UPSET ALERT &#9889;]</span>${upset.name} (${upset.sub})!</span>`);
+        headlines.push(`<span class="ticker-item"><span class="ticker-tag">[UPSET ALERT &#9889;]</span>${upset.name} &mdash; ${upset.sub}!</span>`);
       }
     }
     if (liveTourns && liveTourns.length > 0) {
@@ -8834,32 +8888,36 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
     `;
   }
 
-  /* 6. Fancy Horizontal One-Row-Per-Tournament Champions Renderer (Matches Image 1) */
+  /* 6. Fancy Horizontal One-Row-Per-Tournament Champions (Correctly Reads Each Format Label) */
   function enhanceHomeCommandCenter() {
     if (currentView !== "home") return;
     const grid = document.getElementById("champGrid");
     if (!grid) return;
 
-    const cards = [...grid.querySelectorAll(".champ-card")];
-    if (cards.length === 0) return;
+    const allChildren = [...grid.children];
+    if (allChildren.length === 0) return;
 
-    const rowMeta = [
-      { theme: "theme-gold", icon: "&#127942;", title: "SINGLE<br>PLAYER" },
-      { theme: "theme-green", icon: "&#128101;", title: "TAG-TEAM<br>REGULAR" },
-      { theme: "theme-blue", icon: "&#127918;", title: "TAG-TEAM<br>MULTI" }
-    ];
-
-    cards.forEach((card, idx) => {
+    allChildren.forEach((card, childIdx) => {
       if (card.dataset.cyberUpgraded === "1") return;
       const nameEl = card.querySelector(".name");
+      const labelEl = card.querySelector(".label");
       if (!nameEl) return;
+
       const rawName = (card.dataset.rawWinner || nameEl.textContent || "").trim();
+      const origLabel = (card.dataset.origLabel || (labelEl ? labelEl.textContent : "") || "").trim().toLowerCase();
       if (!rawName || rawName === "Loading...") return;
 
       card.dataset.rawWinner = rawName;
+      card.dataset.origLabel = origLabel;
       card.dataset.cyberUpgraded = "1";
 
-      const cfg = rowMeta[idx] || rowMeta[0];
+      let cfg = { theme: "theme-gold", icon: "&#127942;", title: "SINGLE<br>PLAYER" };
+      if (origLabel.includes("regular") || childIdx === 1) {
+        cfg = { theme: "theme-green", icon: "&#128101;", title: "TAG-TEAM<br>REGULAR" };
+      } else if (origLabel.includes("multi") || childIdx === 2) {
+        cfg = { theme: "theme-blue", icon: "&#127918;", title: "TAG-TEAM<br>MULTI" };
+      }
+
       card.className = `cyber-champ-row ${cfg.theme}`;
 
       if (rawName === "-") {
@@ -8949,8 +9007,7 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
   });
 
   broadcastObserver.observe(document.body, { childList: true, subtree: true });
-  setTimeout(syncMasterBroadcastCaches, 800);
- 
+  setTimeout(syncMasterBroadcastCaches, 800); 
 </script>
 
 </body>
