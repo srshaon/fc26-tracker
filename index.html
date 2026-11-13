@@ -2199,6 +2199,7 @@
 } 
  /* ========================================================= */
 /* ========================================================= */
+/* ========================================================= */
 /* MASTER BROADCAST UI: FIXTURES, PODIUM, RIVALRY, TICKER    */
 /* ========================================================= */
 
@@ -2353,15 +2354,14 @@ h1 {
 .cyber-champ-row.theme-green {
   --row-accent: #00e676;
   --row-glow: rgba(0, 230, 118, 0.45);
-  --row-bg-tint: rgba(0, 230, 118, 0.12);
+  --row-bg-tint: rgba(0, 230, 118, 0.14);
 }
 .cyber-champ-row.theme-blue {
   --row-accent: #00b0ff;
   --row-glow: rgba(0, 176, 255, 0.45);
-  --row-bg-tint: rgba(0, 176, 255, 0.14);
+  --row-bg-tint: rgba(0, 176, 255, 0.15);
 }
 
-/* Top glowing lens flare on each row */
 .cyber-champ-row::before {
   content: "";
   position: absolute;
@@ -2375,7 +2375,6 @@ h1 {
   pointer-events: none;
 }
 
-/* Left Angled Chamber */
 .champ-left-chamber {
   position: relative;
   background: linear-gradient(145deg, #1b2432 0%, #0d131c 100%);
@@ -2418,7 +2417,6 @@ h1 {
   text-align: left;
 }
 
-/* Right Angled Chamber */
 .champ-right-chamber {
   position: relative;
   margin-left: -14px;
@@ -2438,7 +2436,6 @@ h1 {
   box-shadow: inset 0 0 22px var(--row-glow);
 }
 
-/* Horizontal Overlapping Avatars with Double Neon Rings */
 .champ-avatars-row {
   display: flex !important;
   flex-direction: row !important;
@@ -2485,7 +2482,6 @@ h1 {
   color: #ffffff;
 }
 
-/* Hexagonal OVR Shield + Winner Name Footer */
 .champ-info-footer {
   display: flex;
   align-items: center;
@@ -2540,23 +2536,22 @@ h1 {
   line-height: 1.15;
 }
 
-/* 3. TOURNAMENT SUMMARY: 3D Stadium Podium + 3-Column Award Bar (Matches Image 4) */
+/* 3. TOURNAMENT SUMMARY: 2-Pillar Podium (No 3rd Place) + Full Duo Photos & Names */
 .cyber-summary-stage {
   position: relative;
   background:
     radial-gradient(circle at 12% 10%, rgba(0, 229, 255, 0.25) 0%, transparent 28%),
     radial-gradient(circle at 88% 10%, rgba(0, 229, 255, 0.25) 0%, transparent 28%),
-    radial-gradient(circle at 50% 42%, rgba(255, 215, 64, 0.14) 0%, transparent 55%),
+    radial-gradient(circle at 50% 35%, rgba(255, 215, 64, 0.14) 0%, transparent 55%),
     linear-gradient(180deg, #131c2b 0%, #0b111b 100%);
   border: 1.5px solid rgba(0, 229, 255, 0.38);
   border-radius: 16px;
-  padding: 16px 10px 14px;
+  padding: 16px 12px 14px;
   margin: 14px 0;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75), inset 0 0 24px rgba(0, 229, 255, 0.08);
   overflow: hidden;
 }
 
-/* Stadium Floodlight LED Grids */
 .cyber-summary-stage::before,
 .cyber-summary-stage::after {
   content: "";
@@ -2581,25 +2576,25 @@ h1 {
   letter-spacing: 2px;
   color: #7fe6ff;
   text-transform: uppercase;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
 }
 
-.cyber-podium-arena {
+/* Spacious 2-Column Podium Arena (1st Place & 2nd Place Only) */
+.cyber-podium-arena.two-pillars {
   display: grid;
-  grid-template-columns: 1fr 1.22fr 1fr;
+  grid-template-columns: 1.08fr 1fr;
   align-items: end;
-  gap: 6px;
-  padding: 6px 4px 12px;
+  gap: 14px;
+  padding: 8px 6px 14px;
   position: relative;
 }
-/* Glowing Elliptical Stage Floor Ring */
-.cyber-podium-arena::after {
+.cyber-podium-arena.two-pillars::after {
   content: "";
   position: absolute;
   bottom: 4px;
-  left: 6%;
-  right: 6%;
+  left: 4%;
+  right: 4%;
   height: 18px;
   border-radius: 50%;
   border: 2px solid rgba(0, 229, 255, 0.65);
@@ -2614,62 +2609,86 @@ h1 {
   position: relative;
   z-index: 2;
   min-width: 0;
+  width: 100%;
 }
 .podium-crown {
-  font-size: 22px;
+  font-size: 24px;
   line-height: 1;
-  margin-bottom: 2px;
+  margin-bottom: 3px;
   filter: drop-shadow(0 0 8px #ffd700);
 }
 .podium-shield-frame {
   position: relative;
-  width: 68px;
-  height: 76px;
+  width: 100%;
+  max-width: 165px;
+  min-height: 112px;
   background: linear-gradient(180deg, #26354a 0%, #101722 100%);
-  border: 2px solid #78909c;
-  border-radius: 10px 10px 28px 28px;
-  padding: 4px;
+  border: 2px solid #90a4ae;
+  border-radius: 14px 14px 26px 26px;
+  padding: 10px 8px 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
+  gap: 5px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
 }
 .podium-pillar.first-place .podium-shield-frame {
-  width: 84px;
-  height: 94px;
+  max-width: 180px;
+  min-height: 124px;
   background: linear-gradient(180deg, #443712 0%, #171307 100%);
   border: 2px solid #ffd740;
-  box-shadow: 0 0 20px rgba(255, 215, 64, 0.45);
+  box-shadow: 0 0 22px rgba(255, 215, 64, 0.45);
 }
+
+/* Side-by-Side Duo Avatars Inside Podium Shield */
+.podium-avatars-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.podium-avatars-group.is-duo img,
+.podium-avatars-group.is-duo .podium-avatar-fallback {
+  width: 44px !important;
+  height: 44px !important;
+  font-size: 15px !important;
+}
+.podium-avatars-group.is-duo img:not(:first-child),
+.podium-avatars-group.is-duo .podium-avatar-fallback:not(:first-child) {
+  margin-left: -8px;
+}
+
 .podium-shield-frame img,
 .podium-shield-frame .podium-avatar-fallback {
-  width: 44px;
-  height: 44px;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
   object-fit: cover;
   object-position: center 20%;
-  border: 1.5px solid rgba(255,255,255,0.7);
+  border: 2px solid rgba(255, 255, 255, 0.85);
   background: #0d131c;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 900;
   color: #fff;
+  flex-shrink: 0;
 }
 .podium-pillar.first-place .podium-shield-frame img,
 .podium-pillar.first-place .podium-shield-frame .podium-avatar-fallback {
-  width: 52px;
-  height: 52px;
+  width: 60px;
+  height: 60px;
   border-color: #ffd740;
 }
 
 .podium-Floating-ovr {
   position: absolute;
-  top: -6px;
-  right: -8px;
-  width: 26px;
-  height: 28px;
+  top: -7px;
+  right: -6px;
+  width: 30px;
+  height: 32px;
   background: #101824;
   border: 1.5px solid #7fe6ff;
   clip-path: polygon(50% 0%, 100% 22%, 100% 78%, 50% 100%, 0% 78%, 0% 22%);
@@ -2678,10 +2697,11 @@ h1 {
   align-items: center;
   justify-content: center;
   font-family: 'Teko', var(--font-heading);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: #ffffff;
   line-height: 0.9;
+  z-index: 4;
 }
 .podium-pillar.first-place .podium-Floating-ovr {
   border-color: #ffd740;
@@ -2689,28 +2709,30 @@ h1 {
   color: #ffd740;
 }
 
+/* Full Uncut Player & Duo Names on Podium */
 .podium-player-tag {
   font-family: 'Rajdhani', var(--font-heading);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 900;
   color: #ffffff;
   text-transform: uppercase;
   text-align: center;
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-top: 3px;
+  width: 100%;
+  line-height: 1.15;
+  white-space: normal !important;
+  overflow: visible !important;
+  word-break: break-word;
+  margin-top: 2px;
 }
 .podium-pillar.first-place .podium-player-tag {
-  font-size: 12px;
+  font-size: 13px;
   color: #ffd740;
 }
 
-/* 3D Cylindrical Pedestal Base */
 .podium-cylinder-base {
-  width: 94%;
-  height: 32px;
+  width: 92%;
+  max-width: 165px;
+  height: 34px;
   margin-top: -4px;
   background: linear-gradient(90deg, #162232 0%, #2e4460 50%, #162232 100%);
   border-top: 2px solid #7fe6ff;
@@ -2721,12 +2743,13 @@ h1 {
   align-items: center;
   justify-content: center;
   font-family: 'Rajdhani', var(--font-heading);
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 900;
   color: #eaf6ff;
   box-shadow: 0 6px 14px rgba(0, 229, 255, 0.28);
 }
 .podium-pillar.first-place .podium-cylinder-base {
+  max-width: 180px;
   height: 42px;
   background: linear-gradient(90deg, #2d230b 0%, #685116 50%, #2d230b 100%);
   border-top: 2px solid #ffd740;
@@ -2735,71 +2758,93 @@ h1 {
   box-shadow: 0 6px 18px rgba(255, 215, 64, 0.35);
 }
 .podium-cylinder-base small {
-  font-size: 8.5px;
+  font-size: 9px;
   color: #cfd8dc;
   font-weight: 700;
   line-height: 1;
 }
 
-/* 3-Column Horizontal Award Strip Inside Summary Stage */
+/* 4. Award Cards Layout: Golden Boot + Golden Glove + Full-Width Upset of the Night */
 .cyber-awards-bar {
   display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  gap: 6px !important;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 .cyber-award-slot {
-  background: rgba(8, 12, 20, 0.78);
+  background: rgba(8, 12, 20, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
-  padding: 7px 5px;
+  padding: 10px 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 5px;
+  gap: 6px;
   min-width: 0;
 }
+/* Upset of the Night spans full width so title & score are 100% visible */
+.cyber-award-slot.upset-slot {
+  grid-column: 1 / -1 !important;
+  background: linear-gradient(135deg, rgba(255, 64, 129, 0.15), rgba(16, 14, 24, 0.94));
+  border: 1px solid rgba(255, 82, 82, 0.55);
+  padding: 12px 10px;
+}
+.cyber-award-slot.boot-slot {
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.14), rgba(16, 20, 28, 0.92));
+  border: 1px solid rgba(255, 215, 64, 0.45);
+}
+.cyber-award-slot.glove-slot {
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.14), rgba(16, 20, 28, 0.92));
+  border: 1px solid rgba(0, 229, 255, 0.45);
+}
+
 .cyber-award-pill {
-  width: 100%;
-  font-size: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 3px 10px;
+  font-size: 10px;
   font-weight: 900;
-  letter-spacing: 0.4px;
-  padding: 3px 4px;
+  letter-spacing: 0.8px;
   border-radius: 999px;
   text-transform: uppercase;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .boot-slot .cyber-award-pill {
-  background: rgba(255, 215, 64, 0.15);
+  background: rgba(255, 215, 64, 0.16);
   color: #ffd740;
   border: 1px solid #ffd740;
-  box-shadow: 0 0 8px rgba(255, 215, 64, 0.25);
 }
 .glove-slot .cyber-award-pill {
-  background: rgba(0, 229, 255, 0.15);
+  background: rgba(0, 229, 255, 0.16);
   color: #00e5ff;
   border: 1px solid #00e5ff;
-  box-shadow: 0 0 8px rgba(0, 229, 255, 0.25);
 }
 .upset-slot .cyber-award-pill {
-  background: rgba(255, 64, 129, 0.16);
-  color: #ff6e89;
-  border: 1px solid #ff4081;
-  box-shadow: 0 0 8px rgba(255, 64, 129, 0.25);
+  background: rgba(255, 82, 82, 0.2);
+  color: #ff6e6e;
+  border: 1px solid #ff5252;
 }
+
 .cyber-award-body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 8px;
   width: 100%;
 }
+.golden-boot-svg {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.65));
+}
 .cyber-award-icon {
-  font-size: 18px;
+  font-size: 22px;
   line-height: 1;
   flex-shrink: 0;
 }
@@ -2811,21 +2856,26 @@ h1 {
 }
 .cyber-award-winner {
   font-family: 'Rajdhani', var(--font-heading);
-  font-size: 11.5px;
+  font-size: 13.5px;
   font-weight: 900;
   color: #ffffff;
-  line-height: 1.1;
+  line-height: 1.15;
   text-transform: uppercase;
   word-break: break-word;
 }
+.upset-slot .cyber-award-winner {
+  font-size: 15px;
+  letter-spacing: 0.5px;
+}
 .cyber-award-sub {
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
-  color: #98aebf;
-  line-height: 1.1;
+  color: #b0c4d4;
+  line-height: 1.2;
+  margin-top: 2px;
 }
 
-/* 4. RIVALRY DUEL: Diagonal Split-Screen Red vs Green Card (Matches Image 4) */
+/* 5. RIVALRY DUEL: Diagonal Split-Screen Red vs Green Card */
 .rivalry-duel-widget {
   position: relative;
   width: 100%;
@@ -2875,8 +2925,6 @@ h1 {
   border: 1px solid #00e676;
   box-shadow: 0 0 10px rgba(0, 230, 118, 0.35);
 }
-
-/* Hexagonal FUT OVR Shield for Rivalry Card */
 .rivalry-ovr-crest {
   position: relative;
   width: 58px;
@@ -2920,7 +2968,6 @@ h1 {
   line-height: 1;
   margin-top: 2px;
 }
-
 .rivalry-player-name {
   font-family: 'Rajdhani', var(--font-heading);
   font-size: 15px;
@@ -2945,7 +2992,7 @@ h1 {
   z-index: 2;
 }
 
-/* 5. Sky Sports Lower-Third Broadcast Ticker */
+/* 6. Sky Sports Lower-Third Broadcast Ticker */
 body {
   padding-bottom: 54px !important;
 }
@@ -3020,19 +3067,6 @@ body {
   letter-spacing: 0.5px;
 }
 
-.command-center-live-banner {
-  background: radial-gradient(circle at 50% 0%, rgba(0, 230, 118, 0.22), rgba(14, 20, 28, 0.96));
-  border: 1.5px solid var(--accent);
-  border-radius: 12px;
-  padding: 14px;
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
 @media (max-width: 480px) {
   .cyber-champ-row {
     grid-template-columns: 40% 60%;
@@ -3055,8 +3089,7 @@ body {
   body {
     max-width: 1140px !important;
   }
-}
- 
+} 
  
 </style>
 </head>
