@@ -3308,47 +3308,79 @@ body {
 /* --- HOLOGRAM RECAP TOOLTIP POPOVER (CLICK TO VIEW RECAP) --- */
 .trophy-holo-popover {
   position: absolute;
-  bottom: calc(100% - 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  width: 215px;
-  background: rgba(8, 22, 34, 0.96);
+  bottom: calc(100% + 4px);
+  width: clamp(180px, 52vw, 210px);
+  background: rgba(8, 22, 34, 0.98);
   border: 1.5px solid #00e5ff;
   border-radius: 10px;
   padding: 9px 10px;
   text-align: center;
   box-shadow: 0 0 22px rgba(0, 229, 255, 0.55), inset 0 0 14px rgba(0, 229, 255, 0.2);
-  z-index: 50;
+  z-index: 80;
   animation: modalFadeIn 0.2s ease;
 }
 .trophy-holo-popover::after {
   content: "";
   position: absolute;
   bottom: -7px;
-  left: 50%;
-  transform: translateX(-50%) rotate(45deg);
   width: 12px;
   height: 12px;
   background: #081622;
   border-right: 1.5px solid #00e5ff;
   border-bottom: 1.5px solid #00e5ff;
+  transform: rotate(45deg);
 }
-/* Keep popover inside screen edges on left/right columns */
-.trophy-unit:first-child .trophy-holo-popover {
-  left: 0;
-  transform: none;
+
+/* Gold Shelf (3 Columns): Lock Left, Center, and Right Columns Inside Screen */
+.trophy-shelf-stage .trophy-unit:nth-child(3n+1) .trophy-holo-popover {
+  left: 0 !important;
+  right: auto !important;
+  transform: none !important;
 }
-.trophy-unit:first-child .trophy-holo-popover::after {
-  left: 36px;
+.trophy-shelf-stage .trophy-unit:nth-child(3n+1) .trophy-holo-popover::after {
+  left: 34px !important;
+  right: auto !important;
 }
-.trophy-unit:last-child .trophy-holo-popover {
-  left: auto;
-  right: 0;
-  transform: none;
+
+.trophy-shelf-stage .trophy-unit:nth-child(3n+2) .trophy-holo-popover {
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
 }
-.trophy-unit:last-child .trophy-holo-popover::after {
-  left: auto;
-  right: 36px;
+.trophy-shelf-stage .trophy-unit:nth-child(3n+2) .trophy-holo-popover::after {
+  left: calc(50% - 6px) !important;
+  right: auto !important;
+}
+
+.trophy-shelf-stage .trophy-unit:nth-child(3n) .trophy-holo-popover {
+  left: auto !important;
+  right: 0 !important;
+  transform: none !important;
+}
+.trophy-shelf-stage .trophy-unit:nth-child(3n) .trophy-holo-popover::after {
+  left: auto !important;
+  right: 34px !important;
+}
+
+/* Silver Shelf (2 Columns): Lock Left & Right Columns Inside Screen */
+.silver-right-stage .trophy-unit:nth-child(2n+1) .trophy-holo-popover {
+  left: -24px !important;
+  right: auto !important;
+  transform: none !important;
+}
+.silver-right-stage .trophy-unit:nth-child(2n+1) .trophy-holo-popover::after {
+  left: 54px !important;
+  right: auto !important;
+}
+
+.silver-right-stage .trophy-unit:nth-child(2n) .trophy-holo-popover {
+  left: auto !important;
+  right: 0 !important;
+  transform: none !important;
+}
+.silver-right-stage .trophy-unit:nth-child(2n) .trophy-holo-popover::after {
+  left: auto !important;
+  right: 34px !important;
 }
 
 .holo-pop-date {
@@ -3360,7 +3392,7 @@ body {
 }
 .holo-pop-role {
   font-family: 'Rajdhani', var(--font-heading);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 900;
   color: #ffd740;
   letter-spacing: 0.5px;
@@ -3386,7 +3418,7 @@ body {
   background: #00e5ff;
   color: #041019;
 }
-
+ 
 /* --- BOTTOM SHELF: SILVER RUNNER-UP FINISHES --- */
 .cyber-silver-cabinet {
   position: relative;
