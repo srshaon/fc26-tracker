@@ -9414,6 +9414,7 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
   setTimeout(syncMasterBroadcastCaches, 800); 
 
 /* ========================================================= */
+/* ========================================================= */
   /* 41. CAREER TROPHY CABINET & HALL OF FAME ENGINE           */
   /* ========================================================= */
   window.__allCompletedTournamentsWithId = [];
@@ -9508,12 +9509,13 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
       }
     });
 
-    const renderTrophyUnit = (item, idx, isDefaultOpen) => {
+    // All popovers start hidden (display:none) until the user taps a trophy
+    const renderTrophyUnit = (item) => {
       const unitClass = item.tier === "silver" ? "trophy-unit silver-unit" : "trophy-unit gold-unit";
       const iconChar = item.tier === "gold" ? "&#127942;" : "&#129352;";
       return `
-        <div class="${unitClass}${isDefaultOpen ? " active-trophy" : ""}" data-tid="${item.tid}">
-          <div class="trophy-holo-popover" style="display:${isDefaultOpen ? "block" : "none"};">
+        <div class="${unitClass}" data-tid="${item.tid}">
+          <div class="trophy-holo-popover" style="display:none;">
             <div class="holo-pop-date">${iconChar} ${item.dateLabel}</div>
             <div class="holo-pop-role">${item.roleText}</div>
             <button type="button" class="holo-pop-btn" data-recap-tid="${item.tid}">CLICK TO VIEW RECAP &rarr;</button>
@@ -9530,11 +9532,11 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
     };
 
     const goldShelfContent = goldWins.length > 0
-      ? goldWins.map((item, i) => renderTrophyUnit(item, i, i === 0)).join("")
+      ? goldWins.map(item => renderTrophyUnit(item)).join("")
       : `<div class="empty-shelf-note">No Championship Trophies Yet</div>`;
 
     const silverShelfContent = silverFinishes.length > 0
-      ? silverFinishes.map((item, i) => renderTrophyUnit(item, i, goldWins.length === 0 && i === 0)).join("")
+      ? silverFinishes.map(item => renderTrophyUnit(item)).join("")
       : `<div class="empty-shelf-note">No Runner-Up Finishes Yet</div>`;
 
     return `
@@ -9575,6 +9577,23 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
     `;
   }
 
+  function closeAllTrophyPopovers() {
+    const cabinetEl = document.getElementById("careerTrophyCabinet");
+    if (!cabinetEl) return;
+    cabinetEl.querySelectorAll(".trophy-holo-popover").forEach(p => { p.style.display = "none"; });
+    cabinetEl.querySelectorAll(".trophy-unit").forEach(u => u.classList.remove("active-trophy"));
+  }
+
+  // Global listener: Tapping any empty space or outside a trophy closes the recap box
+  if (!window.__trophyOutsideClickBound) {
+    window.__trophyOutsideClickBound = true;
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".trophy-unit")) {
+        closeAllTrophyPopovers();
+      }
+    });
+  }
+
   function injectTrophyCabinetIfOnProfile() {
     const holoStage = document.querySelector(".holo-card-stage");
     const nameEl = document.querySelector(".holo-player-name");
@@ -9594,11 +9613,11 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
     cabinetEl.querySelectorAll(".trophy-unit").forEach(unit => {
       unit.addEventListener("click", (e) => {
         if (e.target.closest(".holo-pop-btn")) return;
+        e.stopPropagation();
         const pop = unit.querySelector(".trophy-holo-popover");
         const isOpen = pop && pop.style.display === "block";
 
-        cabinetEl.querySelectorAll(".trophy-holo-popover").forEach(p => { p.style.display = "none"; });
-        cabinetEl.querySelectorAll(".trophy-unit").forEach(u => u.classList.remove("active-trophy"));
+        closeAllTrophyPopovers();
 
         if (pop && !isOpen) {
           pop.style.display = "block";
