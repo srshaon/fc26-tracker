@@ -3494,6 +3494,514 @@ body {
   letter-spacing: 1px;
   text-transform: uppercase;
 }
+/* ========================================================= */
+/* 42. FULL-SCREEN CHAMPION WALKOUT REVEAL (EA FC STYLE)     */
+/* ========================================================= */
+.walkout-stage-overlay {
+  --wo-primary: #ffd740;
+  --wo-secondary: #00e5ff;
+  --wo-glow: rgba(255, 215, 64, 0.65);
+  --wo-card-bg: linear-gradient(160deg, #3a2d0b 0%, #151105 55%, #090c12 100%);
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background:
+    radial-gradient(circle at 50% 52%, rgba(255, 215, 64, 0.16) 0%, transparent 55%),
+    radial-gradient(circle at 50% 88%, rgba(0, 229, 255, 0.22) 0%, transparent 60%),
+    linear-gradient(180deg, #03060c 0%, #09101c 65%, #04070d 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 12px 24px;
+  overflow: hidden;
+  user-select: none;
+  animation: woFadeIn 0.35s ease forwards;
+}
+
+.walkout-stage-overlay.wo-theme-duo {
+  --wo-primary: #00b0ff;
+  --wo-secondary: #ffd740;
+  --wo-glow: rgba(0, 176, 255, 0.65);
+  --wo-card-bg: linear-gradient(160deg, #0d2744 0%, #161e31 55%, #090d16 100%);
+}
+
+.walkout-stage-overlay.wo-theme-squad {
+  --wo-primary: #00e676;
+  --wo-secondary: #ffd740;
+  --wo-glow: rgba(0, 230, 118, 0.65);
+  --wo-card-bg: linear-gradient(160deg, #0b3a24 0%, #091e14 55%, #070d0b 100%);
+}
+
+.walkout-stage-overlay.wo-closing {
+  animation: woFadeOut 0.45s ease forwards;
+}
+
+@keyframes woFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes woFadeOut {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(1.04); }
+}
+
+/* Sweeping Stadium Spotlights */
+.wo-spotlight {
+  position: absolute;
+  top: -15%;
+  width: 240px;
+  height: 130vh;
+  background: linear-gradient(180deg, rgba(127, 230, 255, 0.42) 0%, rgba(255, 215, 64, 0.12) 55%, transparent 100%);
+  filter: blur(8px);
+  transform-origin: top center;
+  pointer-events: none;
+  z-index: 1;
+}
+.wo-spotlight.left-beam {
+  left: -5%;
+  animation: beamSweepLeft 3.6s ease-in-out infinite alternate;
+}
+.wo-spotlight.right-beam {
+  right: -5%;
+  animation: beamSweepRight 3.6s ease-in-out infinite alternate;
+}
+@keyframes beamSweepLeft {
+  0% { transform: rotate(-22deg); }
+  100% { transform: rotate(-42deg); }
+}
+@keyframes beamSweepRight {
+  0% { transform: rotate(22deg); }
+  100% { transform: rotate(42deg); }
+}
+
+/* Side Pyrotechnic Firework Columns */
+.wo-pyro-column {
+  position: absolute;
+  bottom: 12%;
+  width: 90px;
+  height: 72%;
+  background-image:
+    radial-gradient(circle, #fffde7 2px, transparent 3px),
+    radial-gradient(circle, var(--wo-primary) 2.5px, transparent 4px),
+    radial-gradient(circle, #ff9100 2px, transparent 3.5px);
+  background-size: 28px 42px, 36px 54px, 22px 38px;
+  background-position: 0 0, 14px 20px, 8px 30px;
+  filter: drop-shadow(0 0 8px var(--wo-primary));
+  opacity: 0.85;
+  animation: pyroRise 1.6s linear infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+.wo-pyro-column.left-pyro { left: 2%; }
+.wo-pyro-column.right-pyro { right: 2%; }
+
+@keyframes pyroRise {
+  0% { background-position: 0 120px, 14px 140px, 8px 150px; opacity: 0.4; }
+  50% { opacity: 0.95; }
+  100% { background-position: 0 0, 14px 20px, 8px 30px; opacity: 0.5; }
+}
+
+/* Top Headers */
+.wo-top-header {
+  position: relative;
+  z-index: 6;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.wo-mode-pill {
+  font-family: 'Rajdhani', var(--font-heading);
+  font-size: clamp(11px, 3.2vw, 14px);
+  font-weight: 900;
+  letter-spacing: 1.8px;
+  color: var(--wo-primary);
+  background: rgba(8, 14, 24, 0.85);
+  border: 1px solid var(--wo-primary);
+  padding: 4px 14px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  box-shadow: 0 0 14px var(--wo-glow);
+}
+.wo-main-banner-title {
+  font-family: 'Rajdhani', var(--font-heading);
+  font-size: clamp(18px, 5vw, 28px);
+  font-weight: 900;
+  letter-spacing: 2.5px;
+  color: #ffffff;
+  text-transform: uppercase;
+  text-shadow: 0 0 18px rgba(255, 215, 64, 0.75);
+}
+
+/* Center Stage Area */
+.wo-center-arena {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1200px;
+  z-index: 5;
+}
+
+/* Giant Glowing Background Text: UNDISPUTED / TWIN KINGS / GALACTICOS */
+.wo-giant-bg-word {
+  position: absolute;
+  top: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  text-align: center;
+  font-family: 'Teko', 'Rajdhani', sans-serif;
+  font-size: clamp(54px, 16vw, 118px);
+  font-weight: 900;
+  letter-spacing: 4px;
+  line-height: 0.9;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.08);
+  -webkit-text-stroke: 2px var(--wo-primary);
+  filter: drop-shadow(0 0 24px var(--wo-glow));
+  pointer-events: none;
+  z-index: 2;
+  animation: bgWordPulse 1.8s ease-out forwards;
+}
+@keyframes bgWordPulse {
+  0% { opacity: 0; transform: translateX(-50%) scale(0.65); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.06); }
+  100% { opacity: 0.95; transform: translateX(-50%) scale(1); }
+}
+
+/* 3D Flipping Champion Card */
+.wo-card-wrapper {
+  position: relative;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 28px;
+}
+
+.wo-champion-shield-card {
+  position: relative;
+  width: clamp(205px, 54vw, 250px);
+  min-height: 285px;
+  background: var(--wo-card-bg);
+  border: 2.5px solid var(--wo-primary);
+  border-radius: 18px 18px 38px 38px;
+  padding: 14px 12px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow:
+    0 0 36px var(--wo-glow),
+    inset 0 0 28px rgba(255, 255, 255, 0.14);
+  transform-style: preserve-3d;
+  animation: woCardFlipIn 1.15s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  overflow: hidden;
+}
+@keyframes woCardFlipIn {
+  0% {
+    opacity: 0;
+    transform: translateY(70px) scale(0.35) rotateY(540deg);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-8px) scale(1.05) rotateY(-12deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotateY(0deg);
+  }
+}
+
+/* Holographic Sheen Sweep Across Card */
+.wo-champion-shield-card::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -120%;
+  width: 75%;
+  height: 200%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  transform: rotate(25deg);
+  animation: woSheenPass 2.2s ease-in-out 0.9s infinite;
+  pointer-events: none;
+}
+@keyframes woSheenPass {
+  0% { left: -120%; }
+  100% { left: 160%; }
+}
+
+.wo-card-crowns {
+  font-size: 26px;
+  line-height: 1;
+  filter: drop-shadow(0 0 10px #ffd700);
+  margin-bottom: 2px;
+}
+
+.wo-card-top-tag {
+  font-family: 'Rajdhani', var(--font-heading);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  color: #fff8e1;
+  text-transform: uppercase;
+}
+
+/* Top-Left OVR Counter Inside Card */
+.wo-card-ovr-box {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 0.9;
+  z-index: 4;
+}
+.wo-card-ovr-num {
+  font-family: 'Teko', var(--font-heading);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--wo-primary);
+  text-shadow: 0 0 12px var(--wo-glow);
+  transition: transform 0.25s ease, color 0.25s ease;
+}
+.wo-card-ovr-num.ovr-boosted {
+  color: #ffffff;
+  transform: scale(1.22);
+  text-shadow: 0 0 20px #ffd740, 0 0 32px #00e5ff;
+}
+.wo-card-ovr-lbl {
+  font-family: 'Rajdhani', var(--font-heading);
+  font-size: 10px;
+  font-weight: 900;
+  color: #cfd8dc;
+  letter-spacing: 1px;
+}
+
+/* Portraits Inside Walkout Card */
+.wo-portraits-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px 0 8px;
+  z-index: 3;
+}
+.wo-portrait-circle {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 2.5px solid var(--wo-primary);
+  box-shadow: 0 0 18px var(--wo-glow);
+  object-fit: cover;
+  object-position: center 20%;
+  background: #0d141e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Rajdhani', var(--font-heading);
+  font-size: 32px;
+  font-weight: 900;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+.wo-portraits-row.is-duo .wo-portrait-circle {
+  width: 74px;
+  height: 74px;
+  font-size: 24px;
+}
+.wo-portraits-row.is-duo .wo-portrait-circle:not(:first-child) {
+  margin-left: -14px;
+}
+.wo-portraits-row.is-squad .wo-portrait-circle {
+  width: 60px;
+  height: 60px;
+  font-size: 20px;
+}
+.wo-portraits-row.is-squad .wo-portrait-circle:not(:first-child) {
+  margin-left: -12px;
+}
+
+.wo-card-divider {
+  width: 82%;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, var(--wo-primary), transparent);
+  margin: 4px 0;
+}
+
+.wo-card-sub-role {
+  font-family: 'Rajdhani', var(--font-heading);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  color: var(--wo-primary);
+  text-transform: uppercase;
+}
+
+.wo-card-winner-name {
+  font-family: 'Rajdhani', var(--font-heading);
+  font-size: clamp(18px, 4.8vw, 24px);
+  font-weight: 900;
+  color: #ffffff;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.1;
+  letter-spacing: 0.8px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+}
+
+/* Right-Side OVR Upgrade Callout Badge (93 -> 95) */
+.wo-ovr-upgrade-callout {
+  position: absolute;
+  right: -12px;
+  bottom: 24px;
+  transform: translateX(100%);
+  background: rgba(10, 15, 24, 0.95);
+  border: 1.5px solid var(--wo-primary);
+  border-radius: 10px;
+  padding: 8px 12px;
+  box-shadow: 0 0 20px var(--wo-glow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 8;
+  opacity: 0;
+  animation: calloutSlideIn 0.5s ease 1.1s forwards;
+}
+@keyframes calloutSlideIn {
+  from { opacity: 0; transform: translateX(85%) scale(0.8); }
+  to { opacity: 1; transform: translateX(100%) scale(1); }
+}
+.wo-bonus-label {
+  font-family: 'Rajdhani', var(--font-heading);
+  font-size: 9.5px;
+  font-weight: 900;
+  color: var(--wo-primary);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  line-height: 1.1;
+  margin-bottom: 3px;
+  text-align: center;
+}
+.wo-ovr-transition-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Teko', var(--font-heading);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 0.95;
+  color: #ffffff;
+}
+.wo-ovr-transition-row .old-ovr {
+  color: #90a4ae;
+}
+.wo-ovr-transition-row .ovr-arrow {
+  font-size: 16px;
+  color: var(--wo-primary);
+}
+.wo-ovr-transition-row .new-ovr {
+  color: var(--wo-primary);
+  text-shadow: 0 0 10px var(--wo-glow);
+}
+
+/* Bottom Stage Pedestal Banner */
+.wo-bottom-pedestal {
+  position: relative;
+  z-index: 6;
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.wo-pedestal-plate {
+  width: 92%;
+  background: linear-gradient(90deg, rgba(14, 20, 30, 0.95) 0%, rgba(38, 32, 14, 0.96) 50%, rgba(14, 20, 30, 0.95) 100%);
+  border-top: 2px solid var(--wo-primary);
+  border-bottom: 2px solid var(--wo-primary);
+  clip-path: polygon(4% 0, 96% 0, 100% 100%, 0% 100%);
+  padding: 9px 16px;
+  text-align: center;
+  font-family: 'Rajdhani', var(--font-heading);
+  font-size: clamp(14px, 4vw, 18px);
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  color: #ffffff;
+  text-transform: uppercase;
+  box-shadow: 0 0 24px var(--wo-glow);
+}
+.wo-pedestal-subpill {
+  background: rgba(0, 229, 255, 0.16);
+  border: 1px solid #00e5ff;
+  color: #7fe6ff;
+  font-family: 'Rajdhani', var(--font-heading);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  padding: 3px 16px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+/* Tap to Skip Button */
+.wo-skip-btn {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 20;
+  background: rgba(12, 18, 28, 0.88);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  color: #eaf6ff;
+  font-family: 'Rajdhani', var(--font-heading);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.wo-skip-btn:hover {
+  border-color: var(--wo-primary);
+  color: var(--wo-primary);
+}
+
+.replay-walkout-btn {
+  background: linear-gradient(135deg, #ffd740 0%, #ff9100 100%) !important;
+  color: #080c12 !important;
+  font-family: 'Rajdhani', var(--font-heading) !important;
+  font-weight: 900 !important;
+  font-size: 12.5px !important;
+  letter-spacing: 0.8px !important;
+  padding: 8px 14px !important;
+  border-radius: 999px !important;
+  border: none !important;
+  box-shadow: 0 0 14px rgba(255, 215, 64, 0.45) !important;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+@media (max-width: 560px) {
+  .wo-card-wrapper {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .wo-ovr-upgrade-callout {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    transform: none !important;
+    animation: woFadeIn 0.4s ease 1.1s forwards;
+  }
+}
  
 </style>
 </head>
@@ -9653,6 +10161,236 @@ async function showNextUpClashModal(tid, data, match, container, activeGroupInde
 
   trophyCabinetObserver.observe(document.body, { childList: true, subtree: true });
   setTimeout(loadAllTournamentsForTrophyCabinet, 950);
+
+ /* ========================================================= */
+  /* 42. FULL-SCREEN CHAMPION WALKOUT ENGINE                   */
+  /*     UNDISPUTED (Solo Maestro) | TWIN KINGS | GALACTICOS   */
+  /* ========================================================= */
+  window.__walkoutShownForBanner = new WeakSet();
+
+  function getWalkoutThemeConfig(format, subMode, winnerName) {
+    const partnersCount = (winnerName || "").split(" & ").filter(Boolean).length;
+
+    // 1. Group Teams / Tag-Team Regular -> GALACTICOS
+    if ((format === "tagteam" && subMode === "regular") || partnersCount >= 3) {
+      return {
+        themeClass: "wo-theme-squad",
+        topPill: "&#128101; GROUP TEAM - SUPER SQUADS",
+        giantWord: "GALACTICOS",
+        cardTopTag: "SUPER SQUADS",
+        subRole: "GROUP TEAM CHAMPIONS",
+        pedestalTitle: `${winnerName} &bull; GALACTICOS`,
+        bonusLabel: "GROUP TEAM<br>CHAMPIONS",
+        bonusSub: "SUPER SQUADS VICTORY",
+        crowns: "&#128081;&#128081;&#128081;"
+      };
+    }
+
+    // 2. Tag-Team Multi / 2v2 Duo -> TWIN KINGS
+    if ((format === "tagteam" && subMode === "multi") || partnersCount === 2) {
+      return {
+        themeClass: "wo-theme-duo",
+        topPill: "&#127918; TAG-TEAM MULTI - CO-OP MASTERS",
+        giantWord: "TWIN KINGS",
+        cardTopTag: "CO-OP MASTERS",
+        subRole: "TWIN KINGS",
+        pedestalTitle: `${winnerName} &bull; TWIN KINGS`,
+        bonusLabel: "+1.5 DUO TITLE<br>BONUS ADDED!",
+        bonusSub: "+1.5 OVR BONUS ACTIVE",
+        crowns: "&#128081; &#128081;"
+      };
+    }
+
+    // 3. Single Player 1v1 -> UNDISPUTED (Solo Maestro)
+    return {
+      themeClass: "wo-theme-solo",
+      topPill: "&#127942; SINGLE PLAYER - SOLO MAESTRO",
+      giantWord: "UNDISPUTED",
+      cardTopTag: "CHAMPION",
+      subRole: "SOLO MAESTRO",
+      pedestalTitle: `${winnerName} &bull; SOLO MAESTRO CHAMPION`,
+      bonusLabel: "+1.5 CHAMPIONSHIP<br>BONUS ADDED!",
+      bonusSub: "+1.5 OVR BONUS ACTIVE",
+      crowns: "&#128081;"
+    };
+  }
+
+  function launchChampionWalkout(winnerName, format, subMode) {
+    if (!winnerName || winnerName === "-") return;
+
+    const existing = document.getElementById("activeWalkoutOverlay");
+    if (existing) existing.remove();
+
+    const cfg = getWalkoutThemeConfig(format, subMode, winnerName);
+    const visuals = getSideVisuals(winnerName);
+    const newOvr = computePlayerOVR(winnerName);
+    const oldOvr = Math.max(63, newOvr - 2);
+
+    const layoutClass = visuals.length >= 3 ? "is-squad" : (visuals.length === 2 ? "is-duo" : "is-single");
+    const portraitsHtml = visuals.map(v => {
+      if (v.img) {
+        return `<img class="wo-portrait-circle" src="${v.img}" alt="${v.name}" onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'wo-portrait-circle',innerText:'${(v.name||'?').slice(0,1).toUpperCase()}'}));">`;
+      }
+      return `<div class="wo-portrait-circle">${(v.name || "?").slice(0, 1).toUpperCase()}</div>`;
+    }).join("");
+
+    const overlay = document.createElement("div");
+    overlay.id = "activeWalkoutOverlay";
+    overlay.className = `walkout-stage-overlay ${cfg.themeClass}`;
+    overlay.innerHTML = `
+      <div class="wo-spotlight left-beam"></div>
+      <div class="wo-spotlight right-beam"></div>
+      <div class="wo-pyro-column left-pyro"></div>
+      <div class="wo-pyro-column right-pyro"></div>
+
+      <div class="wo-top-header">
+        <div class="wo-mode-pill">${cfg.topPill}</div>
+        <div class="wo-main-banner-title">&#127942; TOURNAMENT CHAMPION &#127942;</div>
+      </div>
+
+      <div class="wo-center-arena">
+        <div class="wo-giant-bg-word">${cfg.giantWord}</div>
+
+        <div class="wo-card-wrapper">
+          <div class="wo-champion-shield-card">
+            <div class="wo-card-ovr-box">
+              <span class="wo-card-ovr-num" id="woLiveOvrNum">${oldOvr}</span>
+              <span class="wo-card-ovr-lbl">OVR</span>
+            </div>
+
+            <div style="display:flex; flex-direction:column; align-items:center;">
+              <div class="wo-card-crowns">${cfg.crowns}</div>
+              <div class="wo-card-top-tag">${cfg.cardTopTag}</div>
+            </div>
+
+            <div class="wo-portraits-row ${layoutClass}">
+              ${portraitsHtml}
+            </div>
+
+            <div style="width:100%; display:flex; flex-direction:column; align-items:center;">
+              <div class="wo-card-divider"></div>
+              <div class="wo-card-sub-role">${cfg.subRole}</div>
+              <div class="wo-card-winner-name">${winnerName}</div>
+            </div>
+          </div>
+
+          <div class="wo-ovr-upgrade-callout">
+            <div class="wo-bonus-label">${cfg.bonusLabel}</div>
+            <div class="wo-ovr-transition-row">
+              <span class="old-ovr">${oldOvr}</span>
+              <span class="ovr-arrow">&#10145;</span>
+              <span class="new-ovr" id="woCalloutNewOvr">${oldOvr}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wo-bottom-pedestal">
+        <div class="wo-pedestal-plate">${cfg.pedestalTitle}</div>
+        <div class="wo-pedestal-subpill">${cfg.bonusSub}</div>
+      </div>
+
+      <button type="button" class="wo-skip-btn" id="woSkipBtn">TAP TO SKIP</button>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Fire celebratory confetti if available
+    if (typeof fireConfetti === "function") {
+      try { fireConfetti(); } catch (e) {}
+    }
+
+    // Live OVR Counter Tick-Up at 1.45 seconds (e.g., 93 -> 94 -> 95)
+    const ovrEl = overlay.querySelector("#woLiveOvrNum");
+    const calloutOvrEl = overlay.querySelector("#woCalloutNewOvr");
+    let currentTick = oldOvr;
+    const tickTimer = setInterval(() => {
+      if (currentTick < newOvr) {
+        currentTick++;
+        if (ovrEl) {
+          ovrEl.textContent = currentTick;
+          ovrEl.classList.add("ovr-boosted");
+        }
+        if (calloutOvrEl) calloutOvrEl.textContent = currentTick;
+      } else {
+        clearInterval(tickTimer);
+      }
+    }, 420);
+
+    const closeWalkout = () => {
+      clearInterval(tickTimer);
+      if (!overlay.isConnected) return;
+      overlay.classList.add("wo-closing");
+      setTimeout(() => overlay.remove(), 420);
+    };
+
+    overlay.querySelector("#woSkipBtn")?.addEventListener("click", closeWalkout);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) closeWalkout();
+    });
+
+    // Auto-close after 4.6 seconds
+    setTimeout(closeWalkout, 4600);
+  }
+
+  /* Update Homepage Format Ribbons with Solo Maestro, Group Teams & Co-Op Masters */
+  function applyCustomFormatTitlesOnHome() {
+    if (currentView !== "home") return;
+    const rows = document.querySelectorAll("#champGrid .cyber-champ-row");
+    const customTitles = [
+      "SINGLE PLAYER<br><small style='font-size:9.5px; color:#fff8e1; letter-spacing:0.8px;'>SOLO MAESTRO</small>",
+      "GROUP TEAMS<br><small style='font-size:9.5px; color:#e0f2f1; letter-spacing:0.8px;'>SUPER SQUADS</small>",
+      "TAG-TEAM MULTI<br><small style='font-size:9.5px; color:#e1f5fe; letter-spacing:0.8px;'>CO-OP MASTERS</small>"
+    ];
+    rows.forEach((row, idx) => {
+      const txtEl = row.querySelector(".champ-format-text");
+      if (txtEl && customTitles[idx] && !txtEl.dataset.customNamed) {
+        txtEl.innerHTML = customTitles[idx];
+        txtEl.dataset.customNamed = "1";
+      }
+    });
+  }
+
+  /* Auto-Trigger Walkout When a Tournament Finishes + Add "Replay Walkout" Button on Summaries */
+  const walkoutObserver = new MutationObserver(() => {
+    applyCustomFormatTitlesOnHome();
+
+    // 1. Detect newly created Winner Banner when Final Match is saved
+    document.querySelectorAll(".winner-banner").forEach(banner => {
+      if (window.__walkoutShownForBanner.has(banner)) return;
+      window.__walkoutShownForBanner.add(banner);
+      const rawText = banner.textContent || "";
+      const match = rawText.match(/Champion:\s*(.+)$/i);
+      const winnerName = match ? match[1].trim() : rawText.replace(/🏆|Champion:/gi, "").trim();
+      if (winnerName) {
+        launchChampionWalkout(winnerName, null, null);
+      }
+    });
+
+    // 2. Inject a "🎬 Replay Walkout" button next to "Generate Matchday Story" on Completed Tournaments
+    const storyBtn = document.getElementById("storyExportBtn");
+    if (storyBtn && !document.getElementById("replayWalkoutBtn") && viewingTournamentId) {
+      const btn = document.createElement("button");
+      btn.id = "replayWalkoutBtn";
+      btn.className = "replay-walkout-btn";
+      btn.innerHTML = "&#127916; Replay Walkout";
+      storyBtn.insertAdjacentElement("beforebegin", btn);
+
+      btn.addEventListener("click", async () => {
+        try {
+          const snap = await getDoc(doc(db, "tournaments", viewingTournamentId));
+          if (snap.exists()) {
+            const d = snap.data();
+            if (d.winner) launchChampionWalkout(d.winner, d.format, d.subMode);
+          }
+        } catch (err) {
+          console.warn("Could not replay walkout:", err);
+        }
+      });
+    }
+  });
+
+  walkoutObserver.observe(document.body, { childList: true, subtree: true });
  
 </script>
 
